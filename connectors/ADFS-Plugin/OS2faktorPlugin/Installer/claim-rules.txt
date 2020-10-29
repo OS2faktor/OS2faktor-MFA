@@ -1,0 +1,12 @@
+
+c:[Type == "http://schemas.microsoft.com/claims/authnmethodsreferences", Value == "http://os2faktor.dk/mfa"]
+ => issue(Type = "http://schemas.microsoft.com/ws/2008/06/identity/claims/authenticationmethod",
+          Value = "http://schemas.microsoft.com/claims/multipleauthn");
+
+c:[Type == "http://schemas.microsoft.com/claims/authnmethodsreferences", Value == "http://os2faktor.dk/mfa"]
+ => issue(Type = "dk:gov:saml:attribute:AssuranceLevel", Value = "3");
+
+NOT EXISTS([Type == "http://schemas.microsoft.com/claims/authnmethodsreferences", Value == "http://os2faktor.dk/mfa"])
+ => issue(Type = "dk:gov:saml:attribute:AssuranceLevel", Value = "2");
+
+

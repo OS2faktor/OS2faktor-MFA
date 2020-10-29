@@ -1,0 +1,4 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\Credential Providers\{838fa51b-9659-4c03-8409-9510d8e9b7be}]
+@="OS2Faktor Login Credential Provider"

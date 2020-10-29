@@ -1,0 +1,3 @@
+This project uses AdvancedInstaller to build the MSI packages. A license for the AdvancedInstaller product was
+donated by AdvancedInstaller. Great thanks to them for their support of the open source community
+

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="da">
+	<head>
+		<meta charset="utf-8" />
+		<link href="libs/fontawesome-free-5.6.3-web/css/all.min.css" rel="stylesheet" type="text/css" />
+		<link href="libs/bootstrap-4.0.0/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+		<link href="css/popup.css" rel="stylesheet" type="text/css" />
+	</head>
+	<body>
+		<nav class="navbar navbar-light bg-light">
+			<a class="navbar-brand" href="#">
+				<img id="logo" src="images/os2faktor.png" style="max-height: 30px;" alt="Branding"><br/>
+			</a>
+
+			<div class="navbar-collapse" id="navbarNav">
+				<ul class="navbar-nav">
+					<li class="nav-item">
+						<a id="register" class="nav-link" href="#"><i class="fas fa-fw fa-plus"></i>&nbsp Registrer klient</a>
+					</li>
+					<li class="nav-item">
+						<a id="nemIdRegister" class="nav-link" href="#"><i class="fas fa-fw fa-key"></i>&nbsp Tilslut NemID</a>
+					</li>
+					<li class="nav-item">
+						<a id="pinRegister" class="nav-link" href="#"><i class="fas fa-fw fa-th"></i>&nbsp Vælg pinkode</a>
+					</li>
+					<li class="nav-item">
+						<a id="manage" class="nav-link" href="#"><i class="fas fa-fw fa-cogs"></i>&nbsp Indstillinger</a>
+					</li>
+					<li id="challengeItem" class="nav-item">
+						<a id="challenge" class="nav-link" href="#"><i class="fas fa-fw fa-sign-in-alt"></i>&nbsp Login</a>
+					</li>
+					<li class="nav-item">
+						<a id="reset" class="nav-link" href="#"><i class="fas fa-fw fa-minus"></i>&nbsp Nulstil klient</a>
+					</li>
+					<li id="deviceIdRuler">
+						<hr/>
+					</li>
+					<li id="deviceIdItem" class="nav-item" style="font-size: smaller;">
+						<center id="deviceIdItemValue">
+							&nbsp;
+						</center>
+					</li>
+				</ul>
+			</div>
+		</nav>
+
+		<script src="libs/jquery-3.3.1/jquery.min.js"></script>
+		<script src="libs/bootstrap-4.0.0/js/bootstrap.min.js"></script>
+		<script src="libs/sweetalert/js/sweetalert2.all.min.js"></script>
+		<script src="popup.js"></script>
+	</body>
+</html>

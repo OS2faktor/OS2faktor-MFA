@@ -1,0 +1,125 @@
+package dk.digitalidentity.os2faktor.api;
+
+import java.util.HashSet;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import dk.digitalidentity.os2faktor.api.dto.NSISClientDTO;
+import dk.digitalidentity.os2faktor.dao.ClientDao;
+import dk.digitalidentity.os2faktor.dao.ServerDao;
+import dk.digitalidentity.os2faktor.dao.model.Client;
+import dk.digitalidentity.os2faktor.dao.model.LocalClient;
+import dk.digitalidentity.os2faktor.dao.model.Server;
+import dk.digitalidentity.os2faktor.dao.model.User;
+import dk.digitalidentity.os2faktor.dao.model.enums.NSISLevel;
+import dk.digitalidentity.os2faktor.security.AuthorizedServerHolder;
+import dk.digitalidentity.os2faktor.service.LocalClientService;
+import dk.digitalidentity.os2faktor.service.UserService;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@CrossOrigin
+@RestController
+public class NSISServerApi {
+	
+	@Autowired
+	private ClientDao clientDao;
+	
+	@Autowired
+	private ServerDao serverDao;
+	
+	@Autowired
+	private LocalClientService localClientService;
+
+	@Autowired
+	private UserService userService;
+	
+	@Value("${os2faktor.frontend.baseurl}")
+	private String frontendBaseUrl;
+	
+	@GetMapping("/api/server/nsis/clients")
+	public ResponseEntity<?> getClients(@RequestParam("ssn") String encodedSsn, @RequestHeader("connectorVersion") String connectorVersion) {
+
+		// should not happen, but better safe than NullPointer ;)
+		Server server = AuthorizedServerHolder.getServer();
+		if (server == null) {
+			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+		}
+		
+		if (server.getConnectorVersion() == null && connectorVersion != null || !server.getConnectorVersion().equals(connectorVersion)) {
+			if (connectorVersion.length() > 32) {
+				return new ResponseEntity<>("ConnectorVersion header must not be longer than 32 characters!", HttpStatus.BAD_REQUEST);
+			}
+
+			server.setConnectorVersion(connectorVersion);
+			serverDao.save(server);
+		}
+
+		HashSet<NSISClientDTO> clients = new HashSet<>();
+
+		try {
+			if (encodedSsn != null && encodedSsn.length() > 0) {
+				addUsersClientsByEncodedSsn(encodedSsn, server.getMunicipality().getCvr(), clients);
+			}
+		}
+		catch (Exception ex) {
+			log.error("Bad request from server " + server.getName(), ex);
+
+			return new ResponseEntity<>("Unexpected error processing payload", HttpStatus.BAD_REQUEST);
+		}
+
+		return new ResponseEntity<>(clients, HttpStatus.OK);
+	}
+
+
+	private void addUsersClientsByEncodedSsn(String encodedSsn, String cvr, HashSet<NSISClientDTO> clients) {
+		User user = userService.getByEncodedSsn(encodedSsn);
+
+		if (user != null && user.getClients() != null && user.getClients().size() > 0) {
+			for (Client client : user.getClients()) {
+				if (client.isDisabled() || client.isLocked()) {
+					continue;
+				}
+
+				NSISClientDTO clientDTO = new NSISClientDTO();
+				clientDTO.setDeviceId(client.getDeviceId());
+				clientDTO.setHasPincode(client.isHasPincode());
+				clientDTO.setName(client.getName());
+				clientDTO.setType(client.getType());
+				clientDTO.setNsisLevel(NSISLevel.SUBSTANTIAL);
+				
+				clients.add(clientDTO);
+			}
+		}
+		
+		List<LocalClient> localClients = localClientService.getByEncodedSsnAndCvr(encodedSsn, cvr);
+		if (localClients != null && localClients.size() > 0) {
+			for (LocalClient localClient : localClients) {
+				Client client = clientDao.getByDeviceId(localClient.getDeviceId());
+				if (client != null) {
+					if (client.isDisabled() || client.isLocked()) {
+						continue;
+					}
+
+					NSISClientDTO clientDTO = new NSISClientDTO();
+					clientDTO.setDeviceId(client.getDeviceId());
+					clientDTO.setHasPincode(client.isHasPincode());
+					clientDTO.setName(client.getName());
+					clientDTO.setType(client.getType());
+					clientDTO.setNsisLevel(NSISLevel.LOW);
+					
+					clients.add(clientDTO);
+				}
+			}
+		}
+	}
+}

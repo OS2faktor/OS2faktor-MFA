@@ -1,0 +1,2 @@
+C:\WINDOWS\Microsoft.NET\Framework64\v4.0.30319\RegAsm.exe "C:\Users\Piotr\Projects\os2faktor\connectors\CredentialProvider\PasswordReset\bin\Debug\PasswordReset.dll" /codebase "C:\Users\Piotr\Projects\os2faktor\connectors\CredentialProvider\PasswordReset\bin\Debug\PasswordReset.dll"
+pause

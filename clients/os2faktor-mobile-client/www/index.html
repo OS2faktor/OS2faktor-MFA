@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <title>OS2faktor</title>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="format-detection" content="telephone=no" />
+
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="libs/fontawesome-5.3.1/css/all.min.css" />
+    <link rel="stylesheet" href="libs/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="libs/bootstrap/css/bootstrap4-buttons.css" />
+    <link rel="stylesheet" href="libs/sweetalert/css/sweetalert2.min.css" />
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#"><img class="img-fluid" src="img/os2faktor.png" style="display: inline; max-width: 30vw;"/></a>
+
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" onclick="reset()"><i class="fas fa-redo"></i>&nbsp Nulstil klient</a>
+                </li>
+                <li id="nemIdRegisterMenuItem" class="nav-item">
+                    <a class="nav-link active" onclick="registerNemID()"><i class="fas fa-key"></i>&nbsp Udfør NemID registering</a>
+                </li>
+                <li id="pinCodeRegisterMenuItem" class="nav-item">
+                    <a class="nav-link active" onclick="registerPinCode()"><i class="fas fa-th"></i>&nbsp Vælg pinkode</a>
+                </li>
+                <li id="selfServiceMenuItem" class="nav-item">
+                    <a class="nav-link active" onclick="showSelfService()"><i class="fas fa-users"></i>&nbsp Administration af klienter</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <textarea readonly style="width:100%; min-height:100vh; position: absolute; z-index: -100; border: none; display: none;" id="console" ></textarea>
+
+    <div class="content">
+        <center>
+            <div id="awaitPanel" >
+                <i class="fas fa-sync-alt fa-4x fa-spin" style="max-width:100%;height:auto;"></i>
+                <br>
+                <span class="label">Klar til anmodninger</span>
+            </div>
+
+            <div id="registerPanel" style="display: none;">
+                <div><span class="label">Din OS2faktor klient er ikke registreret</span></div>
+                <br/>
+                <div id="btnRegister" class="btn btn-lg btn-primary" onclick="register()">Registrer</div>
+            </div>
+        </center>
+    </div>
+
+
+    <footer>
+        <div id="nemIdPanel" class="alert alert-warning" role="alert" >
+            <i class="fas fa-exclamation-triangle"></i>
+                    Enheden er ikke koblet til NemID
+        </div>
+        
+        <div id="footer" class="bg-light" />
+    </footer>
+
+    <script type="text/javascript" src="libs/jquery/js/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="libs/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="libs/sweetalert/js/sweetalert2.all.min.js"></script>
+    <script type="text/javascript" src="libs/promises/js/promise-polyfill.js"></script>
+
+    <script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript" src="js/connectivity.js"></script>
+    <script type="text/javascript" src="js/rotationLock.js"></script>
+    <script type="text/javascript" src="js/index.js"></script>
+    <script type="text/javascript" src="js/nem-id-register.js"></script>
+    <script type="text/javascript" src="js/self-service.js"></script>
+    <script type="text/javascript" src="js/pin-register.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#footer').text(defaultFooterText);
+        });
+    </script>
+</body>
+</html>

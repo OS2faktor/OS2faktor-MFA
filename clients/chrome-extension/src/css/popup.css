@@ -1,0 +1,9 @@
+/* navbar wordwrap fix */
+.navbar .navbar-nav > li > a {
+    white-space: nowrap;
+}
+
+/* fix for popup width on chrome78*/
+.fa, .fab, .fal, .far, .fas {
+    display: inline !important;
+}

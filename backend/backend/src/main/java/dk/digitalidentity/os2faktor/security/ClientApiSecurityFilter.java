@@ -1,0 +1,73 @@
+package dk.digitalidentity.os2faktor.security;
+
+import java.io.IOException;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import dk.digitalidentity.os2faktor.dao.ClientDao;
+import dk.digitalidentity.os2faktor.dao.model.Client;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class ClientApiSecurityFilter implements Filter {
+	private ClientDao clientDao;
+
+	public void setClientDao(ClientDao clientDao) {
+		this.clientDao = clientDao;
+	}
+	
+	@Override
+	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+		HttpServletRequest request = (HttpServletRequest) servletRequest;
+		HttpServletResponse response = (HttpServletResponse) servletResponse;
+		
+		// allow CORS requests to pass-through
+		if (request.getMethod().equals("OPTIONS")) {
+			filterChain.doFilter(servletRequest, servletResponse);
+			return;
+		}
+
+		// we are using a custom header instead of Authorization because
+		// the Authorization header is already handled by Spring Security
+		String apiKey = request.getHeader("ApiKey");
+		String deviceId = request.getHeader("deviceId");
+
+		if (apiKey != null && deviceId != null) {
+			Client client = clientDao.getByDeviceId(deviceId);
+			if (client == null) {
+				log.debug("No client with deviceId: " + deviceId);
+				response.sendError(401, "No client with deviceId: " + deviceId);
+				return;
+			}
+			
+			if (!client.getApiKey().equals(apiKey)) {
+				log.error("Wrong ApiKey on: " + deviceId);
+				response.sendError(401, "Wrong ApiKey!");
+				return;
+			}
+
+			filterChain.doFilter(servletRequest, servletResponse);
+		}
+		else {
+			log.info("Missing deviceId or ApiKey Header: " + deviceId);
+			response.sendError(401, "Missing deviceId or ApiKey Header");
+		}
+	}
+
+	@Override
+	public void destroy() {
+		;
+	}
+
+	@Override
+	public void init(FilterConfig filterConfig) throws ServletException {
+		;
+	}
+}

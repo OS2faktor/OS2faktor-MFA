@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="da-DK">
+<head>
+	<meta http-equiv="x-ua-compatible" content="IE=edge">
+	<meta charset="utf-8" />
+	<meta name="apple-mobile-web-app-capable" content="yes"/>
+	<meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no" />
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+
+	<title th:text="#{html.os2faktor.title}"/>
+
+    <link rel="stylesheet" th:href="@{/desktop/lib/fontawesome/css/all.min.css}" />
+	<link rel="stylesheet" th:href="@{/desktop/lib/bootstrap/css/bootstrap.min.css}" />
+	<link rel="stylesheet" th:href="@{/libs/bootstrap/css/bootstrap4-buttons.css}" />
+	<link rel="stylesheet" th:href="@{/desktop/css/app.css}" />
+	<link rel="stylesheet" th:href="@{/libs/sweetalert/css/sweetalert2.min.css}" />
+</head>
+
+<body>
+	<div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom box-shadow">
+		<h5 class="my-0 mr-md-auto font-weight-normal">
+			<img class="img-fluid" th:src="@{/img/os2faktor.png}" style="display: inline; max-width: 30vw; max-height: 40px;" />
+		</h5>
+
+		<nav class="my-2 my-md-0 mr-md-3">
+			<a class="p-2 text-dark" th:href="@{/ui/desktop/selfservice}">&lt; Selvbetjening</a>
+			<a class="p-2 text-dark" th:href="@{/ui/desktop/logoff}">Log af</a>
+		</nav>
+	</div>
+
+	<div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto">
+		<form>
+			<h4 th:text="${client.name}"></h4>
+			<br/>
+
+			<div class="form-group">
+				<strong th:text="#{html.client.deviceid}" />
+				<input type="text" th:value="${client.deviceId}" class="form-control" readonly="readonly"></input>
+			</div>
+			
+			<div class="form-group">
+				<strong th:text="#{html.client.type}" />
+				<input type="text" th:value="#{__${client.type.message}__}" class="form-control" readonly="readonly"></input>
+			</div>
+			
+			<div class="form-group">
+				<strong th:text="#{html.client.created}" />
+				<input type="text" th:value="${#dates.format(client.created, 'yyyy-MM-dd HH:mm')}" class="form-control" readonly="readonly"></input>
+			</div>
+			
+			<div class="form-group">
+				<strong th:text="#{html.client.lastused}" />
+				<input type="text" th:value="${#dates.format(client.lastUsed, 'yyyy-MM-dd HH:mm')}" class="form-control" readonly="readonly"></input>
+			</div>
+			
+			<br/>
+			
+			<center style="margin-left: 10%; margin-right: 10%;">
+				<div class="container">
+					<div class="row">
+						<div class="col-sm" style="margin-bottom: 20px;">
+							<a style="text-decoration: none;" th:href="@{/ui/desktop/selfservice}">
+								<button class="btn btn-lg btn-secondary btn-block" type="button" th:text="#{html.navigate.back}" />
+							</a>
+						</div>
+						
+						<div class="col-sm" style="margin-bottom: 20px;">
+							<a style="text-decoration: none;" th:href="@{/ui/desktop/test/} + ${client.deviceId}">
+								<button class="btn btn-lg btn-primary btn-block" type="button" th:text="#{html.navigate.test}" />
+							</a>
+						</div>
+
+						<div class="col-sm">
+							<button class="btn btn-lg btn-danger btn-block" onclick="deleteClient(this.getAttribute('data-clientId'));" th:attr="data-clientId=${client.deviceId}" type="button" th:text="#{html.client.delete}"/>
+						</div>
+					</div>
+				</div>
+			</center>
+		</form>
+	</div>
+	
+	<script type="text/javascript" th:src="@{/libs/jquery/js/jquery-3.3.1.min.js}"></script>
+	<script type="text/javascript" th:src="@{/libs/sweetalert/js/sweetalert2.all.min.js}"></script>
+
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+
+		/*[+
+			var titleTxt = [[#{html.client.delete.title}]];
+			var bodyTxt = [[#{html.client.delete.body}]];
+			var confirmTxt = [[#{html.client.delete.confirm}]];
+			var cancelTxt = [[#{html.client.delete.cancel}]];
+			var url = [[@{/ui/desktop/selfservice}]];
+		+]*/
+
+		var swalWithBootstrapButtons;
+		$(document).ready(function() {
+			swalWithBootstrapButtons = swal.mixin({
+			    confirmButtonClass: 'btn btn-danger',
+			    cancelButtonClass: 'btn btn-primary',
+			    buttonsStyling: false,
+			});
+		});
+		
+		function deleteClient(deviceId) {
+			var endpoint = url + "/" + deviceId + "/delete";
+
+			swalWithBootstrapButtons({
+				title: titleTxt,
+				html: bodyTxt,
+				type: null,
+				showCancelButton: true,
+				reverseButtons: true,
+				confirmButtonText : confirmTxt,
+				cancelButtonText : cancelTxt,
+				allowOutsideClick: false
+			}).then(function(result) {
+				if (result.value) {
+					window.location = endpoint;
+				}
+			});
+		}
+
+		/*]]>*/
+	</script>
+</body>
+</html>

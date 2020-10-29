@@ -1,0 +1,4 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\Credential Providers\{62b8f223-6e50-453f-af28-4bab3c7a7002}]
+@="OS2Faktor VPN Credential Provider"

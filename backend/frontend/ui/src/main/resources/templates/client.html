@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="da-DK">
+<head>
+	<meta http-equiv="x-ua-compatible" content="IE=edge">
+	<meta charset="utf-8" />
+	<meta name="apple-mobile-web-app-capable" content="yes"/>
+	<meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no" />
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<meta name="format-detection" content="telephone=no" />
+
+	<title th:text="#{html.selfservice.title}"></title>
+
+	<link rel="stylesheet" th:href="@{/css/app.css}" />
+	<link rel="stylesheet" th:href="@{/css/register.css}" />
+	<link rel="stylesheet" th:href="@{/libs/fontawesome-5.3.1/css/all.min.css}" />
+	<link rel="stylesheet" th:href="@{/libs/bootstrap/css/bootstrap.min.css}" />
+	<link rel="stylesheet" th:href="@{/libs/bootstrap/css/bootstrap4-buttons.css}" />
+	<link rel="stylesheet" th:href="@{/libs/sweetalert/css/sweetalert2.min.css}" />
+</head>
+
+<body>
+	<nav class="navbar navbar-expand-lg navbar-light bg-light">
+		<a class="navbar-brand" href="#">
+			<img class="img-fluid" src="/img/os2faktor.png" style="display: inline; max-width: 30vw; max-height: 40px;" />
+		</a>
+		
+		<button class="backbutton" type="button" onclick="goback();">
+            <span class="fa fa-angle-left"></span>
+        </button>
+	</nav>
+
+	<div id="clients">
+		<form class="form-register">
+			<h4 th:text="${client.name}"></h4>
+			<br/>
+			
+			<div class="form-group">
+				<strong th:text="#{html.client.deviceid}" />
+				<input type="text" th:value="${client.deviceId}" class="form-control" readonly="readonly"></input>
+			</div>
+			
+			<div class="form-group">
+				<strong th:text="#{html.client.type}" />
+				<input type="text" th:value="#{__${client.type.message}__}" class="form-control" readonly="readonly"></input>
+			</div>
+			
+			<div class="form-group">
+				<strong th:text="#{html.client.created}" />
+				<input type="text" th:value="${#dates.format(client.created, 'yyyy-MM-dd HH:mm')}" class="form-control" readonly="readonly"></input>
+			</div>
+			
+			<div class="form-group">
+				<strong th:text="#{html.client.lastused}" />
+				<input type="text" th:value="${#dates.format(client.lastUsed, 'yyyy-MM-dd HH:mm')}" class="form-control" readonly="readonly"></input>
+			</div>
+			
+			<br/>
+			
+			<center>
+				<button class="btn btn-lg btn-danger" th:onclick="'deleteClient(\'' + ${client.deviceId} + '\');'" type="button" th:text="#{html.client.delete}"/>
+			</center>
+		</form>
+	</div>
+	
+	<!--[if lt IE 9]>
+		<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+	<![endif]-->
+	
+	<script type="text/javascript" th:src="@{/libs/jquery/js/jquery-3.3.1.min.js}"></script>
+	<script type="text/javascript" th:src="@{/libs/bootstrap/js/bootstrap.min.js}"></script>
+	<script type="text/javascript" th:src="@{/libs/sweetalert/js/sweetalert2.all.min.js}"></script>
+	<script type="text/javascript" th:src="@{/libs/promises/js/promise-polyfill.js}"></script>
+
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+
+		/*[+
+			var titleTxt = [[#{html.client.delete.title}]];
+			var bodyTxt = [[#{html.client.delete.body}]];
+			var confirmTxt = [[#{html.client.delete.confirm}]];
+			var cancelTxt = [[#{html.client.delete.cancel}]];
+			var url = [[@{/ui/selfservice}]];
+		+]*/
+
+		var swalWithBootstrapButtons;
+		$(document).ready(function() {
+			swalWithBootstrapButtons = swal.mixin({
+			    confirmButtonClass: 'btn btn-danger',
+			    cancelButtonClass: 'btn',
+			    buttonsStyling: false,
+			});
+		});
+
+		function goback() {
+			window.location = url;
+		}
+
+		function deleteClient(deviceId) {
+			var endpoint = url + "/" + deviceId + "/delete";
+
+			swalWithBootstrapButtons({
+				title: titleTxt,
+				html: bodyTxt,
+				type: null,
+				showCancelButton: true,
+				reverseButtons: true,
+				confirmButtonText : confirmTxt,
+				cancelButtonText : cancelTxt,
+				allowOutsideClick: false
+			}).then(function(result) {
+				if (result.value) {
+					window.location = endpoint;
+				}
+			});
+		}
+
+		/*]]>*/
+	</script>
+</body>
+</html>

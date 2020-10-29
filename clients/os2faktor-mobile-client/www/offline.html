@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <title>OS2faktor</title>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="format-detection" content="telephone=no" />
+
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="libs/fontawesome-5.3.1/css/all.min.css" />
+    <link rel="stylesheet" href="libs/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="libs/bootstrap/css/bootstrap4-buttons.css" />
+    <link rel="stylesheet" href="libs/sweetalert/css/sweetalert2.min.css" />
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#"><img class="img-fluid" src="img/os2faktor.png" style="display: inline; max-width: 30vw;"/></a>
+    </nav>
+
+    <div class="content">
+        <center>
+            <span class="fa-stack fa-4x" style="margin-top:20%; margin-bottom: 20px;">
+                <i class="fas fa-wifi fa-stack-1x"></i>
+                <i class="fas fa-ban fa-stack-2x" style="color:Tomato"></i>
+            </span>
+            <h2>Du skal være online for at anvende OS2faktor.</h2>
+        </center>
+    </div>
+
+    <footer id="footer" class="bg-light" />
+
+    <script type="text/javascript" src="libs/jquery/js/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="libs/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="libs/sweetalert/js/sweetalert2.all.min.js"></script>
+    <script type="text/javascript" src="libs/promises/js/promise-polyfill.js"></script>
+
+    <script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript" src="js/connectivity.js"></script>
+    <script type="text/javascript" src="js/rotationLock.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#footer').text("Denne enhed er offline");
+        });
+    </script>
+</body>
+</html>

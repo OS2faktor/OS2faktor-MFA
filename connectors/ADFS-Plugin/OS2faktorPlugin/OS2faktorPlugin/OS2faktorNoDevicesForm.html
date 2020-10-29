@@ -1,0 +1,69 @@
+﻿<div id="loginArea">
+	<form method="post" id="loginForm">
+		<input id="authMethod" type="hidden" name="AuthMethod" value="%AuthMethod%" /> <input id="context" type="hidden" name="Context" value="%Context%" />
+
+		<div class="fieldMargin bigText">Ingen registrerede OS2faktor klienter</div>
+        <div id="pageIntroductionText">
+            <p>For at gennemføre login, skal du bruge en OS2faktor klient.</p>
+            <br/>
+
+            <p>
+                Du kan læse mere om hvordan du får en OS2faktor klient <a target="_blank" href="@@GETDEVICEURL@@">ved at klikke her</a>.
+            </p>
+
+            <div id="selfreg" style="display: none;">
+                <br/>
+                <div class="fieldMargin bigText">Registrering af OS2faktor klient</div>
+                <p>
+                    Hvis du allerede har en OS2faktor klient, og den ikke er registreret til din konto endnu, kan du registrere den ved at kopiere dit
+                    OS2faktor ID ind i felterne nedenfor og trykke på "Registrer".
+                </p>
+                
+                <br /><br />
+                <input id="val1" name="val1" maxlength="3" onkeyup="tab(event, 'val1', 'val2');" style="width:45px; text-align:center;" autofocus="autofocus" /> -
+                <input id="val2" name="val2" maxlength="3" onkeyup="tab(event, 'val2', 'val3');" style="width:45px; text-align:center;" /> -
+                <input id="val3" name="val3" maxlength="3" onkeyup="tab(event, 'val3', 'val4');" style="width:45px; text-align:center;" /> -
+                <input id="val4" name="val4" maxlength="3" onkeyup="tab(event, 'val4', 'val5');" style="width:45px; text-align:center;" />
+                <br />
+                
+                <div id="errorMsg" style="display: none; color: red;">
+                    Det indtastede OS2faktor ID kunne ikke findes!
+                </div>
+
+                <button id="val5" value="Registrer" type="submit">Registrer</button>
+            </div>
+        </div>
+
+        <script type="text/javascript" language="JavaScript">
+            var allowSelfRegistration = @@ALLOWSELFREG@@;
+            var showError = @@SHOWERROR@@;
+
+            function tab(event, from, to) {
+                if (event.key == 'Tab' || event.key == 'Shift') {
+                    return;
+                }
+
+                var fieldElem = document.getElementById(from);
+                var value = fieldElem.value;
+                if (value.length == 3) {
+                    fieldElem = document.getElementById(to);
+                    fieldElem.focus();
+                }
+            }
+
+            if (allowSelfRegistration) {
+                var selfRegElem = document.getElementById('selfreg');
+                selfRegElem.style.cssText = 'display: block;';
+
+                if (showError) {
+                    var errorMsgElem = document.getElementById('errorMsg');
+                    errorMsgElem.style.cssText = 'display: block;';
+                }
+            }
+            else {
+                var selfRegElem = document.getElementById('selfreg');
+                selfRegElem.style.cssText = 'display: none;';
+            }
+        </script>
+	</form>
+</div>
