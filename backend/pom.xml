@@ -71,6 +71,5 @@
 		<module>yubikey</module>
 		<module>frontend</module>
 		<module>websockets</module>
-		<module>driftstatus</module>
 	</modules>
 </project>
