@@ -1,0 +1,76 @@
+html {
+  font-size: 14px;
+}
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.container {
+  max-width: 960px;
+}
+
+.pricing-header {
+  max-width: 700px;
+}
+
+.card-deck .card {
+  min-width: 220px;
+}
+
+.border-top { border-top: 1px solid #e5e5e5; }
+.border-bottom { border-bottom: 1px solid #e5e5e5; }
+
+.box-shadow { box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05); }
+
+a.active {
+  font-weight: bold;
+}
+
+/* datatables section */
+#listTable_length {
+	display: none;
+	width: 100px;
+}
+
+#listTable_filter {
+	float: right;
+	margin-bottom: 10px;
+}
+
+#listTable_info {
+	float: left;
+}
+
+#listTable_paginate {
+	float: right;
+}
+
+#listTable_paginate .previous {
+	color: black;
+	margin-right: 10px !important;
+	text-decoration: none;
+}
+
+#listTable_paginate .paginate_button {
+	color: black;
+	margin-left: 2px;
+	margin-right: 2px;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+#listTable_paginate .current {
+	font-weight: bolder;
+}
+
+#listTable_paginate .next {
+	text-decoration: none;
+	color: black;
+	margin-left: 10px !important;
+	cursor: pointer;
+}
+.dataTables_empty {
+	text-align: center;	
+}

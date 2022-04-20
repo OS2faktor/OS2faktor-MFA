@@ -1,6 +1,7 @@
 package dk.digitalidentity.os2faktor.controller;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -9,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
+import dk.digitalidentity.os2faktor.service.HashingService;
 import org.openoces.ooapi.exceptions.NonOcesCertificateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -49,6 +51,9 @@ public class RegistrationController extends BaseController {
 	
 	@Autowired
 	private NemIDService nemIDService;
+
+	@Autowired
+	private HashingService hashingService;
 	
 	@Autowired
 	private IdGenerator idGenerator;
@@ -95,10 +100,20 @@ public class RegistrationController extends BaseController {
 		Client client = new Client();
 		client.setUseCount(0);
 		client.setDeviceId(idGenerator.generateDeviceId());
-		client.setApiKey(idGenerator.generateUuid());
 		client.setName(registration.getName());
 		client.setToken(sToken);
 		client.setType((ClientType) type);
+
+		// Generate apiKey
+		String apiKey = idGenerator.generateUuid();
+
+		// Encode it and save it on client
+		try {
+			client.setApiKey(hashingService.encryptAndEncodeString(apiKey));
+		} catch (Exception ex) {
+			log.error("Failed to encrypt and encode apiKey", ex);
+			return ControllerUtil.handleError(model, FailedFlow.REGISTRATION, ErrorType.EXCEPTION, "Failed to encrypt and encode apiKey", PageTarget.APP);
+		}
 
 		if (sToken != null) {
 			try {
@@ -126,7 +141,7 @@ public class RegistrationController extends BaseController {
 		}
 		
 		clientDao.save(client);
-		return "redirect:/ui/successPage?apiKey=" + client.getApiKey() + "&deviceId=" + client.getDeviceId();
+		return "redirect:/ui/successPage?apiKey=" + apiKey + "&deviceId=" + client.getDeviceId();
 	}
 	
 	@GetMapping("/ui/nemid/register")
@@ -199,8 +214,15 @@ public class RegistrationController extends BaseController {
 
 		String cpr = result.getCpr();
 		String pid = result.getPid();
-	            
-        user = userService.getByPlainTextSsn(cpr);
+
+		// if the user does not exist, create the user
+		user = userService.getByPlainTextSsn(cpr);
+		if (user == null) {
+			// fallback to lookup by encoded cpr, as the PID lookup might have failed, and
+			// we used our database for lookup
+			user = userService.getByEncryptedAndEncodedSsn(cpr);
+		}
+
         if (user == null) {
         	user = new User();
         	user.setClients(new ArrayList<Client>());		            
@@ -210,7 +232,8 @@ public class RegistrationController extends BaseController {
         
         user.getClients().add(client);
         client.setUser(user);
-        
+		client.setAssociatedUserTimestamp(new Date());
+
         userService.save(user);
         
         // remove any local registrations on client

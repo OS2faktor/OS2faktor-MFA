@@ -1,7 +1,6 @@
 package dk.digitalidentity.os2faktor.service;
 
 import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;

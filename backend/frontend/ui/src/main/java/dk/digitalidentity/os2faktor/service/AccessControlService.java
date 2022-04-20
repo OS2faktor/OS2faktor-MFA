@@ -26,7 +26,7 @@ public class AccessControlService {
 		}
 		
 		// reload user, to ensure we get the updated data
-		User user = userService.getByPid(clientOrUser.getUser().getPid());
+		User user = userService.getByEncryptedAndEncodedSsn(clientOrUser.getUser().getSsn());
 
 		if (user.getClients() != null) {
 			for (Client c : user.getClients()) {

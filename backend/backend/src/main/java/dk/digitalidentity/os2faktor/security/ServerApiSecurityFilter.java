@@ -22,6 +22,7 @@ public class ServerApiSecurityFilter implements Filter {
 	public void setServerDao(ServerDao serverDao) {
 		this.serverDao = serverDao;
 	}
+
 	@Override
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
 		HttpServletRequest request = (HttpServletRequest) servletRequest;
@@ -31,7 +32,14 @@ public class ServerApiSecurityFilter implements Filter {
 		// the Authorization header is already handled by Spring Security
 		String apiKey = request.getHeader("ApiKey");
 		if (apiKey != null) {
-			Server server = serverDao.getByApiKey(apiKey);
+
+			Server server = null;
+			try {
+				server = serverDao.getByApiKey(apiKey);
+			} catch (Exception ex) {
+				throw new ServletException(ex);
+			}
+
 			if (server == null) {
 				log.info("Invalid ApiKey Header");
 				response.sendError(401, "Invalid ApiKey Header");

@@ -32,6 +32,8 @@
 
 			<br/>
 		</form>
+		
+		<button class="btn btn-primary btn-block" style="display: none;" id="iosBtn" onclick="login();">Åben YubiKey Login</a>
 	</div>
 	
 	<script type="text/javascript" th:src="@{/libs/jquery/js/jquery-3.3.1.min.js}"></script>
@@ -85,8 +87,22 @@
 		});
 	}
 	
+	function isIOS() {
+		return [
+			'iPad Simulator',
+			'iPhone Simulator',
+			'iPad',
+			'iPhone'
+		].includes(navigator.platform);
+	}
+	
 	$(document).ready(function() {
-		login();
+		if (!isIOS()) {
+			login();
+		}
+		else {
+			$('#iosBtn').show();
+		}
 	});
 	
 	/*]]>*/

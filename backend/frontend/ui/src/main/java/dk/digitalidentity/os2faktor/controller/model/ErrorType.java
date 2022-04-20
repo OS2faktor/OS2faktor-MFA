@@ -12,7 +12,9 @@ public enum ErrorType {
 	UNKNOWN_CLIENT("html.errortype.unknownclient"),
 	BAD_REQUEST("html.errortype.badrequest"),
 	BAD_CREDENTIALS("html.errortype.badcredentials"),
-	PIN_ALREADY_ASSIGNED("html.errortype.pinalreadyassigned");
+	PIN_ALREADY_ASSIGNED("html.errortype.pinalreadyassigned"),
+	UNAUTHORIZED("html.errortype.unauthorized"),
+	EXTERNAL_SESSION_EXPIRED("html.errortype.external_session_expired");
 	
 	private String message;
 	

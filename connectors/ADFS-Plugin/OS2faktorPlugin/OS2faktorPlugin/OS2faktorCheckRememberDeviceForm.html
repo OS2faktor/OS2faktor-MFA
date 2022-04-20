@@ -1,0 +1,36 @@
+﻿<div id="loginArea">
+    <form method="post" id="loginForm">
+        <input id="authMethod" type="hidden" name="AuthMethod" value="%AuthMethod%" /> <input id="context" type="hidden" name="Context" value="%Context%" />
+
+        <div class="fieldMargin bigText">OS2faktor Login</div>
+
+        <div id="pageIntroductionText">
+            <p>
+                vent venligst...
+
+                <div id="submissionArea" class="submitMargin">
+                    <span id="submitButton" class="submit" tabindex="4" role="button" onkeypress="if (event &amp;&amp; event.keyCode == 32) Login.submitLoginRequest();" onclick="return Login.submitLoginRequest();">Fortsæt login</span>
+                </div>
+            </p>
+        </div>
+
+        <input id="rememberMeToken" type="hidden" name="rememberMeToken" value="" />
+    </form>
+
+	<script type="text/javascript" language="JavaScript">
+		//<![CDATA[
+
+        const deviceString = localStorage.getItem('rememberMeToken');
+        if (deviceString != null) {
+            var deviceStringElem = document.getElementById('rememberMeToken');
+            if (deviceStringElem != null) {
+                deviceStringElem.value = deviceString;
+            }
+        }
+
+        var loginFormElem = document.getElementById('loginForm');
+        loginFormElem.submit();
+
+		//]]>
+	</script>
+</div>

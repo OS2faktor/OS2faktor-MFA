@@ -3,6 +3,7 @@ package dk.digitalidentity.os2faktor.controller;
 import java.nio.charset.Charset;
 import java.security.PublicKey;
 import java.util.Base64;
+import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -10,10 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.yubico.webauthn.data.AttestationObject;
 import com.yubico.webauthn.data.AuthenticatorData;
@@ -32,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Controller
 public class YubiKeyLoginController extends BaseController {
+	private static final String SESSION_REDIRECT_URL = "SESSION_REDIRECT_URL";
 
 	@Autowired
 	private NotificationDao notificationDao;
@@ -43,7 +47,7 @@ public class YubiKeyLoginController extends BaseController {
 	private String domain;
 
 	@GetMapping("/ui/yubikey/login/{pollingKey}")
-	public String initLogin(Model model, @PathVariable("pollingKey") String pollingKey, HttpServletRequest request) {
+	public String initLogin(Model model, @PathVariable("pollingKey") String pollingKey, @RequestParam(required = false, defaultValue = "", name = "redirectUrl") String redirectUrl, HttpServletRequest request) {
 		Notification notification = notificationDao.getByPollingKey(pollingKey);
 		if (notification == null) {
 			log.warn("Called YubiKey login with unknown pollingKey: " + pollingKey);
@@ -56,6 +60,10 @@ public class YubiKeyLoginController extends BaseController {
 			return "yubikey/loginfailed";
 		}
 
+		if (!StringUtils.isEmpty(redirectUrl)) {
+			request.getSession().setAttribute(SESSION_REDIRECT_URL, redirectUrl);
+		}
+		
 		model.addAttribute("uid", client.getYubikeyUid());
 		model.addAttribute("challenge", notification.getChallenge());
 		model.addAttribute("form", new LoginPayloadForm());
@@ -84,8 +92,14 @@ public class YubiKeyLoginController extends BaseController {
 		}
 
 		notification.setClientAuthenticated(true);
+		notification.setClientResponseTimestamp(new Date());
 		notificationDao.save(notification);
 
+		String redirectUrl = (String) request.getSession().getAttribute(SESSION_REDIRECT_URL);
+		if (!StringUtils.isEmpty(redirectUrl)) {
+			return "redirect:" + redirectUrl;
+		}
+		
 		return "yubikey/logincompleted";
 	}
 	
@@ -159,7 +173,7 @@ public class YubiKeyLoginController extends BaseController {
 		    return true;
 	    }
 	    catch (Exception ex) {
-	    	log.error("Exception during validation", ex);
+	    	log.error("Exception during validation for client: " + client.getDeviceId(), ex);
 	    	
 	    	return false;
 	    }

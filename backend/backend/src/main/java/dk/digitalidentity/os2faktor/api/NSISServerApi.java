@@ -3,12 +3,15 @@ package dk.digitalidentity.os2faktor.api;
 import java.util.HashSet;
 import java.util.List;
 
+import dk.digitalidentity.os2faktor.api.dto.NSISDetailsDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,6 +23,7 @@ import dk.digitalidentity.os2faktor.dao.model.Client;
 import dk.digitalidentity.os2faktor.dao.model.LocalClient;
 import dk.digitalidentity.os2faktor.dao.model.Server;
 import dk.digitalidentity.os2faktor.dao.model.User;
+import dk.digitalidentity.os2faktor.dao.model.enums.ClientType;
 import dk.digitalidentity.os2faktor.dao.model.enums.NSISLevel;
 import dk.digitalidentity.os2faktor.security.AuthorizedServerHolder;
 import dk.digitalidentity.os2faktor.service.LocalClientService;
@@ -36,7 +40,7 @@ public class NSISServerApi {
 	
 	@Autowired
 	private ServerDao serverDao;
-	
+
 	@Autowired
 	private LocalClientService localClientService;
 
@@ -47,7 +51,10 @@ public class NSISServerApi {
 	private String frontendBaseUrl;
 	
 	@GetMapping("/api/server/nsis/clients")
-	public ResponseEntity<?> getClients(@RequestParam("ssn") String encodedSsn, @RequestHeader("connectorVersion") String connectorVersion) {
+	public ResponseEntity<?> getClients(
+			@RequestParam(required = false, value = "ssn") String encodedSsn,
+			@RequestParam(required = false, value = "deviceId") String deviceId,
+			@RequestHeader("connectorVersion") String connectorVersion) {
 
 		// should not happen, but better safe than NullPointer ;)
 		Server server = AuthorizedServerHolder.getServer();
@@ -68,7 +75,10 @@ public class NSISServerApi {
 
 		try {
 			if (encodedSsn != null && encodedSsn.length() > 0) {
-				addUsersClientsByEncodedSsn(encodedSsn, server.getMunicipality().getCvr(), clients);
+				addClientsByEncodedSsn(encodedSsn, server.getMunicipality().getCvr(), clients);
+			}
+			if (deviceId != null) {
+				addClientsByDeviceId(deviceId, server.getMunicipality().getCvr(), clients);
 			}
 		}
 		catch (Exception ex) {
@@ -80,8 +90,18 @@ public class NSISServerApi {
 		return new ResponseEntity<>(clients, HttpStatus.OK);
 	}
 
+	@PostMapping("/api/server/nsis/{deviceId}/details")
+	public ResponseEntity<?> details(@PathVariable("deviceId") String deviceId) {
+		Client client = clientDao.getByDeviceId(deviceId);
+		if (client == null) {
+			return ResponseEntity.badRequest().body("Incorrect deviceId");
+		}
+		NSISDetailsDTO nsisDetailsDTO = new NSISDetailsDTO(client);
 
-	private void addUsersClientsByEncodedSsn(String encodedSsn, String cvr, HashSet<NSISClientDTO> clients) {
+		return ResponseEntity.ok(nsisDetailsDTO);
+	}
+
+	private void addClientsByEncodedSsn(String encodedSsn, String cvr, HashSet<NSISClientDTO> clients) {
 		User user = userService.getByEncodedSsn(encodedSsn);
 
 		if (user != null && user.getClients() != null && user.getClients().size() > 0) {
@@ -92,10 +112,19 @@ public class NSISServerApi {
 
 				NSISClientDTO clientDTO = new NSISClientDTO();
 				clientDTO.setDeviceId(client.getDeviceId());
-				clientDTO.setHasPincode(client.isHasPincode());
 				clientDTO.setName(client.getName());
 				clientDTO.setType(client.getType());
 				clientDTO.setNsisLevel(NSISLevel.SUBSTANTIAL);
+				clientDTO.setPrime(client.isPrime());
+				clientDTO.setRoaming(client.isRoaming());
+				
+				if (client.getPincode() != null && client.getPincode().length() > 0) {
+					clientDTO.setHasPincode(true);
+				}
+				else if (client.getType().equals(ClientType.YUBIKEY)) {
+					// for now the decision is that YubiKeys have a pincode build in due to its physical nature
+					clientDTO.setHasPincode(true);
+				}
 				
 				clients.add(clientDTO);
 			}
@@ -112,14 +141,51 @@ public class NSISServerApi {
 
 					NSISClientDTO clientDTO = new NSISClientDTO();
 					clientDTO.setDeviceId(client.getDeviceId());
-					clientDTO.setHasPincode(client.isHasPincode());
 					clientDTO.setName(client.getName());
 					clientDTO.setType(client.getType());
-					clientDTO.setNsisLevel(NSISLevel.LOW);
-					
+					if (localClient.getNsisLevel() != null) {
+						clientDTO.setNsisLevel(NSISLevel.valueOf(localClient.getNsisLevel()));
+					}
+					else {
+						clientDTO.setNsisLevel(NSISLevel.LOW);
+					}
+
+					if (client.getPincode() != null && client.getPincode().length() > 0) {
+						clientDTO.setHasPincode(true);
+					}
+					else if (client.getType().equals(ClientType.YUBIKEY)) {
+						// for now the decision is that YubiKeys have a pincode build in due to its physical nature
+						clientDTO.setHasPincode(true);
+					}
+
 					clients.add(clientDTO);
 				}
 			}
+		}
+	}
+	
+	// only return un-assigned clients here
+	private void addClientsByDeviceId(String deviceId, String cvr, HashSet<NSISClientDTO> clients) {
+		Client client = clientDao.getByDeviceId(deviceId);
+		if (client != null && client.getUser() == null) {
+			NSISClientDTO clientDTO = new NSISClientDTO();
+			clientDTO.setDeviceId(client.getDeviceId());
+			clientDTO.setHasPincode(client.isHasPincode());
+			clientDTO.setName(client.getName());
+			clientDTO.setType(client.getType());
+			clientDTO.setNsisLevel(NSISLevel.NONE);
+			clientDTO.setPrime(client.isPrime());
+			clientDTO.setRoaming(client.isRoaming());
+
+			if (client.getPincode() != null && client.getPincode().length() > 0) {
+				clientDTO.setHasPincode(true);
+			}
+			else if (client.getType().equals(ClientType.YUBIKEY)) {
+				// for now the decision is that YubiKeys have a pincode build in due to its physical nature
+				clientDTO.setHasPincode(true);
+			}
+
+			clients.add(clientDTO);
 		}
 	}
 }

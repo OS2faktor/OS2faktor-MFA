@@ -16,5 +16,11 @@ namespace OS2faktorPlugin
 
         [DataMember]
         public bool hasPincode { get; set; }
+
+        [DataMember]
+        public bool prime { get; set; }
+
+        [DataMember]
+        public string lastUsed { get; set; }
     }
 }

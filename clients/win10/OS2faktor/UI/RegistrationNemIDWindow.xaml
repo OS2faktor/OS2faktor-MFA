@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OS2faktor"
         mc:Ignorable="d"
-        Title="OS2faktor registrering" Height="600" Width="800">
+        Title="OS2faktor registrering" Height="1000" Width="800">
     <Grid>
         <WebBrowser x:Name="webview" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="0,0,0,0" Loaded="webview_Loaded" Navigating="webview_Navigating">
         </WebBrowser>

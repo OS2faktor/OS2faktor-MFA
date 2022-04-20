@@ -24,12 +24,12 @@
 
 package com.yubico.internal.util;
 
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
@@ -43,5 +43,4 @@ public class StreamUtil {
     public static <T> Set<T> toSet(Iterator<T> it) {
         return CollectionUtil.immutableSet(toStream(it).collect(Collectors.toSet()));
     }
-
 }

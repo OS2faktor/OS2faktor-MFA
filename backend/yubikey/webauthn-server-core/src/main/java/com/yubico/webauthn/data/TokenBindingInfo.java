@@ -24,14 +24,15 @@
 
 package com.yubico.webauthn.data;
 
+import static com.yubico.internal.util.ExceptionUtil.assure;
+
+import java.util.Optional;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Optional;
-import lombok.AllArgsConstructor;
+
 import lombok.NonNull;
 import lombok.Value;
-
-import static com.yubico.internal.util.ExceptionUtil.assure;
 
 /**
  * Information about the state of the <a href="https://tools.ietf.org/html/rfc8471">Token Binding protocol</a> used when

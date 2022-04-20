@@ -6,5 +6,9 @@ target/
 bin/
 obj/
 .vs/
+**/.factorypath
 
 *.jar
+
+.idea/
+*.iml

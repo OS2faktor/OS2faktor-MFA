@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="da-DK">
+<head>
+	<meta http-equiv="x-ua-compatible" content="IE=edge">
+	<meta charset="utf-8" />
+	<meta name="apple-mobile-web-app-capable" content="yes"/>
+	<meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no" />
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<meta name="format-detection" content="telephone=no" />
+
+	<title>OS2faktor login</title>
+
+    <link rel="stylesheet" th:href="@{/libs/fontawesome/css/all.min.css}" />
+	<link rel="stylesheet" th:href="@{/libs/bootstrap/css/bootstrap.min.css}" />
+	<link rel="stylesheet" th:href="@{/css/app.css}" />
+
+</head>
+
+<body>
+	<nav class="navbar navbar-expand-lg navbar-light bg-light">
+		<a class="navbar-brand" href="#">
+			<img class="img-fluid" src="/img/os2faktor.png" style="display: inline; max-width: 30vw; max-height: 40px;" />
+		</a>
+		
+		<button class="navbar-toggler" type="button" onclick="closeWindow();">
+			<span class="fa fa-times"></span>
+		</button>
+	</nav>
+
+	<div id="clients">
+		<form id="loginForm" th:action="@{/auth/}" method="post">
+			<div id="outside-browser" style="margin-left:15%;margin-right: 15%;margin-top:5%;">
+				<p>
+					Din OS2faktor klient åbner om lidt og spørger om du vil tillade login,
+					når dette sker, skal du verificere at den kode der vises i din OS2faktor
+					klient matcher nedenstående
+				</p>
+				<br/>
+				<h2 style="width: 150px; margin: 20px auto; padding: 10px 0px; border: 1px solid black; text-align: center;" th:text="${challenge}"></h2>
+			</div>
+
+		</form>
+	</div>
+	
+	<!-- TODO: use webjars -->
+
+	<!--[if lt IE 9]>
+		<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+	<![endif]-->
+	
+	<script type="text/javascript" th:src="@{/libs/jquery/js/jquery-3.3.1.min.js}"></script>
+	
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+
+		/*[+
+			var baseUrl = [[${baseUrl}]];
+			var pollingKey = [[${pollingKey}]];
+		+]*/
+	
+		$(document).ready(function() {
+			setInterval(function() {
+				$.ajax({
+					cache: false,
+					url: baseUrl + "/api/notification/" + pollingKey + "/poll",
+					success: function(data, textStatus, xhr) {
+						if (data && data.stateChange == true) {
+							$("#loginForm").submit();
+						}
+					}
+				});
+			}, 1000);
+		});
+		
+		function closeWindow() {
+			var endpoint = baseUrl + "?closeWindow=true";
+			window.location = endpoint;
+		}
+
+		/*]]>*/
+
+	</script>
+</body>
+</html>

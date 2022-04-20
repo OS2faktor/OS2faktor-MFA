@@ -12,5 +12,10 @@ if ((Get-WmiObject -class Win32_OperatingSystem).Caption -like '*2019*') {
   Set-AdfsResponseHeaders -SetHeaderName "Content-Security-Policy" -SetHeaderValue "default-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.os2faktor.dk https://*.cloudflare.com;"
 }
 
+# for Windows Server 2022, ensure access to resources
+if ((Get-WmiObject -class Win32_OperatingSystem).Caption -like '*2022*') {
+  Set-AdfsResponseHeaders -SetHeaderName "Content-Security-Policy" -SetHeaderValue "default-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.os2faktor.dk https://*.cloudflare.com;"
+}
+
 # finally enable in AD FS Console
 Set-AdfsGlobalAuthenticationPolicy -AdditionalAuthenticationProvider {OS2faktorPlugin}

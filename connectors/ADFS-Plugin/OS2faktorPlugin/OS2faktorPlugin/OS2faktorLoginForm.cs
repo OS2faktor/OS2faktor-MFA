@@ -8,13 +8,19 @@ namespace OS2faktorPlugin
         private string redirectUrl;
         private string pollingUrl;
         private string chromeClient;
+        private bool setLocalStorageNull;
+        private bool showRememberDevice;
+        private bool useiFrame;
 
-        public OS2faktorLoginForm(string challenge, string redirectUrl, string pollingUrl, string chromeClient)
+        public OS2faktorLoginForm(string challenge, string redirectUrl, string pollingUrl, string chromeClient, bool setLocalStorageNull, bool showRememberDevice, bool useiFrame)
         {
             this.chromeClient = chromeClient;
             this.challenge = challenge;
             this.redirectUrl = redirectUrl;
             this.pollingUrl = pollingUrl;
+            this.setLocalStorageNull = setLocalStorageNull;
+            this.showRememberDevice = showRememberDevice;
+            this.useiFrame = useiFrame;
         }
 
         /// Returns the HTML Form fragment that contains the adapter user interface. This data will be included in the web page that is presented
@@ -25,7 +31,10 @@ namespace OS2faktorPlugin
 
             htmlTemplate = htmlTemplate.Replace("@@CHROMECLIENT@@", this.chromeClient);
             htmlTemplate = htmlTemplate.Replace("@@CHALLENGE@@", this.challenge);
+            htmlTemplate = htmlTemplate.Replace("@@USEIFRAME@@", this.useiFrame ? "true" : "false");
             htmlTemplate = htmlTemplate.Replace("@@REDIRECTURL@@", this.redirectUrl);
+            htmlTemplate = htmlTemplate.Replace("@@SETLOCALSTORAGENULL@@", this.setLocalStorageNull ? "true" : "false");
+            htmlTemplate = htmlTemplate.Replace("@@SHOWREMEMBERDEVICE@@", this.showRememberDevice ? "true" : "false");
             return htmlTemplate.Replace("@@POLLINGURL@@", this.pollingUrl);
         }
 

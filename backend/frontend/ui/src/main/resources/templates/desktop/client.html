@@ -14,6 +14,12 @@
 	<link rel="stylesheet" th:href="@{/libs/bootstrap/css/bootstrap4-buttons.css}" />
 	<link rel="stylesheet" th:href="@{/desktop/css/app.css}" />
 	<link rel="stylesheet" th:href="@{/libs/sweetalert/css/sweetalert2.min.css}" />
+
+	<style type="text/css">
+		.btn {
+			margin-left: 0px !important;
+		}
+	</style>
 </head>
 
 <body>
@@ -55,24 +61,33 @@
 			
 			<br/>
 			
-			<center style="margin-left: 10%; margin-right: 10%;">
+			<center>
 				<div class="container">
 					<div class="row">
-						<div class="col-sm" style="margin-bottom: 20px;">
+						<div class="col-sm-12" style="margin-bottom: 20px;">
 							<a style="text-decoration: none;" th:href="@{/ui/desktop/selfservice}">
 								<button class="btn btn-lg btn-secondary btn-block" type="button" th:text="#{html.navigate.back}" />
 							</a>
 						</div>
-						
-						<div class="col-sm" style="margin-bottom: 20px;">
+
+						<div class="col-sm-12" style="margin-bottom: 20px;" th:if="${client.prime == false && client.type.name() != 'YUBIKEY'}">
+							<button class="btn btn-lg btn-primary btn-block" th:onclick="'setPrime(\'' + ${client.deviceId} + '\');'" type="button" th:text="#{html.client.setprime}"/>
+						</div>
+
+						<div class="col-sm-12" style="margin-bottom: 20px;" th:if="${client.prime == true && client.type.name() != 'YUBIKEY'}">
+							<button class="btn btn-lg btn-warning btn-block" th:onclick="'unsetPrime(\'' + ${client.deviceId} + '\');'" type="button" th:text="#{html.client.unsetprime}"/>
+						</div>
+
+						<div class="col-sm-12" style="margin-bottom: 20px;">
 							<a style="text-decoration: none;" th:href="@{/ui/desktop/test/} + ${client.deviceId}">
 								<button class="btn btn-lg btn-primary btn-block" type="button" th:text="#{html.navigate.test}" />
 							</a>
 						</div>
 
-						<div class="col-sm">
+						<div class="col-sm-12" style="margin-bottom: 20px;">
 							<button class="btn btn-lg btn-danger btn-block" onclick="deleteClient(this.getAttribute('data-clientId'));" th:attr="data-clientId=${client.deviceId}" type="button" th:text="#{html.client.delete}"/>
 						</div>
+
 					</div>
 				</div>
 			</center>
@@ -90,6 +105,13 @@
 			var bodyTxt = [[#{html.client.delete.body}]];
 			var confirmTxt = [[#{html.client.delete.confirm}]];
 			var cancelTxt = [[#{html.client.delete.cancel}]];
+
+			var primeTitleTxt = [[#{html.client.setprime.title}]];
+			var primeBodyTxt = [[#{html.client.setprime.body}]];
+			
+			var notPrimeTitleTxt = [[#{html.client.unsetprime.title}]];
+			var notPrimeBodyTxt = [[#{html.client.unsetprime.body}]];
+
 			var url = [[@{/ui/desktop/selfservice}]];
 		+]*/
 
@@ -113,6 +135,48 @@
 				reverseButtons: true,
 				confirmButtonText : confirmTxt,
 				cancelButtonText : cancelTxt,
+				allowOutsideClick: false
+			}).then(function(result) {
+				if (result.value) {
+					window.location = endpoint;
+				}
+			});
+		}
+
+		function setPrime(deviceId) {
+			var endpoint = url + "/" + deviceId + "/prime";
+
+			swalWithBootstrapButtons({
+				title: primeTitleTxt,
+				html: primeBodyTxt,
+				type: null,
+				showCancelButton: true,
+				reverseButtons: true,
+				confirmButtonText : confirmTxt,
+				confirmButtonClass: 'btn btn-primary',
+				cancelButtonText : cancelTxt,
+				cancelButtonClass: 'btn btn-default',
+				allowOutsideClick: false
+			}).then(function(result) {
+				if (result.value) {
+					window.location = endpoint;
+				}
+			});
+		}
+
+		function unsetPrime(deviceId) {
+			var endpoint = url + "/" + deviceId + "/notprime";
+
+			swalWithBootstrapButtons({
+				title: notPrimeTitleTxt,
+				html: notPrimeBodyTxt,
+				type: null,
+				showCancelButton: true,
+				reverseButtons: true,
+				confirmButtonText : confirmTxt,
+				confirmButtonClass: 'btn btn-danger',
+				cancelButtonText : cancelTxt,
+				cancelButtonClass: 'btn btn-default',
 				allowOutsideClick: false
 			}).then(function(result) {
 				if (result.value) {

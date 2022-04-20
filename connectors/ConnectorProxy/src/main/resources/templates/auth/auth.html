@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="da-DK">
+<head>
+	<meta http-equiv="x-ua-compatible" content="IE=edge">
+	<meta charset="utf-8" />
+	<meta name="apple-mobile-web-app-capable" content="yes"/>
+	<meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no" />
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<meta name="format-detection" content="telephone=no" />
+
+	<title>OS2faktor login</title>
+
+    <link rel="stylesheet" th:href="@{/libs/fontawesome/css/all.min.css}" />
+	<link rel="stylesheet" th:href="@{/libs/bootstrap/css/bootstrap.min.css}" />
+	<link rel="stylesheet" th:href="@{/css/app.css}" />
+
+</head>
+
+<body>
+	<nav class="navbar navbar-expand-lg navbar-light bg-light">
+		<a class="navbar-brand" href="#">
+			<img class="img-fluid" src="/img/os2faktor.png" style="display: inline; max-width: 30vw; max-height: 40px;" />
+		</a>
+		
+		<button class="navbar-toggler" type="button" onclick="closeWindow();">
+			<span class="fa fa-times"></span>
+		</button>
+	</nav>
+
+	<div id="clients">
+		<form class="form-register">	
+			<div class="container">
+				<div class="row">
+					<div th:if="${noClients == 'true'}">
+						Du har ingen OS2faktor klienter!
+					</div>
+
+					<div class="col-4" th:each="client : ${clients}" th:data-deviceId="${client.deviceId}" th:onclick="login(this.getAttribute('data-deviceId'));">
+						<center>
+							<div th:if="${client.type == T(dk.digitalidentity.os2faktor.model.enums.ClientType).WINDOWS}"><i class="fab fa-4x fa-windows" style="color:#0078D7"></i></div>
+							<div th:if="${client.type == T(dk.digitalidentity.os2faktor.model.enums.ClientType).CHROME}"><i class="fab fa-4x fa-chrome" style="color:#1f7aff"></i></div>
+							<div th:if="${client.type == T(dk.digitalidentity.os2faktor.model.enums.ClientType).IOS}"><i class="fab fa-4x fa-apple" style="color:#8a8a8a"></i></div>
+							<div th:if="${client.type == T(dk.digitalidentity.os2faktor.model.enums.ClientType).ANDROID}"><i class="fab fa-4x fa-android" style="color:#A4C639"></i></div>
+							<p th:text="${client.name}"></p>
+						</center>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+	
+	<!-- TODO: use webjars -->
+
+	<!--[if lt IE 9]>
+		<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+	<![endif]-->
+	
+	<script type="text/javascript" th:src="@{/libs/jquery/js/jquery-3.3.1.min.js}"></script>
+	
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+
+		/*[+
+			var url = [[@{/auth}]];
+		+]*/
+		
+		function login(deviceId) {
+			var endpoint = url + "/init/" + deviceId;
+			window.location = endpoint;
+		}
+		
+		function closeWindow() {
+			var endpoint = url + "?closeWindow=true";
+			window.location = endpoint;
+		}
+
+		/*]]>*/
+
+	</script>
+</body>
+</html>

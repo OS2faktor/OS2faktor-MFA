@@ -1,6 +1,7 @@
 package dk.digitalidentity.os2faktor.controller;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -9,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
+import dk.digitalidentity.os2faktor.service.HashingService;
 import org.openoces.ooapi.exceptions.NonOcesCertificateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -46,6 +48,9 @@ public class Registration2Controller extends BaseController {
 	
 	@Autowired
 	private UserService userService;
+
+	@Autowired
+	private HashingService hashingService;
 	
 	@Autowired
 	private NemIDService nemIDService;
@@ -72,7 +77,7 @@ public class Registration2Controller extends BaseController {
 
 		return "register2";
 	}
-	
+
 	@PostMapping("/ui/register2")
 	public String registerPost(Model model, @ModelAttribute("registration") @Valid Registration registration, BindingResult bindingResult, HttpServletRequest request) {
 		if (bindingResult.hasErrors()) {
@@ -94,38 +99,55 @@ public class Registration2Controller extends BaseController {
 		Client client = new Client();
 		client.setUseCount(0);
 		client.setDeviceId(idGenerator.generateDeviceId());
-		client.setApiKey(idGenerator.generateUuid());
 		client.setName(registration.getName());
 		client.setToken(sToken);
 		client.setType((ClientType) type);
 
+		// Generate apiKey
+		String apiKey = idGenerator.generateUuid();
+
+		// Encode it and save it on client
+		try {
+			client.setApiKey(hashingService.encryptAndEncodeString(apiKey));
+		} catch (Exception ex) {
+			log.error("Failed to encrypt and encode apiKey", ex);
+			return ControllerUtil.handleError(model, FailedFlow.REGISTRATION, ErrorType.EXCEPTION, "Failed to encrypt and encode apiKey", PageTarget.APP);
+		}
+
 		if (sToken != null) {
-			try {
-				String notificationKey = snsService.createEndpoint(sToken, client.getDeviceId(), (ClientType) type);
-				if (!StringUtils.isEmpty(notificationKey)) {
-					client.setNotificationKey(notificationKey);
-					
-					// see if there are any existing clients with this notification key, and disable them
-					// as they are old clients installed on the same device (and now overwritten by the new client)
-					List<Client> existingClients = clientDao.getByNotificationKey(notificationKey);
-					for (Client existingClient : existingClients) {
-						// TODO: should probably add the DisabledFalse flag to the query instead for better performance
-						if (!existingClient.isDisabled()) {
-							existingClient.setDisabled(true);
-							clientDao.save(existingClient);
+			ClientType cType = (ClientType) type;
+			if (cType.equals(ClientType.EDGE)) {
+				// TODO: do we need to handle EDGE here?
+				;
+			}
+			else {
+				try {
+					String notificationKey = snsService.createEndpoint(sToken, client.getDeviceId(), (ClientType) type);
+					if (!StringUtils.isEmpty(notificationKey)) {
+						client.setNotificationKey(notificationKey);
+						
+						// see if there are any existing clients with this notification key, and disable them
+						// as they are old clients installed on the same device (and now overwritten by the new client)
+						List<Client> existingClients = clientDao.getByNotificationKey(notificationKey);
+						for (Client existingClient : existingClients) {
+							// TODO: should probably add the DisabledFalse flag to the query instead for better performance
+							if (!existingClient.isDisabled()) {
+								existingClient.setDisabled(true);
+								clientDao.save(existingClient);
+							}
 						}
 					}
 				}
-			}
-			catch (Exception ex) {
-				log.error("Failed to register token at AWS SNS", ex);
-				
-				return ControllerUtil.handleError(model, FailedFlow.REGISTRATION, ErrorType.EXCEPTION, "Failed to register token at AWS SNS", PageTarget.APP);
+				catch (Exception ex) {
+					log.error("Failed to register token at AWS SNS", ex);
+					
+					return ControllerUtil.handleError(model, FailedFlow.REGISTRATION, ErrorType.EXCEPTION, "Failed to register token at AWS SNS", PageTarget.APP);
+				}
 			}
 		}
 		
 		clientDao.save(client);
-		return "redirect:/ui/register2/nemid?apiKey=" + client.getApiKey() + "&deviceId=" + client.getDeviceId()+"&fromRedirect=true";
+		return "redirect:/ui/register2/nemid?apiKey=" + apiKey + "&deviceId=" + client.getDeviceId()+"&fromRedirect=true";
 	}
 	
 	@GetMapping("/ui/register2/nemid")
@@ -143,7 +165,8 @@ public class Registration2Controller extends BaseController {
         }
 
 		request.getSession().setAttribute(ClientSecurityFilter.SESSION_DEVICE_ID, deviceId);
-		
+		request.getSession().setAttribute(ClientSecurityFilter.SESSION_API_KEY, apiKey);
+
 		model.addAttribute("apiKey", apiKey);
 		model.addAttribute("deviceId", deviceId);
 		model.addAttribute("fromRedirect", fromRedirect);
@@ -189,6 +212,11 @@ public class Registration2Controller extends BaseController {
 			return ControllerUtil.handleError(model, FailedFlow.NEMID, ErrorType.BAD_REQUEST, "No deviceId on session!", PageTarget.APP);
 		}
 
+		Object apiKey = httpSession.getAttribute(ClientSecurityFilter.SESSION_API_KEY);
+		if (apiKey == null || !(apiKey instanceof String)) {
+			return ControllerUtil.handleError(model, FailedFlow.NEMID, ErrorType.BAD_REQUEST, "No apiKey on session!", PageTarget.APP);
+		}
+
 		Client client = clientDao.getByDeviceId((String) deviceId);
 		if (client == null) {
 			return ControllerUtil.handleError(model, FailedFlow.NEMID, ErrorType.UNKNOWN_CLIENT, "No client with deviceId = " + deviceId, PageTarget.APP);
@@ -201,8 +229,15 @@ public class Registration2Controller extends BaseController {
 
 		String cpr = result.getCpr();
 		String pid = result.getPid();
-	            
-        user = userService.getByPlainTextSsn(cpr);
+
+		// if the user does not exist, create the user
+		user = userService.getByPlainTextSsn(cpr);
+		if (user == null) {
+			// fallback to lookup by encoded cpr, as the PID lookup might have failed, and
+			// we used our database for lookup
+			user = userService.getByEncryptedAndEncodedSsn(cpr);
+		}
+
         if (user == null) {
         	user = new User();
         	user.setClients(new ArrayList<Client>());		            
@@ -212,13 +247,14 @@ public class Registration2Controller extends BaseController {
         
         user.getClients().add(client);
         client.setUser(user);
+        client.setAssociatedUserTimestamp(new Date());
         
         userService.save(user);
         
         // remove any local registrations on client
         localClientService.deleteByDeviceId(client.getDeviceId());
 
-		return "redirect:/ui/register2/successPage?status=true&apiKey=" + client.getApiKey() + "&deviceId=" + client.getDeviceId();
+		return "redirect:/ui/register2/successPage?status=true&apiKey=" + apiKey + "&deviceId=" + client.getDeviceId();
 	}
 
 	// GET/POST, both are handled here

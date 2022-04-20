@@ -2,6 +2,7 @@ package dk.digitalidentity.os2faktor.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -16,6 +17,7 @@ import dk.digitalidentity.os2faktor.controller.ControllerUtil.PageTarget;
 import dk.digitalidentity.os2faktor.controller.model.ErrorType;
 import dk.digitalidentity.os2faktor.controller.model.FailedFlow;
 import dk.digitalidentity.os2faktor.dao.model.Client;
+import dk.digitalidentity.os2faktor.dao.model.enums.ClientType;
 import dk.digitalidentity.os2faktor.service.AccessControlService;
 import dk.digitalidentity.os2faktor.service.model.ClientOrUser;
 
@@ -106,6 +108,81 @@ public class SelfServiceController extends BaseController {
 		}
 
 		client.setDisabled(true);
+		clientDao.save(client);
+
+		return "redirect:/ui/selfservice";
+	}
+
+	// TODO: this is a copy of the code in DesktopController, merge at some point
+	@GetMapping("/ui/selfservice/{deviceId}/prime")
+	public String setPrimeClient(Model model, @PathVariable("deviceId") String deviceId, HttpServletRequest request) {
+		ClientOrErrorPage clientOrErrorPage = authenticateClient(model, FailedFlow.SELF_SERVICE, request);
+		if (clientOrErrorPage.errorPage != null) {
+			return clientOrErrorPage.errorPage;
+		}
+
+		Client client = clientDao.getByDeviceId(deviceId);
+		if (client == null) {
+			return ControllerUtil.handleError(model, FailedFlow.SELF_SERVICE, ErrorType.UNKNOWN_CLIENT, "supplied deviceId did not exist: " + deviceId, PageTarget.APP);
+		}
+
+		boolean access = accessControlService.doesAuthenticatedEntityHaveAccessToDeviceId(new ClientOrUser(client), deviceId);
+		if (!access) {
+			StringBuilder msg = new StringBuilder();
+			msg.append("supplied deviceId is not paired with authenticated client! ");
+			msg.append("supplied deviceId=" + deviceId + ", ");
+			msg.append("authenticated deviceId=" + client.getDeviceId());
+
+			return ControllerUtil.handleError(model, FailedFlow.SELF_SERVICE, ErrorType.UNKNOWN_CLIENT, msg.toString(), PageTarget.APP);
+		}
+
+		if (client.getType() == ClientType.YUBIKEY) {
+			return ControllerUtil.handleError(model, FailedFlow.SELF_SERVICE, ErrorType.UNKNOWN_CLIENT, "Client of type " + ClientType.YUBIKEY + " cannot be selected as prime.", PageTarget.APP);
+		}
+
+		if (client.getUser() != null) {
+			for (Client c : client.getUser().getClients()) {
+				c.setPrime(Objects.equals(c.getDeviceId(), client.getDeviceId()));
+			}
+
+			clientDao.saveAll(client.getUser().getClients());
+		}
+		else {
+			client.setPrime(true);
+			clientDao.save(client);
+		}
+
+		return "redirect:/ui/selfservice";
+	}
+
+	// TODO: this is a copy of the code in DesktopController, merge at some point
+	@GetMapping("/ui/selfservice/{deviceId}/notprime")
+	public String unsetPrimeClient(Model model, @PathVariable("deviceId") String deviceId, HttpServletRequest request) {
+		ClientOrErrorPage clientOrErrorPage = authenticateClient(model, FailedFlow.SELF_SERVICE, request);
+		if (clientOrErrorPage.errorPage != null) {
+			return clientOrErrorPage.errorPage;
+		}
+
+		Client client = clientDao.getByDeviceId(deviceId);
+		if (client == null) {
+			return ControllerUtil.handleError(model, FailedFlow.SELF_SERVICE, ErrorType.UNKNOWN_CLIENT, "supplied deviceId did not exist: " + deviceId, PageTarget.APP);
+		}
+
+		boolean access = accessControlService.doesAuthenticatedEntityHaveAccessToDeviceId(new ClientOrUser(client), deviceId);
+		if (!access) {
+			StringBuilder msg = new StringBuilder();
+			msg.append("supplied deviceId is not paired with authenticated client! ");
+			msg.append("supplied deviceId=" + deviceId + ", ");
+			msg.append("authenticated deviceId=" + client.getDeviceId());
+
+			return ControllerUtil.handleError(model, FailedFlow.SELF_SERVICE, ErrorType.UNKNOWN_CLIENT, msg.toString(), PageTarget.APP);
+		}
+
+		if (client.getType() == ClientType.YUBIKEY) {
+			return ControllerUtil.handleError(model, FailedFlow.SELF_SERVICE, ErrorType.UNKNOWN_CLIENT, "Client of type " + ClientType.YUBIKEY + " cannot be selected as prime.", PageTarget.APP);
+		}
+
+		client.setPrime(false);
 		clientDao.save(client);
 
 		return "redirect:/ui/selfservice";

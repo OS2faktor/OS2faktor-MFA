@@ -43,10 +43,10 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+    <Reference Include="log4net, Version=2.0.12.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.12\lib\net45\log4net.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.IdentityServer.Web, Version=10.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.IdentityServer.Web, Version=6.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\adfs-libs\adfs50\Microsoft.IdentityServer.Web.dll</HintPath>
     </Reference>
@@ -57,6 +57,7 @@
       <HintPath>..\packages\RestSharpSigned.105.2.3\lib\net46\RestSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.DirectoryServices" />
     <Reference Include="System.DirectoryServices.AccountManagement" />
@@ -78,8 +79,16 @@
     <Compile Include="BackendStub\SubscriptionResponse.cs" />
     <Compile Include="CprWebserviceStub\CprService.cs" />
     <Compile Include="CprWebserviceStub\CprServiceResponse.cs" />
+    <Compile Include="IdentifyService\IdentifyClaim.cs" />
+    <Compile Include="IdentifyService\IdentifyRecord.cs" />
+    <Compile Include="IdentifyService\IdentifyResource.cs" />
+    <Compile Include="IdentifyService\IdentifyService.cs" />
+    <Compile Include="IdentifyService\IdentifyResponse.cs" />
+    <Compile Include="IdentifyService\IdentifyTokenResponse.cs" />
     <Compile Include="Logging\Initializer.cs" />
     <Compile Include="OS2faktorAdapter.cs" />
+    <Compile Include="OS2faktorCheckRememberDeviceForm.cs" />
+    <Compile Include="OS2faktorRememberDeviceForm.cs" />
     <Compile Include="OS2faktorRejectedForm.cs" />
     <Compile Include="OS2faktorPickDeviceForm.cs" />
     <Compile Include="OS2faktorMetadata.cs" />
@@ -95,6 +104,8 @@
     <Compile Include="SQL\Dao.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="OS2faktorCheckRememberDeviceForm.html" />
+    <Content Include="OS2faktorRememberDeviceForm.html" />
     <Content Include="OS2faktorRejectedForm.html" />
     <Content Include="OS2faktorPickDeviceForm.html" />
     <Content Include="OS2faktorNoDevicesForm.html" />

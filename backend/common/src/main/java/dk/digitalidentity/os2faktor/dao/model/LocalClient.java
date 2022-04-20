@@ -36,6 +36,9 @@ public class LocalClient {
 	private String ssn;
 
 	@Column
+	private String nsisLevel;
+
+	@Column
 	@NotNull
 	private String adminUserName;
 

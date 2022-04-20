@@ -46,14 +46,14 @@ public class PushNotificationSenderService {
 			PublishRequest publishRequest = new PublishRequest();
 			publishRequest.setTargetArn(endpointArn);
 
-			NotificationMessage nm = new NotificationMessage();
+			NotificationMessage nm = new NotificationMessage();			
 			nm.set_default(message);
 			nm.setADM(mapper.writeValueAsString(nm.createADM(nm.createData(message))));
 			nm.setGCM(mapper.writeValueAsString(nm.createGCM(nm.createData(message))));
 			nm.setAPNS(mapper.writeValueAsString(nm.createAPNS(nm.createAPS(message))));
 
 			String msg = mapper.writeValueAsString(nm);
-			
+
 			publishRequest.setMessage(msg);
 			publishRequest.setMessageStructure("json");
 			
@@ -123,7 +123,7 @@ public class PushNotificationSenderService {
 				}
 			}
 
-			log.error("Failed to generate endpointArn", ex);
+			log.error("Failed to generate endpointArn for " + clientType.toString() + " / " + uuid + " / " + token, ex);
 			return null;
 		}
 

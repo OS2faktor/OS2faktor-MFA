@@ -1,4 +1,6 @@
-﻿using OS2faktor.Utils;
+﻿using OS2faktor.Service;
+using OS2faktor.Service.DTO;
+using OS2faktor.Utils;
 using Quartz;
 using Quartz.Impl;
 using System;
@@ -21,9 +23,12 @@ namespace OS2faktor
         public static readonly string CLIENT_VERSION = OS2faktor.Properties.Settings.Default.version;
         private static IScheduler sched;
         private System.Windows.Forms.NotifyIcon notifyIcon;
+        private BackendService backendService;
 
         private void Application_Startup(object sender, StartupEventArgs e)
-        {   
+        {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
             this.ShutdownMode = ShutdownMode.OnExplicitShutdown; //this prevents application form closing when we close a window.
 
             // allow restart manager to restart application (used by InnoSetup)
@@ -46,6 +51,46 @@ namespace OS2faktor
             notifyIcon.ContextMenu = CreateContextMenu();
             notifyIcon.Visible = true;
 
+            //Fetch clients status from backend
+            backendService = new BackendService();
+            if (IsRegistered())
+            {
+                backendService.GetInitialStatusAsync().ContinueWith((finishedTask) =>
+                {
+                    StatusResult result = finishedTask.Result;
+                    if (result != null)
+                    {
+                        if (!result.Disabled) //If exists
+                        {
+                            if (result.PinProtected && !OS2faktor.Properties.Settings.Default.IsPinRegistered)
+                            {
+                                OS2faktor.Properties.Settings.Default.IsPinRegistered = true;
+                            }
+
+                            if (result.NemIdRegistered && !OS2faktor.Properties.Settings.Default.IsNemIDRegistered)
+                            {
+                                OS2faktor.Properties.Settings.Default.IsNemIDRegistered = true;
+                            }
+                        }
+                        else if (!result.LookupFailed)
+                        {
+                            //Client was removed in the backend
+                            OS2faktor.Properties.Settings.Default.apiKey = null;
+                            OS2faktor.Properties.Settings.Default.deviceId = null;
+                            OS2faktor.Properties.Settings.Default.IsNemIDRegistered = false;
+                            OS2faktor.Properties.Settings.Default.IsPinRegistered = false;
+                        }
+                        else
+                        {
+                            log.Error("Cannot connect to backend to fetch status");
+                        }
+                        OS2faktor.Properties.Settings.Default.Save();
+                        OS2faktor.Properties.Settings.Default.Reload();
+                    }
+                    UpdateContextMenuVisibility();
+                });
+            }
+
             UpdateContextMenuVisibility();
 
             // Wait for Scheduler to be initialized
@@ -54,7 +99,7 @@ namespace OS2faktor
             sched = task.Result;
 
             // Create jobs
-            InitSchedulerWebScoket();
+            InitSchedulerWebSocket();
         }
 
         private void MigrateExistingConfiguration()
@@ -65,6 +110,7 @@ namespace OS2faktor
                 return;
             }
 
+            bool migrated = false;
             try
             {
                 string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -90,6 +136,7 @@ namespace OS2faktor
                                 OS2faktor.Properties.Settings.Default.Reload();
 
                                 log.Info("Migrated data from previous 1.4.0 installation");
+                                migrated = true;
                             }
                             else
                             {
@@ -106,9 +153,37 @@ namespace OS2faktor
                                     OS2faktor.Properties.Settings.Default.Reload();
 
                                     log.Info("Migrated data from previous 1.3.0 installation");
+                                    migrated = true;
                                 }
                             }
+                        }
+                    }
+                }
 
+                if (!migrated)
+                {
+                    appDataPath = appDataPath.Replace("Roaming", "Local");
+                    if (Directory.Exists(appDataPath))
+                    {
+                        foreach (var dir in Directory.GetDirectories(appDataPath))
+                        {
+                            if (dir.Contains("OS2FaktorKlient.exe"))
+                            {
+                                var configPath = Path.Combine(dir, "1.0.0.0\\user.config");
+
+                                var content = ParseOldConfigFile(configPath);
+                                if (content != null)
+                                {
+                                    OS2faktor.Properties.Settings.Default.apiKey = content.apiKey;
+                                    OS2faktor.Properties.Settings.Default.deviceId = content.deviceId;
+                                    OS2faktor.Properties.Settings.Default.IsNemIDRegistered = content.isNemIdRegistered;
+                                    OS2faktor.Properties.Settings.Default.IsPinRegistered = false;
+                                    OS2faktor.Properties.Settings.Default.Save();
+                                    OS2faktor.Properties.Settings.Default.Reload();
+
+                                    log.Info("Migrated data from previous 1.0.0 installation");
+                                }
+                            }
                         }
                     }
                 }
@@ -192,7 +267,7 @@ namespace OS2faktor
         }
 
 
-        private static async Task InitSchedulerWebScoket()
+        private static async Task InitSchedulerWebSocket()
         {
             // create job
             IJobDetail job = JobBuilder.Create<WebSocketConnectJob>()
@@ -245,7 +320,7 @@ namespace OS2faktor
             registerNemIDMenu.Text = "Udfør NemID registrering";
             registerNemIDMenu.Click += new EventHandler(registerNemIDMenu_Click);
 
-            System.Windows.Forms.MenuItem registerPinMenu= new System.Windows.Forms.MenuItem();
+            System.Windows.Forms.MenuItem registerPinMenu = new System.Windows.Forms.MenuItem();
             registerPinMenu.Tag = "Pin";
             registerPinMenu.Text = "Beskyt med pinkode";
             registerPinMenu.Click += new EventHandler(registerPinMenu_Click);
@@ -254,6 +329,11 @@ namespace OS2faktor
             deviceIdMenu.Tag = "DeviceId";
             deviceIdMenu.Text = "Ikke registreret endnu";
             deviceIdMenu.Click += new EventHandler(deviceIdMenu_Click);
+
+            System.Windows.Forms.MenuItem appVersionMenu = new System.Windows.Forms.MenuItem();
+            appVersionMenu.Tag = "AppVersion";
+            appVersionMenu.Text = "Version: " + OS2faktor.Properties.Settings.Default.version;
+            appVersionMenu.Enabled = false;
 
             System.Windows.Forms.MenuItem selfServiceMenu = new System.Windows.Forms.MenuItem();
             selfServiceMenu.Tag = "SelfService";
@@ -270,6 +350,8 @@ namespace OS2faktor
 
             contextMenu1.MenuItems.Add("-").Tag = "Splitter";
             contextMenu1.MenuItems.Add(deviceIdMenu);
+            contextMenu1.MenuItems.Add("-").Tag = "Splitter";
+            contextMenu1.MenuItems.Add(appVersionMenu);
 
             return contextMenu1;
         }
@@ -285,7 +367,7 @@ namespace OS2faktor
 
         private void deviceIdMenu_Click(object sender, EventArgs e)
         {
-            Clipboard.SetText(OS2faktor.Properties.Settings.Default.deviceId);
+            Clipboard.SetDataObject(OS2faktor.Properties.Settings.Default.deviceId);
         }
 
         private void registerMenu_Click(object sender, EventArgs e)
@@ -348,7 +430,7 @@ namespace OS2faktor
         {
             if (IsRegistered())
             {
-                FindMenuItemByTag("DeviceId").Text = OS2faktor.Properties.Settings.Default.deviceId + " (klik for kopi)";
+                FindMenuItemByTag("DeviceId").Text = "OS2faktor ID: " + OS2faktor.Properties.Settings.Default.deviceId;
 
                 FindMenuItemByTag("Reset").Enabled = true;
                 FindMenuItemByTag("Register").Enabled = false;
@@ -403,6 +485,13 @@ namespace OS2faktor
             }
 
             return false;
+        }
+
+        private void Application_Exit(object sender, ExitEventArgs e)
+        {
+            notifyIcon.Visible = false;
+            notifyIcon.Icon = null;
+            notifyIcon.Dispose();
         }
     }
 }

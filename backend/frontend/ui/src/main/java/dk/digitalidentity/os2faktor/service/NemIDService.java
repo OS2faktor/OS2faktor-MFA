@@ -18,6 +18,7 @@ import org.springframework.ui.Model;
 import dk.digitalidentity.nemid.Pid2Cpr;
 import dk.digitalidentity.os2faktor.controller.ControllerUtil;
 import dk.digitalidentity.os2faktor.controller.model.ErrorType;
+import dk.digitalidentity.os2faktor.dao.model.User;
 import dk.digitalidentity.os2faktor.service.model.PidAndCprOrError;
 import dk.nemid.common.ChallengeGenerator;
 import dk.nemid.common.NemIdProperties;
@@ -32,6 +33,9 @@ public class NemIDService {
 	@Autowired
 	private Pid2Cpr pid2Cpr;
 
+	@Autowired
+	private UserService userService;
+	
 	static {
 		OcesEnvironment.setOcesEnvironment();
 	}
@@ -85,7 +89,7 @@ public class NemIDService {
 				else if (certificateAndStatus.getCertificate() instanceof PocesCertificate) {
 					PocesCertificate pocesCert = ((PocesCertificate) certificateAndStatus.getCertificate());
 					String pid = pocesCert.getPid();
-					String cpr = pid2Cpr.lookup(pid);
+					String cpr = getCprByPid(pid);
 
 					if (cpr == null || cpr.length() == 0) {
 						return new PidAndCprOrError(ErrorType.NO_CPR, "Unable to get CPR for pid: " + pid);
@@ -114,6 +118,29 @@ public class NemIDService {
 		log.error("NemID validation failed: " + result);
 
 		return new PidAndCprOrError(ErrorType.NEMID_VALIDATION, result);
+	}
+
+	private String getCprByPid(String pid) {
+		String cpr = null;
+		try {
+			cpr = pid2Cpr.lookup(pid);
+		}
+		catch (Exception ex) {
+			log.warn("Failed to lookup CPR from PID", ex);
+		}
+
+		User user = userService.getByPid(pid);
+		if (user != null) {
+			cpr = user.getSsn();
+			
+			// above cpr is a hashed and encoded cpr, so sometimes this is cleartext, other times it is encoded when going through this class
+		}
+		
+		if (cpr == null) {
+			log.error("Unable to retrieve CPR from PID - see exception in previous message");
+		}
+		
+		return cpr;
 	}
 
 	private String getOrigin(HttpServletRequest request) {

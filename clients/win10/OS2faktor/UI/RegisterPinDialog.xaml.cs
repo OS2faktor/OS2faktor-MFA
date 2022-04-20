@@ -25,7 +25,7 @@ namespace OS2faktor
                 log.Error("Both ApiKey and DeviceID cannot be null or empty");
             }
 
-            string urlString = Properties.Settings.Default.backendUrl
+            string urlString = Properties.Settings.Default.frontendUrl
                 + "/ui/pin/register?"
                 + "&apiKey=" + Uri.EscapeDataString(Properties.Settings.Default.apiKey)
                 + "&deviceId=" + Uri.EscapeDataString(Properties.Settings.Default.deviceId);

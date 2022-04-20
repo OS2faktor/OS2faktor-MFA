@@ -5,6 +5,7 @@ public enum ClientType {
 	IOS("html.enum.clienttype.ios"),
 	ANDROID("html.enum.clienttype.android"),
 	CHROME("html.enum.clienttype.chrome"),
+	EDGE("html.enum.clienttype.edge"),
 	YUBIKEY("html.enum.clienttype.yubikey");
 	
 	private String message;

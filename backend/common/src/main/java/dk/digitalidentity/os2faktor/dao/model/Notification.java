@@ -40,6 +40,10 @@ public class Notification {
 	private Date created;
 
 	@Column
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date sentTimestamp;
+
+	@Column
 	@NotNull
 	private boolean clientNotified;
 	
@@ -50,7 +54,15 @@ public class Notification {
 	@Column
 	@NotNull
 	private boolean clientRejected;
-	
+
+	@Column
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date clientFetchedTimestamp;
+
+	@Column
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date clientResponseTimestamp;
+
 	@Column
 	@NotNull
 	private String challenge;

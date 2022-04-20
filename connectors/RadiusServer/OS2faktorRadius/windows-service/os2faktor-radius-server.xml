@@ -1,0 +1,7 @@
+<configuration>
+  <id>OS2faktor-radius</id>
+  <name>OS2faktor-radius</name>
+  <description>This service runs the OS2faktor RADIUS server</description>
+  <executable>java</executable>
+  <arguments>-Xmx256m -Dloader.path=%BASE%/config/* -jar %BASE%/os2faktor-radius-server.jar</arguments>
+</configuration>

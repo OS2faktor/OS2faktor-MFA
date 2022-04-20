@@ -13,4 +13,6 @@ public class NSISClientDTO {
 	private String name;
 	private boolean hasPincode;
 	private NSISLevel nsisLevel;
+	private boolean prime;
+	private boolean roaming;
 }

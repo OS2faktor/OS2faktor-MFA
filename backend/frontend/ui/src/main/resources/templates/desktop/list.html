@@ -44,7 +44,11 @@
 					<tr th:each="client : ${clients}" th:onclick="'navigate(\'' + ${client.deviceId} + '\');'" style="cursor: pointer;">
 						<td th:text="${client.deviceId}"></td>
 						<td th:text="#{__${client.type.message}__}"></td>
-						<td th:text="${client.name}"></td>
+						<td>
+							<span th:text="${client.name}"></span>
+							<span th:if="${client.prime}" class="badge badge-primary">Primær</span>
+							<span th:if="${client.roaming}" class="badge badge-warning">Roaming</span>
+						</td>
 					</tr>
 				</tbody>
 			</table>			

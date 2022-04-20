@@ -11,5 +11,6 @@ public class WSMessageDTO {
 	private String subscriptionKey;
 	private String challenge;
 	private String serverName;
+	private String tts;
 	private PinResult pinResult;
 }

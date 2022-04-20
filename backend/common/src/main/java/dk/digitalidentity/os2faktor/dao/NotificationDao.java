@@ -16,6 +16,5 @@ public interface NotificationDao extends JpaRepository<Notification, String> {
 	List<Notification> getByClientAndClientRejectedFalseAndClientAuthenticatedFalseAndClientLockedFalse(Client client);
 	List<Notification> getByClientNotifiedFalseAndClientType(ClientType clientType);
 	List<Notification> getByClientNotifiedTrueAndClientRejectedFalseAndClientAuthenticatedFalse();
-	
-	void deleteByCreatedBefore(Date timestamp);
+	List<Notification> getByCreatedBefore(Date timestamp);
 }

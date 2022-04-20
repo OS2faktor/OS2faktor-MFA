@@ -3,10 +3,12 @@ package dk.digitalidentity.os2faktor.controller;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -22,6 +24,7 @@ import dk.digitalidentity.os2faktor.controller.model.ErrorType;
 import dk.digitalidentity.os2faktor.controller.model.FailedFlow;
 import dk.digitalidentity.os2faktor.dao.model.Client;
 import dk.digitalidentity.os2faktor.dao.model.User;
+import dk.digitalidentity.os2faktor.dao.model.enums.ClientType;
 import dk.digitalidentity.os2faktor.security.ClientSecurityFilter;
 import dk.digitalidentity.os2faktor.service.AccessControlService;
 import dk.digitalidentity.os2faktor.service.NemIDService;
@@ -51,7 +54,7 @@ public class DesktopController extends BaseController {
 		}
 
 		// reload the user, to get any changes since last visit
-		List<Client> clients = userService.getByPid(userOrLoginPage.user.getPid()).getClients()
+		List<Client> clients = userService.getByEncryptedAndEncodedSsn(userOrLoginPage.user.getSsn()).getClients()
 					.stream().filter(c -> !c.isDisabled())
 					.collect(Collectors.toList());
 
@@ -91,7 +94,13 @@ public class DesktopController extends BaseController {
 		String pid = result.getPid();
 
 		// if the user does not exist, create the user
-        User user = userService.getByPlainTextSsn(cpr);
+		User user = userService.getByPlainTextSsn(cpr);
+		if (user == null) {
+			// fallback to lookup by encoded cpr, as the PID lookup might have failed, and
+			// we used our database for lookup
+			user = userService.getByEncryptedAndEncodedSsn(cpr);
+		}
+
         if (user == null) {
         	user = new User();
         	user.setClients(new ArrayList<Client>());		            
@@ -103,7 +112,9 @@ public class DesktopController extends BaseController {
 
         // store authenticated user on session
         // TODO: make user serializeable, so we can store in session
-		request.getSession().setAttribute(ClientSecurityFilter.SESSION_USER, user);
+        HttpSession session = request.getSession();
+        session.setAttribute(ClientSecurityFilter.SESSION_USER, user);
+        session.setAttribute(ClientSecurityFilter.SESSION_ROLE, "ROLE_USER");
 
 		return "redirect:/ui/desktop/selfservice";
 	}
@@ -155,6 +166,75 @@ public class DesktopController extends BaseController {
 			log.error("User " + user.getPid() + " tried to delete client " + client.getDeviceId());
 		}
 		
+		return "redirect:/ui/desktop/selfservice";
+	}
+
+	// TODO: this is a copy of the code in SelfServiceController - merge at some point
+	@GetMapping("/ui/desktop/selfservice/{deviceId}/prime")
+	public String setPrimeClient(Model model, @PathVariable("deviceId") String deviceId, HttpServletRequest request) {
+		UserOrLoginPage userOrLoginPage = authenticateUser(request);
+		if (userOrLoginPage.loginPage != null) {
+			return userOrLoginPage.loginPage;
+		}
+
+		Client client = clientDao.getByDeviceId(deviceId);
+		if (client == null) {
+			return ControllerUtil.handleError(model, FailedFlow.SELF_SERVICE, ErrorType.UNKNOWN_CLIENT, "supplied deviceId did not exist: " + deviceId, PageTarget.DESKTOP);
+		}
+
+		User user = userOrLoginPage.user;
+		boolean access = accessControlService.doesAuthenticatedEntityHaveAccessToDeviceId(new ClientOrUser(user), deviceId);
+		if (!access) {
+			return ControllerUtil.handleError(model, FailedFlow.SELF_SERVICE, ErrorType.UNKNOWN_CLIENT, "User " + user.getPid() + " tried to set " + deviceId + " as prime", PageTarget.DESKTOP);
+		}
+
+		if (client.getType() == ClientType.YUBIKEY) {
+			return ControllerUtil.handleError(model, FailedFlow.SELF_SERVICE, ErrorType.UNKNOWN_CLIENT, "Client of type " + ClientType.YUBIKEY + " cannot be selected as prime.", PageTarget.DESKTOP);
+		}
+
+		if (client.getUser() != null) {
+			for (Client c : client.getUser().getClients()) {
+				c.setPrime(Objects.equals(c.getDeviceId(), client.getDeviceId()));
+			}
+
+			clientDao.saveAll(client.getUser().getClients());
+		}
+		else {
+			client.setPrime(true);
+
+			clientDao.save(client);
+		}
+
+		return "redirect:/ui/desktop/selfservice";
+	}
+
+	// TODO: this is a copy of the code in SelfServiceController - merge at some point
+	@GetMapping("/ui/desktop/selfservice/{deviceId}/notprime")
+	public String unsetPrimeClient(Model model, @PathVariable("deviceId") String deviceId, HttpServletRequest request) {
+		UserOrLoginPage userOrLoginPage = authenticateUser(request);
+		if (userOrLoginPage.loginPage != null) {
+			return userOrLoginPage.loginPage;
+		}
+
+		Client client = clientDao.getByDeviceId(deviceId);
+		if (client == null) {
+			return ControllerUtil.handleError(model, FailedFlow.SELF_SERVICE, ErrorType.UNKNOWN_CLIENT, "supplied deviceId did not exist: " + deviceId, PageTarget.DESKTOP);
+		}
+
+		User user = userOrLoginPage.user;
+		boolean access = accessControlService.doesAuthenticatedEntityHaveAccessToDeviceId(new ClientOrUser(user), deviceId);
+		if (!access) {
+			return ControllerUtil.handleError(model, FailedFlow.SELF_SERVICE, ErrorType.UNKNOWN_CLIENT, "User " + user.getPid() + " tried to set " + deviceId + " as prime", PageTarget.DESKTOP);
+		}
+
+		if (client.getType() == ClientType.YUBIKEY) {
+			return ControllerUtil.handleError(model, FailedFlow.SELF_SERVICE, ErrorType.UNKNOWN_CLIENT, "Client of type " + ClientType.YUBIKEY + " cannot be selected as prime.", PageTarget.DESKTOP);
+		}
+
+		client.setPrime(false);
+
+		clientDao.save(client);
+
 		return "redirect:/ui/desktop/selfservice";
 	}
 }

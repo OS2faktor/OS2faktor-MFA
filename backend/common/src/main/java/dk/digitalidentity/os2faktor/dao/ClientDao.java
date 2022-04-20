@@ -20,4 +20,8 @@ public interface ClientDao extends JpaRepository<Client, String> {
 	List<Client> getByLockedTrue();
 
 	void deleteByDisabledTrueAndLastUsedIsNullOrLastUsedBefore(Date timestamp);
+	
+	void deleteByLastUsedIsNullAndCreatedBefore(Date timestamp);
+	
+	void deleteByLastUsedIsNotNullAndLastUsedBefore(Date timestamp);
 }

@@ -13,14 +13,20 @@ import javax.servlet.http.HttpServletResponse;
 
 import dk.digitalidentity.os2faktor.dao.ClientDao;
 import dk.digitalidentity.os2faktor.dao.model.Client;
+import dk.digitalidentity.os2faktor.service.HashingService;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ClientApiSecurityFilter implements Filter {
 	private ClientDao clientDao;
+	private HashingService hashingService;
 
 	public void setClientDao(ClientDao clientDao) {
 		this.clientDao = clientDao;
+	}
+
+	public void setHashingServiceDao(HashingService hashingService) {
+		this.hashingService = hashingService;
 	}
 	
 	@Override
@@ -46,8 +52,18 @@ public class ClientApiSecurityFilter implements Filter {
 				response.sendError(401, "No client with deviceId: " + deviceId);
 				return;
 			}
-			
-			if (!client.getApiKey().equals(apiKey)) {
+
+			boolean matches = false;
+			try {
+				matches = hashingService.matches(apiKey, client.getApiKey());
+			}
+			catch (Exception ex) {
+				log.error("Failed to check matching apiKeys", ex);
+				response.sendError(500, "Failed to check matching apiKeys");
+				return;
+			}
+
+			if (!matches) {
 				log.error("Wrong ApiKey on: " + deviceId);
 				response.sendError(401, "Wrong ApiKey!");
 				return;

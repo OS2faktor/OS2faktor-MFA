@@ -1,6 +1,6 @@
  {
 	"name": "OS2faktor Chrome Extension",
-	"version": "1.5.1",
+	"version": "2.0.3",
 	"minimum_chrome_version": "33",
 	"description": "Google Chrome - OS2faktor client",
 	"permissions": [ "background", "tabs", "gcm", "storage", "https://backend.os2faktor.dk/*", "https://frontend.os2faktor.dk/*" ],

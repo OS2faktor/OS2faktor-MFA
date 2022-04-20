@@ -39,6 +39,7 @@
 				<thead>
 					<tr>
 						<th scope="col">OS2faktor ID</th>
+						<th scope="col">Navn</th>
 						<th scope="col">Administrator</th>
 						<th scope="col">Tidspunkt</th>
 					</tr>
@@ -46,6 +47,7 @@
 				<tbody>
 					<tr th:each="client : ${clients}" th:onclick="'navigate(\'' + ${client.deviceId} + '\');'" style="cursor: pointer;">
 						<td th:text="${client.deviceId}"></td>
+						<td th:text="${client.name}"></td>
 						<td th:text="${client.adminUserName}"></td>
 						<td th:text="${#dates.format(client.ts, 'YYYY-MM-dd')}"></td>
 					</tr>

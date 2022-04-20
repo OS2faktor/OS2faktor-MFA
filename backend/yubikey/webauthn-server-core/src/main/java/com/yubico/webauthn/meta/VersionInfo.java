@@ -24,14 +24,15 @@
 
 package com.yubico.webauthn.meta;
 
-import com.yubico.internal.util.ExceptionUtil;
 import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.jar.Manifest;
+
+import com.yubico.internal.util.ExceptionUtil;
+
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 

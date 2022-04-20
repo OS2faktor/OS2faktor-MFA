@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using System.Dynamic;
 using System.Windows;
 using OS2faktor.WebSockets;
+using OS2faktor.UI;
 
 namespace OS2faktor
 {
@@ -23,6 +24,7 @@ namespace OS2faktor
                 return;
             }
 
+            WebSocket.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12;
             WebSocket.SetCredentials(Properties.Settings.Default.deviceId, Properties.Settings.Default.apiKey, true);
             WebSocket.Connect();
         }
@@ -65,13 +67,16 @@ namespace OS2faktor
                         case WSMessageType.NOTIFICATION:
                             string challenge = dataObject.challenge;
                             string serverName = dataObject.serverName;
+                            string tts = dataObject.tts;
 
                             App.Current.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(() =>
                             {
-                                var notify = new NotificationWindow();
+                                var notify = new NewNotification();
                                 notify.setToken(challenge);
                                 notify.setServerName(serverName);
                                 notify.setSubscriptionKey(subscriptionKey);
+                                notify.setTts(tts);
+                                notify.setWindowTimeout();
 
                                 notify.Show(); // must be run after setting token and serverName
                             }));
@@ -85,12 +90,12 @@ namespace OS2faktor
                                 {
                                     string windowName = window.GetType().Name;
 
-                                    if (windowName.Equals("NotificationWindow"))
+                                    if (windowName.Equals("NewNotification"))
                                     {
-                                        var notificationWindow = window as NotificationWindow;
-                                        if (notificationWindow.getSubscriptionKey().Equals(subscriptionKey))
+                                        var NewNotification = window as NewNotification;
+                                        if (NewNotification.getSubscriptionKey().Equals(subscriptionKey))
                                         {
-                                            notificationWindow.IncorrectPincode(pinResult);
+                                            NewNotification.IncorrectPincode(pinResult);
                                             return;
                                         }
                                     }
@@ -104,12 +109,12 @@ namespace OS2faktor
                                 {
                                     string windowName = window.GetType().Name;
 
-                                    if (windowName.Equals("NotificationWindow"))
+                                    if (windowName.Equals("NewNotification"))
                                     {
-                                        var notificationWindow = window as NotificationWindow;
-                                        if (notificationWindow.getSubscriptionKey().Equals(subscriptionKey))
+                                        var NewNotification = window as NewNotification;
+                                        if (NewNotification.getSubscriptionKey().Equals(subscriptionKey))
                                         {
-                                            notificationWindow.Close();
+                                            NewNotification.Close();
                                         }
                                     }
                                 }
@@ -145,6 +150,10 @@ namespace OS2faktor
 
                     ((App)App.Current).UpdateContextMenuVisibility();
                 }
+
+                // in case of a shutdown - create a new instance, which will be connected through WebSocketConnectionJob
+                WebSocket = new WebSocket(OS2faktor.Properties.Settings.Default.websocketUrl);
+                Init();
             };
         }
 

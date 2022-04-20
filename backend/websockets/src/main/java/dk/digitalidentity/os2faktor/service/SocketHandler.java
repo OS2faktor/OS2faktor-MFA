@@ -14,6 +14,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -28,6 +29,7 @@ import dk.digitalidentity.os2faktor.dao.ClientDao;
 import dk.digitalidentity.os2faktor.dao.NotificationDao;
 import dk.digitalidentity.os2faktor.dao.model.Client;
 import dk.digitalidentity.os2faktor.dao.model.Notification;
+import dk.digitalidentity.os2faktor.dao.model.enums.ClientType;
 import dk.digitalidentity.os2faktor.service.model.ClientSession;
 import dk.digitalidentity.os2faktor.service.model.CustomWebSocketPayload;
 import dk.digitalidentity.os2faktor.service.model.WSMessageDTO;
@@ -42,6 +44,12 @@ public class SocketHandler extends TextWebSocketHandler {
 
 	@Autowired
 	private ClientDao clientDao;
+	
+	@Autowired
+	private IdGenerator idGenerator;
+
+	@Autowired
+	private HashingService hashingService;
 
 	@Autowired
 	private NotificationDao notificationDao;
@@ -67,7 +75,7 @@ public class SocketHandler extends TextWebSocketHandler {
 				case "REJECT":
 					Notification challenge = notificationDao.getBySubscriptionKey(subscriptionKey);
 					if (challenge == null) {
-						log.warn("Trying to answer a challenge that does not exist - ignoring!");
+						log.warn("Trying to answer a challenge that does not exist: " + subscriptionKey);
 						return;
 					}
 					
@@ -86,38 +94,50 @@ public class SocketHandler extends TextWebSocketHandler {
 							return;
 						}
 
-						if (challenge.getClient().getPincode()!=null && !challenge.getClient().getPincode().equals(pinCode)) {
-							log.warn("Wrong pin for device: " + challenge.getClient().getDeviceId());
-
-							if (client.getFailedPinAttempts() >= 5) {
-								Calendar c = Calendar.getInstance();
-								c.add(Calendar.HOUR_OF_DAY, 1);
-								Date lockedUntil = c.getTime();
-
-								result.setStatus(PinResultStatus.LOCKED);
-								SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-								result.setLockedUntil(format.format(lockedUntil));
-
-								client.setFailedPinAttempts(0);
-								client.setLockedUntil(lockedUntil);
-								client.setLocked(true);
-							}
-							else {
-								client.setFailedPinAttempts(client.getFailedPinAttempts() + 1);
-								result.setStatus(PinResultStatus.WRONG_PIN);
+						if (challenge.getClient().getPincode() != null) {
+							boolean matches = false;
+							try {
+								matches = hashingService.matches(pinCode, challenge.getClient().getPincode());
+							} catch (Exception ex) {
+								log.error("Failed to check matching pincode", ex);
+								return;
 							}
 
-							clientDao.save(client);
-							sendIncorrectPinMessage(client, subscriptionKey, result);
-							return;
+							if (!matches) {
+								log.warn("Wrong pin for device: " + challenge.getClient().getDeviceId());
+
+								if (client.getFailedPinAttempts() >= 5) {
+									Calendar c = Calendar.getInstance();
+									c.add(Calendar.HOUR_OF_DAY, 1);
+									Date lockedUntil = c.getTime();
+
+									result.setStatus(PinResultStatus.LOCKED);
+									SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+									result.setLockedUntil(format.format(lockedUntil));
+
+									client.setFailedPinAttempts(0);
+									client.setLockedUntil(lockedUntil);
+									client.setLocked(true);
+								}
+								else {
+									client.setFailedPinAttempts(client.getFailedPinAttempts() + 1);
+									result.setStatus(PinResultStatus.WRONG_PIN);
+								}
+
+								clientDao.save(client);
+								sendIncorrectPinMessage(client, subscriptionKey, result);
+								return;
+							}
 						}
-						
+
 						client.setFailedPinAttempts(0);
 						sendCorrectPinMessage(client, subscriptionKey);
 						challenge.setClientAuthenticated(true);
+						challenge.setClientResponseTimestamp(new Date());
 					}
 					else if ("REJECT".equals(status)) {
-						challenge.setClientRejected(true);						
+						challenge.setClientRejected(true);
+						challenge.setClientResponseTimestamp(new Date());
 					}
 
 					notificationDao.save(challenge);
@@ -146,7 +166,8 @@ public class SocketHandler extends TextWebSocketHandler {
 		// TODO: once all windows 10 clients are updated to send username/password as deviceId/apiKey, we can
 		//       extract the deviceId below (right now it returns "apiKey" as the username because that was
 		//       how the client was originally implemented
-		Client client = clientDao.getByApiKey(apiKey);
+		String encodedString = hashingService.encryptAndEncodeString(apiKey);
+		Client client = clientDao.getByApiKey(encodedString);
 		if (client != null) {
 			sessions.add(new ClientSession(client, session));
 		}
@@ -315,11 +336,26 @@ public class SocketHandler extends TextWebSocketHandler {
 		if (clientSession.isPresent()) {
 			ObjectMapper mapper = new ObjectMapper();
 
+			ClientSession session = clientSession.get();
+
+			String challengeValue = challenge.getChallenge();
+			if (StringUtils.isEmpty(challengeValue)) {
+				// supported since version 2.1.x
+				if (getMajorClientVersion(session) < 2 || (getMajorClientVersion(session) == 2 && getMinorClientVersion(session) < 1)) {
+					// hack - no challenge actually exists, so we generate a random one
+					log.warn("Generate a random challenge for old windows client");
+					challengeValue = idGenerator.generateChallenge();
+				}
+			}
+
 			WSMessageDTO jsonObject = new WSMessageDTO();
 			jsonObject.setMessageType(WSMessageType.NOTIFICATION);
 			jsonObject.setSubscriptionKey(challenge.getSubscriptionKey());
-			jsonObject.setChallenge(challenge.getChallenge());
+			jsonObject.setChallenge(challengeValue);
 			jsonObject.setServerName(challenge.getServerName());
+			
+			SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+			jsonObject.setTts("kl " + sdf.format(challenge.getCreated()));
 			
 			String data = null;
 			try {
@@ -332,13 +368,16 @@ public class SocketHandler extends TextWebSocketHandler {
 
 			CustomWebSocketPayload<?> payload = new CustomWebSocketPayload<String>(UUID.randomUUID().toString(), MessageType.NOTIFICATION, data, true);
 			TextMessage message = new TextMessage(payload.toJSONString());
+
 			try {
 				if (log.isDebugEnabled()) {
 					log.debug("Sending message: " + message + " to " + client.getDeviceId());
 				}
 
 				clientSession.get().getSession().sendMessage(message);
+
 				challenge.setClientNotified(true);
+				challenge.setSentTimestamp(new Date());
 				notificationDao.save(challenge);
 			}
 			catch (IOException e) {

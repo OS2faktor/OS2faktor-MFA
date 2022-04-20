@@ -1,0 +1,31 @@
+ {
+	"name": "OS2faktor Edge Extension",
+	"version": "2.0.3",
+	"minimum_chrome_version": "33",
+	"description": "Microsoft Edge - OS2faktor client",
+	"permissions": [ "background", "notifications", "tabs", "storage", "https://backend.os2faktor.dk/*", "https://frontend.os2faktor.dk/*",  "http://192.168.1.111:9088/*", "http://192.168.50.77:9088/*", "https://192.168.50.77:9121/*" ],
+	"background": {
+		"scripts": [ "libs/jquery-3.3.1/jquery.min.js", "libs/sweetalert/js/sweetalert2.all.min.js", "background.js" ]
+	},
+	"browser_action": {
+		"default_popup": "popup.html",
+		"default_icon": {
+			"128": "images/icon_128.png"
+		}
+	},
+	"content_security_policy": "script-src 'self'; object-src 'self'",
+	"icons": {
+		"128": "images/icon_128.png"
+	},
+	"web_accessible_resources": [
+		"images/icon_128.png"
+	],
+	"manifest_version": 2,
+	"storage": {
+		"managed_schema": "schema.json"
+	},
+	"content_scripts": [{
+		"matches":["http://*/*", "https://*/*"],
+		"js": ["eventListener.js"]
+	}]
+ }

@@ -37,6 +37,16 @@
 			<input id="yubikeyField" type="hidden" th:field="*{response}" />
 			
 			<br/>
+
+			<center id="tryBtn" style="margin-left: 10%; margin-right: 10%; margin-bottom: 15px; display: none;">
+				<div class="container">
+					<div class="row">
+						<div class="offset-sm-3 col-sm-6">
+							<a class="btn btn-primary btn-lg btn-block" href="#" onclick="register(); return false;">Start registrering</a>
+						</div>
+					</div>
+				</div>
+			</center>
 			
 			<center style="margin-left: 10%; margin-right: 10%;">
 				<div class="container">
@@ -47,6 +57,8 @@
 					</div>
 				</div>
 			</center>
+			
+			<pre id="debugger" style="display: none;"></pre>
 		</form>
 	</div>
 
@@ -69,50 +81,80 @@
 		return btoa(new Uint8Array(bin).reduce((s, byte) => s + String.fromCharCode(byte), ''));
 	}
 	
+	function logg(str) {
+		try {
+			const urlParams = new URLSearchParams(window.location.search);
+
+			if (urlParams.get('debug') != null) {
+				$('#debugger').show();
+				$('#debugger').append(str);
+				$('#debugger').append('\n');
+			}
+		}
+		catch (err) {
+			; // ignore
+		}
+	}
+
+	var stuff = null;
+
 	function register() {
 		var chal = strToBin(challengeEncoded).buffer;
 		var uid = strToBin(uidEncoded).buffer;
- 
-		navigator.credentials.create({
-			publicKey: {
-				challenge: chal,
-				rp: {
-					name: "OS2faktor"
-				},
-				user: {
-					id: uid,
-					name: username,
-					displayName: username
-				},
-				pubKeyCredParams: [{ // TODO: are these values sane?
-						type: "public-key",
-						alg: -7 // "ES256" as registered in the IANA COSE Algorithms registry
-					}, {
-						type: "public-key",
-						alg: -257 // Value registered by this specification for "RS256"
-					}
-				],
-				excludeCredentials: [],
-				attestation: "direct"
-			}
-		}).then(function(attestation) {
-			console.log("Registered");
-			console.log(attestation);
 
-			var payloadObject = {
-				id:                 binToStr(attestation.rawId),
-				attestationObject:  binToStr(attestation.response.attestationObject),
-				clientDataJson:     binToStr(attestation.response.clientDataJSON)
-			};
+		try {
+			navigator.credentials.create({
+				publicKey: {
+					challenge: chal,
+					rp: {
+						name: "OS2faktor"
+					},
+					user: {
+						id: uid,
+						name: username,
+						displayName: username
+					},
+					pubKeyCredParams: [{ // TODO: are these values sane?
+							type: "public-key",
+							alg: -7 // "ES256" as registered in the IANA COSE Algorithms registry
+						}, {
+							type: "public-key",
+							alg: -257 // Value registered by this specification for "RS256"
+						}
+					],
+					authenticatorSelection: {
+						userVerification: "discouraged",
+						authenticatorAttachment: "cross-platform"
+					},
+					excludeCredentials: [],
+					attestation: "direct"
+				}
+			}).then(function(attestation) {
+				var payloadObject = {
+					id:                 binToStr(attestation.rawId),
+					attestationObject:  binToStr(attestation.response.attestationObject),
+					clientDataJson:     binToStr(attestation.response.clientDataJSON)
+				};
+	
+				var payload = JSON.stringify(payloadObject);
+				$("#yubikeyField").val(payload);
+				$("#registerForm").submit();
+			}).catch(function(err) {
+				stuff = err;
 
-			var payload = JSON.stringify(payloadObject);
-			$("#yubikeyField").val(payload);
-			$("#registerForm").submit();
-		}).catch(function(err) {
-			console.log("registration error");
-			console.log(err);
-			console.log(err.name);
-		});
+				logg("registration error");
+				logg(err.name);
+				logg(err.message);
+				logg(err.code);
+
+				$('#tryBtn').show();
+			});
+		}
+		catch (err) {
+			logg('exception: ' + err);
+			
+			$('#tryBtn').show();
+		}
 	}
 	
 	$(document).ready(function() {

@@ -3,6 +3,7 @@ package dk.digitalidentity.os2faktor.controller;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import dk.digitalidentity.os2faktor.service.HashingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,6 +26,9 @@ import dk.digitalidentity.os2faktor.security.ClientSecurityFilter;
 
 @Controller
 public class PinController extends BaseController {
+
+	@Autowired
+	private HashingService hashingService;
 
 	@Autowired
 	private PinValidator pinValidator;
@@ -72,8 +76,8 @@ public class PinController extends BaseController {
 		if (!StringUtils.isEmpty(client.getPincode())) {
 			return ControllerUtil.handleError(model, FailedFlow.PIN, ErrorType.PIN_ALREADY_ASSIGNED, "Client " + client.getDeviceId() + " has already registered a PIN number.", PageTarget.APP);
 		}
-		
-		client.setPincode(pinRegistration.getPin());
+
+		client.setPincode(hashingService.encryptAndEncodeString((pinRegistration.getPin())));
 		clientDao.save(client);
 		
 		// logout client, the operation has completed successfully,

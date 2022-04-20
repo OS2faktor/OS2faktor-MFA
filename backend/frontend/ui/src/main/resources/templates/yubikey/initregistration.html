@@ -20,8 +20,8 @@
 		</h5>
 
 		<nav class="my-2 my-md-0 mr-md-3">
-			<a class="p-2 text-dark" th:href="@{/ui/desktop/selfservice}">&lt; Selvbetjening</a>
-			<a class="p-2 text-dark" th:href="@{/ui/desktop/logoff}">Log af</a>
+			<a class="p-2 text-dark" th:href="@{/ui/desktop/selfservice}" th:unless="${session.SESSION_REDIRECT_URL != null}">&lt; Selvbetjening</a>
+			<a class="p-2 text-dark" th:href="${session.SESSION_REDIRECT_URL == null} ? @{/ui/desktop/logoff} : ${session.SESSION_REDIRECT_URL}">Log af</a>
 		</nav>
 	</div>
 
@@ -46,7 +46,7 @@
 				<div class="container">
 					<div class="row">
 						<div class="col-sm" style="margin-bottom: 20px;">
-							<a style="text-decoration: none;" th:href="@{/ui/desktop/selfservice}">
+							<a style="text-decoration: none;" th:href="${session.SESSION_REDIRECT_URL == null} ? @{/ui/desktop/selfservice} : ${session.SESSION_REDIRECT_URL}">
 								<button class="btn btn-lg btn-secondary btn-block" type="button" th:text="#{html.navigate.back}" />
 							</a>
 						</div>

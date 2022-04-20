@@ -16,6 +16,12 @@
 	<link rel="stylesheet" th:href="@{/libs/bootstrap/css/bootstrap.min.css}" />
 	<link rel="stylesheet" th:href="@{/libs/bootstrap/css/bootstrap4-buttons.css}" />
 	<link rel="stylesheet" th:href="@{/libs/sweetalert/css/sweetalert2.min.css}" />
+	
+	<style type="text/css">
+		.btn {
+			margin-left: 0px !important;
+		}
+	</style>
 </head>
 
 <body>
@@ -57,7 +63,9 @@
 			<br/>
 			
 			<center>
-				<button class="btn btn-lg btn-danger" th:onclick="'deleteClient(\'' + ${client.deviceId} + '\');'" type="button" th:text="#{html.client.delete}"/>
+				<button class="btn btn-block btn-lg btn-danger" th:onclick="'deleteClient(\'' + ${client.deviceId} + '\');'" type="button" th:text="#{html.client.delete}"/>
+				<button class="btn btn-block btn-lg btn-primary" th:onclick="'setPrime(\'' + ${client.deviceId} + '\');'" type="button" th:text="#{html.client.setprime}" th:if="${client.prime == false && client.type.name() != 'YUBIKEY'}"/>
+				<button class="btn btn-block btn-lg btn-warning" th:onclick="'unsetPrime(\'' + ${client.deviceId} + '\');'" type="button" th:text="#{html.client.unsetprime}" th:if="${client.prime == true && client.type.name() != 'YUBIKEY'}"/>
 			</center>
 		</form>
 	</div>
@@ -75,10 +83,17 @@
 		/*<![CDATA[*/
 
 		/*[+
-			var titleTxt = [[#{html.client.delete.title}]];
-			var bodyTxt = [[#{html.client.delete.body}]];
+			var deleteTitleTxt = [[#{html.client.delete.title}]];
+			var deleteBodyTxt = [[#{html.client.delete.body}]];
 			var confirmTxt = [[#{html.client.delete.confirm}]];
 			var cancelTxt = [[#{html.client.delete.cancel}]];
+
+			var primeTitleTxt = [[#{html.client.setprime.title}]];
+			var primeBodyTxt = [[#{html.client.setprime.body}]];
+
+			var notPrimeTitleTxt = [[#{html.client.unsetprime.title}]];
+			var notPrimeBodyTxt = [[#{html.client.unsetprime.body}]];
+			
 			var url = [[@{/ui/selfservice}]];
 		+]*/
 
@@ -99,13 +114,54 @@
 			var endpoint = url + "/" + deviceId + "/delete";
 
 			swalWithBootstrapButtons({
-				title: titleTxt,
-				html: bodyTxt,
+				title: deleteTitleTxt,
+				html: deleteBodyTxt,
 				type: null,
 				showCancelButton: true,
 				reverseButtons: true,
 				confirmButtonText : confirmTxt,
 				cancelButtonText : cancelTxt,
+				allowOutsideClick: false
+			}).then(function(result) {
+				if (result.value) {
+					window.location = endpoint;
+				}
+			});
+		}
+
+		function setPrime(deviceId) {
+			var endpoint = url + "/" + deviceId + "/prime";
+
+			swalWithBootstrapButtons({
+				title: primeTitleTxt,
+				html: primeBodyTxt,
+				type: null,
+				showCancelButton: true,
+				reverseButtons: true,
+				confirmButtonText : confirmTxt,
+				confirmButtonClass: 'btn btn-primary',
+				cancelButtonText : cancelTxt,
+				allowOutsideClick: false
+			}).then(function(result) {
+				if (result.value) {
+					window.location = endpoint;
+				}
+			});
+		}
+
+		function unsetPrime(deviceId) {
+			var endpoint = url + "/" + deviceId + "/notprime";
+
+			swalWithBootstrapButtons({
+				title: notPrimeTitleTxt,
+				html: notPrimeBodyTxt,
+				type: null,
+				showCancelButton: true,
+				reverseButtons: true,
+				confirmButtonText : confirmTxt,
+				confirmButtonClass: 'btn btn-danger',
+				cancelButtonText : cancelTxt,
+				cancelButtonClass: 'btn btn-default',
 				allowOutsideClick: false
 			}).then(function(result) {
 				if (result.value) {

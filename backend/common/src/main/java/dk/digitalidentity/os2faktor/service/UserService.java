@@ -2,6 +2,7 @@ package dk.digitalidentity.os2faktor.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import dk.digitalidentity.os2faktor.dao.UserDao;
 import dk.digitalidentity.os2faktor.dao.model.User;
@@ -49,6 +50,7 @@ public class UserService {
 		return userDao.getBySsn(encryptedAndEncodedSsn);
 	}
 
+	// not all users have a PID, so only use this as a last resort
 	public User getByPid(String pid) {
 		return userDao.getByPid(pid);
 	}
@@ -60,5 +62,10 @@ public class UserService {
 		}
 
 		return userDao.save(user);
+	}
+
+	@Transactional
+	public void deleteAncientUsers() {
+		userDao.deleteUsersWithoutClients();
 	}
 }

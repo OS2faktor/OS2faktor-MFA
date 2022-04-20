@@ -1,6 +1,7 @@
 package dk.digitalidentity.os2faktor.controller;
 
 import java.util.Date;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -13,11 +14,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import dk.digitalidentity.os2faktor.controller.model.LocalClientListResult;
 import dk.digitalidentity.os2faktor.controller.model.SsnAssignmentForm;
 import dk.digitalidentity.os2faktor.dao.model.Client;
 import dk.digitalidentity.os2faktor.dao.model.LocalClient;
 import dk.digitalidentity.os2faktor.security.RequireAdminRole;
 import dk.digitalidentity.os2faktor.security.SecurityUtil;
+import dk.digitalidentity.os2faktor.service.ClientService;
 import dk.digitalidentity.os2faktor.service.LocalClientService;
 import dk.digitalidentity.os2faktor.service.SsnService;
 import dk.digitalidentity.os2faktor.service.StatisticService;
@@ -33,6 +36,9 @@ public class AdminController extends BaseController {
 	
 	@Autowired
 	private StatisticService statisticService;
+
+	@Autowired
+	private ClientService clientService;
 	
 	@GetMapping("/")
 	public String adminIndex(HttpServletRequest request) {
@@ -54,7 +60,10 @@ public class AdminController extends BaseController {
 	public String listPage(Model model) {
 		String cvr = SecurityUtil.getUser().getCvr();
 
-		model.addAttribute("clients", localClientService.getByCvr(cvr));
+		model.addAttribute("clients",
+				localClientService.getByCvr(cvr).stream()
+						.map(lc -> new LocalClientListResult(lc, clientService.getByDeviceId(lc.getDeviceId())))
+						.collect(Collectors.toList()));
 		
 		return "admin/list";
 	}

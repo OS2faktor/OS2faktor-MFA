@@ -1,0 +1,27 @@
+version: "2.1"
+services:
+  os2faktor-passwor-reset:
+    image: os2faktor:password-reset
+    network_mode: host
+#    restart: always
+    environment:
+      ldap.url: "ldaps://34.248.86.9"
+      ldap.base: "CN=Users,DC=DIGITALIDENTITY,DC=LOCAL"
+      ldap.username: "ldapuser@digitalidentity"
+      ldap.password: "Test1234"
+      ldap.field.ssn: "title"
+      ldap.password.change.prevent.group: "NoPasswordChangeAllowed"
+      login.enable.nemid: "true"
+      login.enable.unilogin: "true"
+      login.enable.idp: "true"
+      saml.baseUrl: "https://localhost:9500"
+      saml.keystore.location: "file:config/os2faktor.pfx"
+      saml.keystore.password: "OS2faktor2018"
+      saml.metadata.idp.url: "https://adfs.digital-identity.dk/FederationMetadata/2007-06/FederationMetadata.xml"
+      saml.metadata.idp.entityid: "http://adfs.digital-identity.dk/adfs/services/trust"
+      server.ssl.key-store: "file:config/ssl.pfx"
+      server.ssl.key-store-password: "Test1234"
+      server.ssl.key-password: "Test1234"
+      server.ssl-key-store-type: "pkcs12"
+    volumes:
+      - ./config:/config

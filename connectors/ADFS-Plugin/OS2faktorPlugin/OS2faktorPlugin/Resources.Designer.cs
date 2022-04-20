@@ -19,7 +19,7 @@ namespace OS2faktorPlugin {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -62,6 +62,25 @@ namespace OS2faktorPlugin {
         
         /// <summary>
         ///   Looks up a localized string similar to &lt;div id=&quot;loginArea&quot;&gt;
+        ///    &lt;form method=&quot;post&quot; id=&quot;loginForm&quot;&gt;
+        ///        &lt;input id=&quot;authMethod&quot; type=&quot;hidden&quot; name=&quot;AuthMethod&quot; value=&quot;%AuthMethod%&quot; /&gt; &lt;input id=&quot;context&quot; type=&quot;hidden&quot; name=&quot;Context&quot; value=&quot;%Context%&quot; /&gt;
+        ///
+        ///        &lt;div class=&quot;fieldMargin bigText&quot;&gt;OS2faktor Login&lt;/div&gt;
+        ///
+        ///        &lt;div id=&quot;pageIntroductionText&quot;&gt;
+        ///            &lt;span id=&quot;outside-browser&quot; style=&quot;display: none;&quot;&gt;
+        ///                &lt;p&gt;
+        ///                    Din OS2faktor klient åbner om lidt og spørger om du vil tillade login,
+        ///      [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string OS2faktorCheckRememberDeviceForm {
+            get {
+                return ResourceManager.GetString("OS2faktorCheckRememberDeviceForm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;div id=&quot;loginArea&quot;&gt;
         ///	&lt;form method=&quot;post&quot; id=&quot;loginForm&quot;&gt;
         ///		&lt;input id=&quot;authMethod&quot; type=&quot;hidden&quot; name=&quot;AuthMethod&quot; value=&quot;%AuthMethod%&quot; /&gt; &lt;input id=&quot;context&quot; type=&quot;hidden&quot; name=&quot;Context&quot; value=&quot;%Context%&quot; /&gt;
         ///
@@ -82,16 +101,16 @@ namespace OS2faktorPlugin {
         
         /// <summary>
         ///   Looks up a localized string similar to &lt;div id=&quot;loginArea&quot;&gt;
-        ///	&lt;form method=&quot;post&quot; id=&quot;loginForm&quot;&gt;
-        ///		&lt;input id=&quot;authMethod&quot; type=&quot;hidden&quot; name=&quot;AuthMethod&quot; value=&quot;%AuthMethod%&quot; /&gt; &lt;input id=&quot;context&quot; type=&quot;hidden&quot; name=&quot;Context&quot; value=&quot;%Context%&quot; /&gt;
+        ///    &lt;form method=&quot;post&quot; id=&quot;loginForm&quot;&gt;
+        ///        &lt;input id=&quot;authMethod&quot; type=&quot;hidden&quot; name=&quot;AuthMethod&quot; value=&quot;%AuthMethod%&quot; /&gt; &lt;input id=&quot;context&quot; type=&quot;hidden&quot; name=&quot;Context&quot; value=&quot;%Context%&quot; /&gt;
         ///
-        ///		&lt;div class=&quot;fieldMargin bigText&quot;&gt;OS2faktor Login&lt;/div&gt;
+        ///        &lt;div class=&quot;fieldMargin bigText&quot;&gt;OS2faktor Login&lt;/div&gt;
         ///
         ///        &lt;div id=&quot;pageIntroductionText&quot;&gt;
-        ///			&lt;span id=&quot;outside-browser&quot; style=&quot;display: none;&quot;&gt;
-        ///				&lt;p&gt;
-        ///					Din OS2faktor klient åbner om lidt og spørger om du vil tillade login,
-        ///					når dette sker, skal du verificere at den kode der  [rest of string was truncated]&quot;;.
+        ///            &lt;span id=&quot;outside-browser&quot; style=&quot;display: none;&quot;&gt;
+        ///                &lt;p&gt;
+        ///                    Din OS2faktor klient åbner om lidt og spørger om du vil tillade login,
+        ///      [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string OS2faktorLoginForm {
             get {
@@ -120,15 +139,15 @@ namespace OS2faktorPlugin {
         
         /// <summary>
         ///   Looks up a localized string similar to &lt;div id=&quot;loginArea&quot;&gt;
-        ///	&lt;form method=&quot;post&quot; id=&quot;loginForm&quot;&gt;
-        ///		&lt;input id=&quot;authMethod&quot; type=&quot;hidden&quot; name=&quot;AuthMethod&quot; value=&quot;%AuthMethod%&quot; /&gt; &lt;input id=&quot;context&quot; type=&quot;hidden&quot; name=&quot;Context&quot; value=&quot;%Context%&quot; /&gt;
+        ///    &lt;form method=&quot;post&quot; id=&quot;loginForm&quot;&gt;
+        ///        &lt;input id=&quot;authMethod&quot; type=&quot;hidden&quot; name=&quot;AuthMethod&quot; value=&quot;%AuthMethod%&quot; /&gt; &lt;input id=&quot;context&quot; type=&quot;hidden&quot; name=&quot;Context&quot; value=&quot;%Context%&quot; /&gt;
         ///
-        ///		&lt;div class=&quot;fieldMargin bigText&quot;&gt;OS2faktor Login&lt;/div&gt;
+        ///        &lt;div class=&quot;fieldMargin bigText&quot;&gt;OS2faktor Login&lt;/div&gt;
         ///        &lt;div id=&quot;selectClientText&quot;&gt;
         ///
-        ///			&lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css&quot; /&gt;
-        ///			&lt;style&gt;
-        ///				a.clientlink:hover { text-decoration: underline; font-weight: bol [rest of string was truncated]&quot;;.
+        ///            &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css&quot; /&gt;
+        ///            &lt;style&gt;
+        ///                a.clientlink:hover { [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string OS2faktorPickDeviceForm {
             get {
@@ -151,6 +170,28 @@ namespace OS2faktorPlugin {
         internal static string OS2faktorRejectedForm {
             get {
                 return ResourceManager.GetString("OS2faktorRejectedForm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;div id=&quot;loginArea&quot;&gt;
+        ///	&lt;form method=&quot;post&quot; id=&quot;loginForm&quot;&gt;
+        ///		&lt;input id=&quot;authMethod&quot; type=&quot;hidden&quot; name=&quot;AuthMethod&quot; value=&quot;%AuthMethod%&quot; /&gt; &lt;input id=&quot;context&quot; type=&quot;hidden&quot; name=&quot;Context&quot; value=&quot;%Context%&quot; /&gt;
+        ///		
+        ///	&lt;/form&gt;
+        ///
+        ///	&lt;script type=&quot;text/javascript&quot; language=&quot;JavaScript&quot;&gt;
+        ///		//&lt;![CDATA[
+        ///        var deviceString = &quot;@@REMEMBERMETOKEN@@&quot;;
+        ///
+        ///        localStorage.setItem(&apos;rememberMeToken&apos;, deviceString);
+        ///
+        ///        var loginFormElem = document.getElementById(&apos;loginForm&apos;);
+        ///        loginFormElem.submi [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string OS2faktorRememberDeviceForm {
+            get {
+                return ResourceManager.GetString("OS2faktorRememberDeviceForm", resourceCulture);
             }
         }
     }

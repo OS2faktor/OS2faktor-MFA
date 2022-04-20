@@ -17,7 +17,7 @@ namespace OS2faktor
 
         private void webview_Loaded(object sender, RoutedEventArgs e)
         {
-            string urlString = Properties.Settings.Default.backendUrl
+            string urlString = Properties.Settings.Default.frontendUrl
                 + "/ui/selfservice?"
                 + "&apiKey=" + Uri.EscapeDataString(Properties.Settings.Default.apiKey)
                 + "&deviceId=" + Uri.EscapeDataString(Properties.Settings.Default.deviceId);

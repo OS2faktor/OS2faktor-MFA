@@ -33,5 +33,4 @@ public class AssertionFailedException extends Exception {
     public AssertionFailedException(String message) {
         super(message);
     }
-
 }

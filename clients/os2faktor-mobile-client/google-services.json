@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "853838672150",
+    "firebase_url": "https://os2faktor.firebaseio.com",
+    "project_id": "os2faktor",
+    "storage_bucket": "os2faktor.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:853838672150:android:7c10db4ea16269fc",
+        "android_client_info": {
+          "package_name": "dk.digitalidentity.os2faktor"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "853838672150-57b15htg5q15bprgu5ksnme7dstadiu6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACuf6u1B-JuBf-NL2MSbimID5Dn3aH9HI"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

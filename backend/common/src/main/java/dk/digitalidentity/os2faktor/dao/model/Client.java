@@ -18,6 +18,7 @@ import javax.validation.constraints.Size;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import dk.digitalidentity.os2faktor.dao.model.enums.ClientType;
@@ -44,7 +45,6 @@ public class Client {
 	@JsonIgnore
 	@Column
 	@NotNull
-	@Size(min = 36, max = 36)
 	private String apiKey;
 
 	// used for controlling flow on backend
@@ -55,7 +55,7 @@ public class Client {
 	// pretty name set by user, to be displayed in UI when picking MFA client
 	@Column
 	@NotNull
-	@Size(min = 3, max = 255)
+	@Size(min = 2, max = 255)
 	private String name;
 
 	// the key for contacting the client (usually a push-key, but could be phone-number, etc)
@@ -73,6 +73,10 @@ public class Client {
 	@JoinColumn(name = "user_id")
 	@JsonIgnore
 	private User user;
+
+	@JsonIgnore
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date associatedUserTimestamp;
 	
 	@Column
 	@JsonIgnore
@@ -82,8 +86,6 @@ public class Client {
 	@JsonIgnore
 	private String pincode;
 	
-	private transient boolean hasPincode;
-
 	@Column
 	@JsonIgnore
 	private long failedPinAttempts;
@@ -102,7 +104,7 @@ public class Client {
 	@Column
 	private long useCount;
 
-	@JsonIgnore
+    @JsonFormat(pattern = "yyyy-MM-dd")
 	@UpdateTimestamp
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column
@@ -119,4 +121,13 @@ public class Client {
 	@Column
 	@JsonIgnore
 	private String yubikeyAttestation;
+
+	@Column
+	private boolean prime;
+	
+	@JsonIgnore
+	@Column
+	private boolean roaming;
+
+	private transient boolean hasPincode;
 }

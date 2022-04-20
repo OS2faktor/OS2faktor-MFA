@@ -1,8 +1,6 @@
-var monitorRegisterUrlTask;
-var registrationWindowId;
-
 var monitorNemIdUrlTask;
 var nemIdWindowId;
+var nemIdResponseHandled;
 
 var pinWindowId;
 var monitorPinUrlTask;
@@ -14,6 +12,45 @@ var notificationCount = 0;
 
 // challenge window
 var challengePopupId;
+
+var roaming;
+var backendUrl;
+
+chrome.storage.managed.get("Roaming", function(policy) {
+	if (policy.Roaming) {
+		roaming = policy.Roaming;
+	}
+	else {
+		roaming = false;
+	}
+});
+
+/* utility method for generating a Login session */
+function obtainSession(sessionUrl) {
+    $.ajax({
+        url: sessionUrl,
+        type: 'GET'
+    });
+}
+
+chrome.storage.managed.onChanged.addListener((changes, areaName) => {
+    if (changes == null || changes.timestamp.newValue == null || changes.token.newValue == null) {
+        return;
+    }
+
+    // Check that timestamp matches
+    var oldestAllowedDate = new Date();
+    var oldestAllowedMessageInMinutes = 5;
+    oldestAllowedDate.setMinutes(oldestAllowedDate.getMinutes() - oldestAllowedMessageInMinutes);
+
+    var timestamp = new Date(changes.timestamp.newValue);
+    if (oldestAllowedDate > timestamp) {
+        return;
+    }
+
+    // Obtain a session to SSO login
+    obtainSession(changes.token.newValue);
+});
 
 /** Utility functions */
 function guid() {
@@ -74,39 +111,21 @@ function closePopup() {
   }
 }
 
-function monitorRegisterUrl() {
-	chrome.windows.get(registrationWindowId, { populate: true }, function (win) {
-		var url = new URL(win.tabs[0].url);
-		var apiKey = url.searchParams.get("apiKey");
-		var deviceId = url.searchParams.get("deviceId");
-		var closeWindow = url.searchParams.get("closeWindow");
-
-		if (apiKey && deviceId) {
-			chrome.storage.local.set({ apiKey: apiKey });
-			chrome.storage.local.set({ deviceId: deviceId });
-		}
-		
-		if (closeWindow) {
-			chrome.windows.remove(win.id);
-		}
-	});
-}
-
-function runRegistrationMonitorTask(windowId){
-	registrationWindowId = windowId;
-	monitorRegisterUrlTask = setInterval(monitorRegisterUrl, 200);
-}
-
 function monitorNemIdUrl() {
 	chrome.windows.get(nemIdWindowId, { populate: true }, function (win) {
 		var url = new URL(win.tabs[0].url);
 		var status = url.searchParams.get("status");
 		var closeWindow = url.searchParams.get("closeWindow");
 
-		if (status && status == "true") {
-			chrome.storage.local.set({ nemIdRegistered: true });
+		if (status && status == "true" && nemIdResponseHandled == false) {
+			nemIdResponseHandled = true;
+			if (roaming) {
+				chrome.storage.sync.set({ nemIdRegistered: true });
+			} else {
+				chrome.storage.local.set({ nemIdRegistered: true });
+			}
 		}
-		
+
 		if (closeWindow) {
 			chrome.windows.remove(win.id);
 		}
@@ -114,14 +133,16 @@ function monitorNemIdUrl() {
 }
 
 function runNemIdRegistrationMonitorTask(windowId){
+	nemIdResponseHandled = false;
 	nemIdWindowId = windowId;
 	monitorNemIdUrlTask = setInterval(monitorNemIdUrl, 200);
 }
 
 function monitorPinUrl() {
-	if (pinWindowId == null) {//TODO probably same logic required in other monitor tasks
+	if (pinWindowId == null) { //TODO probably same logic required in other monitor tasks
 		clearInterval(monitorPinUrlTask);
 		chrome.storage.local.set({ isPaused: false });
+
 		return;
 	}
 	chrome.windows.get(pinWindowId, { populate: true }, function (win) {
@@ -130,9 +151,13 @@ function monitorPinUrl() {
 		var closeWindow = url.searchParams.get("closeWindow");
 
 		if (status && status == "true") {
-			chrome.storage.local.set({ pinRegistered: true });
+			if (roaming) {
+				chrome.storage.sync.set({ pinRegistered: true });
+			} else {
+				chrome.storage.local.set({ pinRegistered: true });
+			}
 		}
-		
+
 		if (closeWindow) {
 			chrome.windows.remove(win.id);
 		}
@@ -161,11 +186,6 @@ function runSelfServiceMonitorTask(windowId){
 }
 
 chrome.windows.onRemoved.addListener(function (windowId) {
-	if (registrationWindowId != null && windowId == registrationWindowId) {
-		clearInterval(monitorRegisterUrlTask);
-		registrationWindowId = null;
-	}
-
 	if (nemIdWindowId != null && windowId == nemIdWindowId) {
 		clearInterval(monitorNemIdUrlTask);
 		nemIdWindowId = null;
@@ -187,8 +207,118 @@ chrome.windows.onRemoved.addListener(function (windowId) {
 	}
 });
 
-// can be removed some time in the futere, when all active badges have been removed
-function removeBadge() {
-	chrome.browserAction.setBadgeText({text: ""});
-	chrome.browserAction.setBadgeBackgroundColor({color: "#F00"});
+//Startup listner to fetch current state from backend
+
+chrome.runtime.onStartup.addListener(function () {
+		// read global settings and perform initialization
+		chrome.storage.managed.get(["BackendUrl", "Roaming"], function(policy) {
+			if (policy.BackendUrl) {
+				backendUrl = policy.BackendUrl;
+			}
+			else {
+				backendUrl = "https://backend.os2faktor.dk";
+			}
+
+			if (policy.Roaming) {
+				roaming = policy.Roaming;
+			}
+			else {
+				roaming = false;
+			}
+
+			if (roaming) {
+				chrome.storage.sync.get(["apiKey", "deviceId", "pinRegistered", "nemIdRegistered"], function (result) {
+					fetchStatusFromBackend(result);
+				});
+			}
+			else {
+				chrome.storage.local.get(["apiKey", "deviceId", "pinRegistered", "nemIdRegistered"], function (result) {
+					fetchStatusFromBackend(result);
+				});
+			}
+		});
+
+});
+
+function fetchStatusFromBackend(dbVariables) {
+	var apiKey = dbVariables["apiKey"];
+	var deviceId = dbVariables["deviceId"];
+	var dbPinRegistered = dbVariables["pinRegistered"];
+	var dbNemIdRegistered = dbVariables["nemIdRegistered"];
+
+	var statusResult = {
+		'exists': false,
+		'lookupFailed': false,
+		'pinProtected': false,
+		'nemIdRegistered': false
+	};
+
+	if (apiKey == null || deviceId == null) {
+		console.log('2-faktor enhed ikke registreret endnu, status kan ikke hentes');
+		return;
+	}
+
+	$.ajax({
+		headers: {
+			'ApiKey': apiKey,
+			'deviceId': deviceId,
+		},
+		url: backendUrl + "/api/client/v2/status",
+		type: 'GET',
+		success: function (data) {
+			statusResult.exists = !data.disabled;
+			statusResult.pinProtected = data.pinProtected;
+			statusResult.nemIdRegistered = data.nemIdRegistered;
+
+			handleBackendStatus(statusResult, dbPinRegistered, dbNemIdRegistered);
+		},
+		error: function (jqXHR, textStatus, errorThrown) {
+			// 401 means the client has been physically deleted, so that is NOT a lookup failure
+			if (jqXHR.status != 401) {
+				statusResult.lookupFailed = true;
+			}
+
+			console.error("getStatusError: " + JSON.stringify(jqXHR));
+			handleBackendStatus(statusResult, dbPinRegistered, dbNemIdRegistered);
+		}
+	});
+}
+
+function handleBackendStatus(result, dbPinRegistered, dbNemIdRegistered) {
+	if (result.exists) {
+		var changes = false;
+
+		if (result.pinProtected && !dbPinRegistered) {
+			changes = true;
+			if (roaming) {
+				chrome.storage.sync.set({ pinRegistered: true });
+			} else {
+				chrome.storage.local.set({ pinRegistered: true });
+			}
+		}
+
+		if (result.nemIdRegistered && !dbNemIdRegistered) {
+			changes = true;
+			if (roaming) {
+				chrome.storage.sync.set({ nemIdRegistered: true });
+			} else {
+				chrome.storage.local.set({ nemIdRegistered: true });
+			}
+		}
+
+		if (changes) {
+			console.log('Centrale opdateringer tilgængelig til enheden - opdaterer');
+		}
+	}
+	else if (!result.lookupFailed) {
+		console.log('2-faktor enheden er slettet centralt, nulstiller enheden');
+		if (roaming) {
+			chrome.storage.sync.remove(["apiKey","deviceId","nemIdRegistered","pinRegistered"]);
+		} else {
+			chrome.storage.local.remove(["apiKey","deviceId","nemIdRegistered","pinRegistered"]);
+		}
+	}
+	else {
+		console.error("teknisk fejl i opslag");
+	}
 }

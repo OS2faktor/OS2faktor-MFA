@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="dk.digitalidentity.os2faktor" version="1.4.0" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="dk.digitalidentity.os2faktor" version="1.8.1" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>OS2faktor</name>
     <description>
         OS2faktor er en kommunal 2-faktor login løsning, der anvende af kommunale medarbejdere.
@@ -9,11 +9,8 @@
     </author>
     <content src="index.html" />
     <allow-navigation href="*://*.os2faktor.dk/*" />
-    <allow-navigation href="*://192.168.1.112:9121/*" />
     <icon height="120" src="res/icon.png" width="120" />
     <access origin="*://*.os2faktor.dk/*" />
-    <access origin="*://192.168.1.112:9121/*" />
-    <access origin="*://192.168.1.112:9088/*" />
     <platform name="android">
         <resource-file src="google-services.json" target="app/google-services.json" />
         <icon density="ldpi" src="res/icons/android/ldpi.png" />
@@ -27,6 +24,13 @@
             <meta-data android:name="firebase_crash_collection_enabled" android:value="false" />
         </config-file>
         <preference name="android-targetSdkVersion" value="29" />
+
+        <splash density="ldpi" src="res/android-splash/splash-port-ldpi.png" />
+        <splash density="mdpi" src="res/android-splash/splash-port-mdpi.png" />
+        <splash density="hdpi" src="res/android-splash/splash-port-hdpi.png" />
+        <splash density="xhdpi" src="res/android-splash/splash-port-xhdpi.png" />
+        <splash density="xxhdpi" src="res/android-splash/splash-port-xxhdpi.png" />
+        <splash density="xxxhdpi" src="res/android-splash/splash-port-xxxhdpi.png" />
     </platform>
     <platform name="ios">
         <preference name="StatusBarOverlaysWebView" value="false" />
@@ -58,11 +62,14 @@
     <plugin name="cordova-plugin-whitelist" spec="^1.3.3" />
     <plugin name="cordova-plugin-dialogs" spec="^2.0.1" />
     <plugin name="cordova-plugin-device" spec="^2.0.2" />
-    <plugin name="cordova-plugin-inappbrowser" spec="^3.0.0" />
+    <plugin name="cordova-plugin-inappbrowser" spec="^5.0.0" />
     <plugin name="cordova-sqlite-evcore-extbuild-free" spec="^0.9.7" />
     <plugin name="cordova-plugin-statusbar" spec="^2.4.2" />
     <plugin name="phonegap-plugin-push" spec="^2.2.3" />
     <plugin name="cordova-plugin-network-information" spec="^2.0.1" />
     <plugin name="cordova-plugin-screen-orientation" spec="^3.0.1" />
+    <plugin name="cordova-plugin-fingerprint-aio" spec="^4.0.2" />
+    <plugin name="cordova-plugin-androidx-adapter" spec="^1.0.0" />
+    <plugin name="cordova-plugin-wkwebview-engine" spec="^1.2.1" />
     <engine name="android" spec="^9.0.0" />
 </widget>

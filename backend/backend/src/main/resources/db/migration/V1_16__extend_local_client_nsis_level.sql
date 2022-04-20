@@ -1,0 +1,1 @@
+ALTER TABLE local_clients ADD COLUMN nsis_level VARCHAR(64) NULL;

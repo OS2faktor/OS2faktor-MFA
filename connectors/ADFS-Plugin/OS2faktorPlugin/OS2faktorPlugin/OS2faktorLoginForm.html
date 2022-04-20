@@ -1,39 +1,57 @@
 ﻿<div id="loginArea">
-	<form method="post" id="loginForm">
-		<input id="authMethod" type="hidden" name="AuthMethod" value="%AuthMethod%" /> <input id="context" type="hidden" name="Context" value="%Context%" />
+    <form method="post" id="loginForm">
+        <input id="authMethod" type="hidden" name="AuthMethod" value="%AuthMethod%" /> <input id="context" type="hidden" name="Context" value="%Context%" />
 
-		<div class="fieldMargin bigText">OS2faktor Login</div>
+        <div class="fieldMargin bigText">OS2faktor Login</div>
 
         <div id="pageIntroductionText">
-			<span id="outside-browser" style="display: none;">
-				<p>
-					Din OS2faktor klient åbner om lidt og spørger om du vil tillade login,
-					når dette sker, skal du verificere at den kode der vises i din OS2faktor
-					klient matcher nedenstående
-				</p>
+            <span id="outside-browser" style="display: none;">
+                <p>
+                    Din OS2faktor klient åbner om lidt og spørger om du vil tillade login,
+                    når dette sker, skal du verificere at den kode der vises i din OS2faktor
+                    klient matcher nedenstående
+                </p>
 
-				<h2 style="width: 150px; margin: 20px auto; padding: 10px 0px; border: 1px solid black; text-align: center;">@@CHALLENGE@@</h2>
-			</span>
-			
-			<span id="inside-browser" style="display: none;">
-				<p>
-					Din browser åbner nu et login-skærmbillede, hvor du skal gennemføre login med din
-					OS2faktor klient. Hvis vinduet ikke åbner af sig selv, kan du åbne det ved at trykke
-					på knappen nedenfor.
-				</p>
+                <h2 style="width: 150px; margin: 20px auto; padding: 10px 0px; border: 1px solid black; text-align: center;">@@CHALLENGE@@</h2>
+            </span>
 
-                <br/>
+            <span id="inside-browser" style="display: none;">
+                <p id="loginTxtForYubiKey">
+                    Din browser åbner nu et login-skærmbillede, hvor du skal gennemføre login med din
+                    OS2faktor klient. Hvis vinduet ikke åbner af sig selv, kan du åbne det ved at trykke
+                    på knappen nedenfor.
+                </p>
 
-    			<span onclick="openWindow(); return false;" type="button" class="submit">Login</span>
-			</span>
+                <br />
+
+                <span id="loginBtnForYubiKey" onclick="openWindow(); return false;" type="button" class="submit">Login</span>
+            </span>
+            <label id="rememberDeviceLabel" for="rememberDevice">Husk denne browser</label>
+            <input type="checkbox" id="rememberDevice" name="rememberDevice" checked="checked" />
+
+            <div id="iFrameTarget" style="margin-top: 20px;"></div>
         </div>
-	</form>
+    </form>
 
 	<script type="text/javascript" language="JavaScript">
 		//<![CDATA[
         var pollingUrl = "@@POLLINGURL@@";
         var redirectUrl = "@@REDIRECTURL@@";
         var chromeClient = "@@CHROMECLIENT@@";
+        var setLocalStorageNull = @@SETLOCALSTORAGENULL@@;
+        var showRememberDevice = @@SHOWREMEMBERDEVICE@@;
+        var iFrameYubiKey = @@USEIFRAME@@;
+
+        if (!showRememberDevice) {
+            var rememberDeviceLabelElem = document.getElementById('rememberDeviceLabel');
+            var rememberDeviceElem = document.getElementById('rememberDevice');
+            rememberDeviceLabelElem.style.cssText = 'display: none;';
+            rememberDeviceElem.style.cssText = 'display: none;';
+        }
+
+        if (setLocalStorageNull) {
+            localStorage.removeItem('deviceString');
+        }
 
 		function AuthPage() {
             ;
@@ -45,8 +63,31 @@
 
         function openWindow() {
             try {
-                var myWindow = window.open(redirectUrl);
-                myWindow.focus();
+                if (iFrameYubiKey) {
+                    var makeIframe = document.createElement("iframe");
+                    makeIframe.setAttribute("src", redirectUrl);
+                    makeIframe.setAttribute("scrolling", "no");
+                    makeIframe.setAttribute("allow", "publickey-credentials-get *");
+                    makeIframe.setAttribute("width", "400px");
+                    makeIframe.setAttribute("height", "400px");
+
+                    var iFrameTarget = document.getElementById('iFrameTarget');
+                    iFrameTarget.appendChild(makeIframe);
+
+                    var hideBtn = document.getElementById('loginBtnForYubiKey');
+                    if (hideBtn) {
+                        hideBtn.style.cssText = 'display: none;';
+                    }
+
+                    var hideSpan = document.getElementById('loginTxtForYubiKey');
+                    if (hideSpan) {
+                        hideSpan.style.cssText = 'display: none;';
+                    }
+                }
+                else {
+                    var myWindow = window.open(redirectUrl);
+                    myWindow.focus();
+                }
             }
             catch (err) {
                 console.log(err);

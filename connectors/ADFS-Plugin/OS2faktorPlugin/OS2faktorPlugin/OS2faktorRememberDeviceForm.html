@@ -1,0 +1,18 @@
+﻿<div id="loginArea">
+	<form method="post" id="loginForm">
+		<input id="authMethod" type="hidden" name="AuthMethod" value="%AuthMethod%" /> <input id="context" type="hidden" name="Context" value="%Context%" />
+		
+	</form>
+
+	<script type="text/javascript" language="JavaScript">
+		//<![CDATA[
+        var deviceString = "@@REMEMBERMETOKEN@@";
+
+        localStorage.setItem('rememberMeToken', deviceString);
+
+        var loginFormElem = document.getElementById('loginForm');
+        loginFormElem.submit();
+
+		//]]>
+	</script>
+</div>

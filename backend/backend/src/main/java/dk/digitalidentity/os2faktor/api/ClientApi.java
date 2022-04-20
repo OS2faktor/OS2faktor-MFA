@@ -25,6 +25,7 @@ import dk.digitalidentity.os2faktor.dao.ClientDao;
 import dk.digitalidentity.os2faktor.dao.NotificationDao;
 import dk.digitalidentity.os2faktor.dao.model.Client;
 import dk.digitalidentity.os2faktor.dao.model.Notification;
+import dk.digitalidentity.os2faktor.service.HashingService;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -34,10 +35,13 @@ public class ClientApi {
 	
 	@Autowired
 	private NotificationDao notificationDao;
+
+	@Autowired
+	private HashingService hashingService;
 	
 	@Autowired
 	private ClientDao clientDao;
-
+	
 	@GetMapping("/api/client")
 	public ResponseEntity<Challenge> poll(@RequestHeader("deviceId") String deviceId) {
 		Client client = clientDao.getByDeviceId(deviceId);
@@ -50,17 +54,26 @@ public class ClientApi {
 		if (challenges.size() == 0) {
 			return ResponseEntity.notFound().build();
 		}
+		
+		Notification notification = challenges.get(0);
 
 		Challenge challenge = new Challenge();
-		challenge.setChallenge(challenges.get(0).getChallenge());
-		challenge.setUuid(challenges.get(0).getSubscriptionKey());
-		challenge.setServerName(challenges.get(0).getServerName());
+		challenge.setUuid(notification.getSubscriptionKey());
+		challenge.setServerName(notification.getServerName());
+		challenge.setChallenge(notification.getChallenge());
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+		challenge.setTts("kl " + sdf.format(notification.getCreated()));
+
+		// and fetched it is then
+		notification.setClientFetchedTimestamp(new Date());
+		notificationDao.save(notification);
 
 		return new ResponseEntity<>(challenge, HttpStatus.OK);
 	}
 
 	@PutMapping("/api/client/{uuid}/accept")
-	public ResponseEntity<?> accept(@PathVariable("uuid") String uuid, @RequestHeader("deviceId") String deviceId, @RequestHeader("clientVersion") String clientVersion, @RequestHeader(name = "pinCode", required = false) String pinCode) {
+	public ResponseEntity<?> accept(@PathVariable("uuid") String uuid, @RequestHeader("deviceId") String deviceId, @RequestHeader("clientVersion") String clientVersion, @RequestHeader(name = "pinCode", required = false) String pinCode, @RequestHeader(name = "roaming", required = false) boolean roaming) {
 		Notification challenge = notificationDao.getBySubscriptionKey(uuid);
 		if (challenge != null) {
 			if (!challenge.getClient().getDeviceId().equals(deviceId)) {
@@ -70,43 +83,58 @@ public class ClientApi {
 
 			Client client = challenge.getClient();
 			
+			if (!StringUtils.isEmpty(clientVersion)) {
+				client.setClientVersion(clientVersion);
+			}
+			
 			if (client.isLocked()) {
 				log.warn("Client with deviceId: " + client.getDeviceId() + " tried to accept a challenge while being locked out." );
 
 				PinResult result = new PinResult();
 				result.setStatus(PinResultStatus.LOCKED);
-				SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+				SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 				result.setLockedUntil(format.format(client.getLockedUntil()));
 
 				return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
 			}
 
-			if (challenge.getClient().getPincode() != null && !challenge.getClient().getPincode().equals(pinCode)) {
-				log.warn("Wrong pin for device: " + challenge.getClient().getDeviceId());
-
-				PinResult result = new PinResult();
-
-				if (client.getFailedPinAttempts() >= 5) {
-					Calendar c = Calendar.getInstance();
-					c.add(Calendar.HOUR_OF_DAY, 1);
-					Date lockedUntil = c.getTime();
-
-					result.setStatus(PinResultStatus.LOCKED);
-					SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-					result.setLockedUntil(format.format(lockedUntil));
-
-					client.setFailedPinAttempts(0);
-					client.setLockedUntil(lockedUntil);
-					client.setLocked(true);
+			if (client.getPincode() != null) {
+				boolean matches = false;
+				try {
+					matches = hashingService.matches(pinCode, client.getPincode());
 				}
-				else {
-					client.setFailedPinAttempts(client.getFailedPinAttempts() + 1);
-					result.setStatus(PinResultStatus.WRONG_PIN);
+				catch (Exception ex) {
+					log.error("Failed to check matching pincode for client " + client.getDeviceId(), ex);
+					return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 				}
 
-				clientDao.save(client);
+				if (!matches) {
+					log.warn("Wrong pin for device: " + challenge.getClient().getDeviceId());
 
-				return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+					PinResult result = new PinResult();
+
+					if (client.getFailedPinAttempts() >= 5) {
+						Calendar c = Calendar.getInstance();
+						c.add(Calendar.HOUR_OF_DAY, 1);
+						Date lockedUntil = c.getTime();
+
+						result.setStatus(PinResultStatus.LOCKED);
+						SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+						result.setLockedUntil(format.format(lockedUntil));
+
+						client.setFailedPinAttempts(0);
+						client.setLockedUntil(lockedUntil);
+						client.setLocked(true);
+					}
+					else {
+						client.setFailedPinAttempts(client.getFailedPinAttempts() + 1);
+						result.setStatus(PinResultStatus.WRONG_PIN);
+					}
+
+					clientDao.save(client);
+
+					return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+				}
 			}
 			
 			// if the client already answered, do not do anything
@@ -115,14 +143,15 @@ public class ClientApi {
 			}
 			
 			challenge.setClientAuthenticated(true);
+			challenge.setClientResponseTimestamp(new Date());
 			notificationDao.save(challenge);
 
 			// update useCount (side-effect: also updates lastUsed timestamp)
 			client.setUseCount(client.getUseCount() + 1);
 			client.setFailedPinAttempts(0);
-			if (!StringUtils.isEmpty(clientVersion)) {
-				client.setClientVersion(clientVersion);
-			}
+			
+			// update roaming
+			client.setRoaming(roaming);
 
 			clientDao.save(client);
 		}
@@ -145,6 +174,7 @@ public class ClientApi {
 			}
 
 			challenge.setClientRejected(true);
+			challenge.setClientResponseTimestamp(new Date());
 			notificationDao.save(challenge);
 			
 			// update useCount (side-effect: also updates lastUsed timestamp)

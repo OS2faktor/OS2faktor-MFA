@@ -9,4 +9,5 @@ public class Challenge {
 	private String uuid;
 	private String challenge;
 	private String serverName;
+	private String tts;
 }

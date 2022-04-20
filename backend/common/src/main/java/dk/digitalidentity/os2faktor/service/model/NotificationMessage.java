@@ -58,6 +58,11 @@ public class NotificationMessage {
 	@AllArgsConstructor
 	private class APS {
 		private String alert;
+		private String sound = "default";
+		
+		public APS(String alert) {
+			this.alert = alert;
+		}
 	}
 
 	public void setGCM(String gcm) {

@@ -6,10 +6,14 @@ namespace OS2faktorPlugin
     class OS2faktorPickDeviceForm : IAdapterPresentationForm
     {
         private List<ClientDTO> availableClients = null;
+        private bool showActive = false;
+        private bool setLocalStorageNull;
 
-        public OS2faktorPickDeviceForm(List<ClientDTO> availableClients)
+        public OS2faktorPickDeviceForm(List<ClientDTO> availableClients, bool showActive, bool setLocalStorageNull)
         {
             this.availableClients = availableClients;
+            this.showActive = showActive;
+            this.setLocalStorageNull = setLocalStorageNull;
         }
 
         public string GetFormHtml(int lcid)
@@ -44,6 +48,10 @@ namespace OS2faktorPlugin
                     {
                         cssClass = "fa-chrome";
                     }
+                    else if ("EDGE".Equals(client.type))
+                    {
+                        cssClass = "fa-edge";
+                    }
 
                     clientArray += "{ \"name\" : \"" + client.name + "\", \"deviceId\" : \"" + client.deviceId + "\", \"cssClass\" : \"" + cssClass + "\" }";
                     first = false;
@@ -51,7 +59,8 @@ namespace OS2faktorPlugin
             }
             clientArray += "]";
 
-            return htmlTemplate.Replace("@@CLIENTARRAY@@", clientArray);
+            htmlTemplate = htmlTemplate.Replace("@@SETLOCALSTORAGENULL@@", this.setLocalStorageNull ? "true" : "false");
+            return htmlTemplate.Replace("@@CLIENTARRAY@@", clientArray).Replace("@@SHOWACTIVE@@", ((showActive == true) ? "true" : "false"));
         }
 
         /// Return any external resources, ie references to libraries etc., that should be included in 

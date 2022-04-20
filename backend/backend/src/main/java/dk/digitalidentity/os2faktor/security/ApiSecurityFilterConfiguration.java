@@ -1,5 +1,6 @@
 package dk.digitalidentity.os2faktor.security;
 
+import dk.digitalidentity.os2faktor.service.HashingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -8,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import dk.digitalidentity.os2faktor.dao.ClientDao;
 import dk.digitalidentity.os2faktor.dao.MunicipalityDao;
 import dk.digitalidentity.os2faktor.dao.ServerDao;
+import dk.digitalidentity.os2faktor.service.LoginServiceProviderService;
 
 @Configuration
 public class ApiSecurityFilterConfiguration {
@@ -19,7 +21,24 @@ public class ApiSecurityFilterConfiguration {
 	private ClientDao clientDao;
 
 	@Autowired
+	private HashingService hashingService;
+
+	@Autowired
 	private MunicipalityDao municipalityDao;
+
+	@Autowired
+	private LoginServiceProviderService loginServiceProviderService;
+
+	@Bean
+	public FilterRegistrationBean<LoginApiSecurityFilter> loginApiSecurityFilter() {
+		LoginApiSecurityFilter filter = new LoginApiSecurityFilter();
+		filter.setLoginServiceProviderService(loginServiceProviderService);
+
+		FilterRegistrationBean<LoginApiSecurityFilter> filterRegistrationBean = new FilterRegistrationBean<>(filter);
+		filterRegistrationBean.addUrlPatterns("/api/login/*");
+
+		return filterRegistrationBean;
+	}
 
 	@Bean
 	public FilterRegistrationBean<ServerApiSecurityFilter> serverApiSecurityFilter() {
@@ -36,6 +55,7 @@ public class ApiSecurityFilterConfiguration {
 	public FilterRegistrationBean<ClientApiSecurityFilter> clientApiSecurityFilter() {
 		ClientApiSecurityFilter filter = new ClientApiSecurityFilter();
 		filter.setClientDao(clientDao);
+		filter.setHashingServiceDao(hashingService);
 
 		FilterRegistrationBean<ClientApiSecurityFilter> filterRegistrationBean = new FilterRegistrationBean<>(filter);
 		filterRegistrationBean.addUrlPatterns("/api/client/*");

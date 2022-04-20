@@ -13,6 +13,7 @@
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -25,7 +26,6 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -57,6 +57,12 @@
   </PropertyGroup>
   <PropertyGroup />
   <ItemGroup>
+    <Reference Include="FontAwesome5, Version=2.1.4.0, Culture=neutral, PublicKeyToken=9cfaf01297a008f8, processorArchitecture=MSIL">
+      <HintPath>..\packages\FontAwesome5.2.1.4\lib\net40\FontAwesome5.dll</HintPath>
+    </Reference>
+    <Reference Include="FontAwesome5.Net, Version=2.1.4.0, Culture=neutral, PublicKeyToken=9cfaf01297a008f8, processorArchitecture=MSIL">
+      <HintPath>..\packages\FontAwesome5.2.1.4\lib\net40\FontAwesome5.Net.dll</HintPath>
+    </Reference>
     <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
     </Reference>
@@ -70,6 +76,9 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http.Formatting, Version=5.2.7.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.2.7\lib\net45\System.Net.Http.Formatting.dll</HintPath>
+    </Reference>
     <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
@@ -95,11 +104,25 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="RestartManagerWrapper.cs" />
+    <Compile Include="Service\BackendService.cs" />
+    <Compile Include="Service\DTO\RegistrationForm.cs" />
+    <Compile Include="Service\DTO\RegistrationResult.cs" />
+    <Compile Include="Service\DTO\StatusResult.cs" />
+    <Compile Include="Settings.cs" />
+    <Compile Include="UI\NewNotification.xaml.cs">
+      <DependentUpon>NewNotification.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UI\RegisterPinDialog.xaml.cs">
       <DependentUpon>RegisterPinDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\RegistrationNemIDWindow.xaml.cs">
       <DependentUpon>RegistrationNemIDWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Registration\DeviceName.xaml.cs">
+      <DependentUpon>DeviceName.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Registration\PinCode.xaml.cs">
+      <DependentUpon>PinCode.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\SelfServiceWindow.xaml.cs">
       <DependentUpon>SelfServiceWindow.xaml</DependentUpon>
@@ -116,9 +139,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="WebSockets\WSMessageType.cs" />
-    <Page Include="UI\NotificationWindow.xaml">
-      <SubType>Designer</SubType>
+    <Page Include="UI\NewNotification.xaml">
       <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="UI\RegisterPinDialog.xaml">
       <SubType>Designer</SubType>
@@ -127,6 +150,14 @@
     <Page Include="UI\RegistrationNemIDWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\Registration\DeviceName.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\Registration\PinCode.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\SelfServiceWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -138,9 +169,6 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="UI\NotificationWindow.xaml.cs">
-      <DependentUpon>NotificationWindow.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -188,6 +216,15 @@
     <None Include="Resources\IconPNG.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\os2faktor.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\os2faktor-gray.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\close-gray.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

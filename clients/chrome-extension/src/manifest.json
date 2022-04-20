@@ -1,9 +1,9 @@
  {
 	"name": "OS2faktor Chrome Extension",
-	"version": "1.5.1",
+	"version": "2.0.3",
 	"minimum_chrome_version": "33",
 	"description": "Google Chrome - OS2faktor client",
-	"permissions": [ "background", "gcm", "tabs", "storage", "https://backend.os2faktor.dk/*", "https://frontend.os2faktor.dk/*",  "http://192.168.1.111:9088/*", "http://192.168.1.112:9088/*", "http://192.168.1.112:9121/*" ],
+	"permissions": [ "background", "gcm", "tabs", "storage", "https://backend.os2faktor.dk/*", "https://frontend.os2faktor.dk/*", "http://192.168.50.77:9088/*", "https://192.168.50.77:9121/*" ],
 	"background": {
 		"scripts": [ "libs/jquery-3.3.1/jquery.min.js", "libs/sweetalert/js/sweetalert2.all.min.js", "background.js" ]
 	},

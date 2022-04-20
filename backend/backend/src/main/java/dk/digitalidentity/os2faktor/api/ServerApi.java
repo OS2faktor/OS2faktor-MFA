@@ -1,9 +1,11 @@
 package dk.digitalidentity.os2faktor.api;
 
 import java.util.Base64;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -38,6 +40,9 @@ import dk.digitalidentity.os2faktor.service.PushNotificationSenderService;
 import dk.digitalidentity.os2faktor.service.UserService;
 import dk.digitalidentity.os2faktor.service.model.PushStatus;
 import lombok.extern.slf4j.Slf4j;
+import nl.martijndwars.webpush.PushService;
+import nl.martijndwars.webpush.Subscription;
+import nl.martijndwars.webpush.Subscription.Keys;
 
 @Slf4j
 @CrossOrigin
@@ -71,9 +76,12 @@ public class ServerApi {
 	@Autowired
 	private StatisticDao statisticDao;
 	
+	@Autowired
+	private PushService pushService;
+	
 	@Value("${os2faktor.frontend.baseurl}")
 	private String frontendBaseUrl;
-	
+
 	@GetMapping("/api/server/clients")
 	public ResponseEntity<?> getClients(
 			@RequestParam(required = false, value = "ssn") String encodedSsn,
@@ -160,7 +168,7 @@ public class ServerApi {
 	}
 	
 	@PutMapping("/api/server/client/{deviceId}/authenticate")
-	public ResponseEntity<Notification> authenticateClient(@PathVariable("deviceId") String deviceId) {
+	public ResponseEntity<Notification> authenticateClient(@PathVariable("deviceId") String deviceId, @RequestParam(value = "emitChallenge", defaultValue = "true", required = false) boolean emitChallenge) {
 		Client client = clientDao.getByDeviceId(deviceId);
 		if (client == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -193,11 +201,31 @@ public class ServerApi {
 		subscriptionInfo.setClient(client);
 		subscriptionInfo.setServerName(server.getName());
 		subscriptionInfo.setServerId(server.getId());
-		subscriptionInfo.setChallenge(idGenerator.generateChallenge());
+		subscriptionInfo.setChallenge((emitChallenge) ? idGenerator.generateChallenge() : "");
 
-		if (client.getType().equals(ClientType.ANDROID) || client.getType().equals(ClientType.IOS) || client.getType().equals(ClientType.CHROME)) {
+		if (client.getType().equals(ClientType.EDGE)) {
+			String token = client.getToken();
+			if (token != null && token.length() > 0) {
+				try {
+					JSONObject obj = new JSONObject(token);
+					String endpoint = obj.getString("endpoint");
+					String key = obj.getJSONObject("keys").getString("p256dh");
+					String auth = obj.getJSONObject("keys").getString("auth");
+					String json = "{\"title\": \"OS2faktor\", \"body\": \"Login forsøg\"}";
+
+					pushService.send(new nl.martijndwars.webpush.Notification(new Subscription(endpoint, new Keys(key, auth)), json));
+					subscriptionInfo.setClientNotified(true);
+					subscriptionInfo.setSentTimestamp(new Date());
+				}
+				catch (Exception ex) {
+					log.error("Failed to send push notification to edge client: " + client.getDeviceId(), ex);
+				}
+			}
+		}
+		else if (client.getType().equals(ClientType.ANDROID) || client.getType().equals(ClientType.IOS) || client.getType().equals(ClientType.CHROME)) {
 			if (client.getNotificationKey() != null && client.getNotificationKey().length() > 0) {
 				subscriptionInfo.setClientNotified(true);
+				subscriptionInfo.setSentTimestamp(new Date());
 				PushStatus status = notificationService.publish("Login forsøg", client.getNotificationKey());
 				if (status.equals(PushStatus.DISABLED)) {
 					client.setDisabled(true);

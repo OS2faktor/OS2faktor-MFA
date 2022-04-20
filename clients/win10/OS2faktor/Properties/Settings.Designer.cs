@@ -12,7 +12,7 @@ namespace OS2faktor.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.6.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.8.1.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -33,24 +33,6 @@ namespace OS2faktor.Properties {
             }
             set {
                 this["apiKey"] = value;
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("https://frontend.os2faktor.dk")]
-        public string backendUrl {
-            get {
-                return ((string)(this["backendUrl"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("wss://websockets2.os2faktor.dk/name")]
-        public string websocketUrl {
-            get {
-                return ((string)(this["websocketUrl"]));
             }
         }
         
@@ -82,7 +64,7 @@ namespace OS2faktor.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1.4.5")]
+        [global::System.Configuration.DefaultSettingValueAttribute("2.2.2")]
         public string version {
             get {
                 return ((string)(this["version"]));
@@ -99,6 +81,33 @@ namespace OS2faktor.Properties {
             }
             set {
                 this["IsPinRegistered"] = value;
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("https://frontend.os2faktor.dk")]
+        public string frontendUrl {
+            get {
+                return ((string)(this["frontendUrl"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("https://backend.os2faktor.dk")]
+        public string backendUrl {
+            get {
+                return ((string)(this["backendUrl"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("wss://websockets2.os2faktor.dk/name")]
+        public string websocketUrl {
+            get {
+                return ((string)(this["websocketUrl"]));
             }
         }
     }
