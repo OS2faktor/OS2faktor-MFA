@@ -16,12 +16,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import dk.digitalidentity.os2faktor.api.dto.AuthenticateUserRequestBody;
-import dk.digitalidentity.os2faktor.dao.ClientDao;
 import dk.digitalidentity.os2faktor.dao.model.Client;
 import dk.digitalidentity.os2faktor.dao.model.ExternalLoginSession;
 import dk.digitalidentity.os2faktor.dao.model.LoginServiceProvider;
 import dk.digitalidentity.os2faktor.dao.model.enums.ClientType;
 import dk.digitalidentity.os2faktor.security.AuthorizedLoginServiceProviderHolder;
+import dk.digitalidentity.os2faktor.service.ClientService;
 import dk.digitalidentity.os2faktor.service.ExternalLoginSessionService;
 import dk.digitalidentity.os2faktor.service.SsnService;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 public class LoginApiController {
 
 	@Autowired
-	private ClientDao clientDao;
+	private ClientService clientService;
 
 	@Autowired
 	private SsnService ssnService;
@@ -79,13 +79,13 @@ public class LoginApiController {
 			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 		}
 
-		Client client = clientDao.getByDeviceId(deviceId);
+		Client client = clientService.getByDeviceId(deviceId);
 		if (client == null) {
 			return ResponseEntity.badRequest().build();
 		}
 
 		client.setDisabled(true);
-		clientDao.save(client);
+		clientService.save(client);
 
 		log.info("LoginServiceProvider " + loginServiceProvider.getName() + " / " + loginServiceProvider.getCvr() + " has disabled client with deviceId " + deviceId);
 
@@ -100,7 +100,7 @@ public class LoginApiController {
 			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 		}
 
-		Client client = clientDao.getByDeviceId(deviceId);
+		Client client = clientService.getByDeviceId(deviceId);
 		if (client == null) {
 			return ResponseEntity.badRequest().build();
 		}
@@ -115,21 +115,21 @@ public class LoginApiController {
 					c.setPrime(Objects.equals(c.getDeviceId(), client.getDeviceId()));
 				}
 
-				clientDao.saveAll(client.getUser().getClients());
+				clientService.saveAll(client.getUser().getClients());
 			}
 			else {
 				client.setPrime(true);
 
-				clientDao.save(client);
+				clientService.save(client);
 			}
 		}
 		else {
 			client.setPrime(false);
 
-			clientDao.save(client);
+			clientService.save(client);
 		}
 
-		clientDao.save(client);
+		clientService.save(client);
 
 		log.info("LoginServiceProvider " + loginServiceProvider.getName() + " / " + loginServiceProvider.getCvr() + " has set client with deviceId " + deviceId + " to primary");
 

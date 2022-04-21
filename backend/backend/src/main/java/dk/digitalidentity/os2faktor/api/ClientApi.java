@@ -10,21 +10,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import dk.digitalidentity.os2faktor.api.model.Challenge;
 import dk.digitalidentity.os2faktor.api.model.PinResult;
 import dk.digitalidentity.os2faktor.api.model.PinResultStatus;
-import dk.digitalidentity.os2faktor.dao.ClientDao;
 import dk.digitalidentity.os2faktor.dao.NotificationDao;
 import dk.digitalidentity.os2faktor.dao.model.Client;
 import dk.digitalidentity.os2faktor.dao.model.Notification;
+import dk.digitalidentity.os2faktor.service.ClientService;
 import dk.digitalidentity.os2faktor.service.HashingService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,11 +39,11 @@ public class ClientApi {
 	private HashingService hashingService;
 	
 	@Autowired
-	private ClientDao clientDao;
+	private ClientService clientService;
 	
 	@GetMapping("/api/client")
 	public ResponseEntity<Challenge> poll(@RequestHeader("deviceId") String deviceId) {
-		Client client = clientDao.getByDeviceId(deviceId);
+		Client client = clientService.getByDeviceId(deviceId);
 		if (client == null) {
 			return ResponseEntity.badRequest().build();
 		}
@@ -83,7 +82,7 @@ public class ClientApi {
 
 			Client client = challenge.getClient();
 			
-			if (!StringUtils.isEmpty(clientVersion)) {
+			if (StringUtils.hasLength(clientVersion)) {
 				client.setClientVersion(clientVersion);
 			}
 			
@@ -115,7 +114,7 @@ public class ClientApi {
 
 					if (client.getFailedPinAttempts() >= 5) {
 						Calendar c = Calendar.getInstance();
-						c.add(Calendar.HOUR_OF_DAY, 1);
+						c.add(Calendar.MINUTE, 5);
 						Date lockedUntil = c.getTime();
 
 						result.setStatus(PinResultStatus.LOCKED);
@@ -131,7 +130,7 @@ public class ClientApi {
 						result.setStatus(PinResultStatus.WRONG_PIN);
 					}
 
-					clientDao.save(client);
+					clientService.save(client);
 
 					return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
 				}
@@ -153,7 +152,7 @@ public class ClientApi {
 			// update roaming
 			client.setRoaming(roaming);
 
-			clientDao.save(client);
+			clientService.save(client);
 		}
 		
 		return new ResponseEntity<>(HttpStatus.OK);
@@ -180,24 +179,25 @@ public class ClientApi {
 			// update useCount (side-effect: also updates lastUsed timestamp)
 			Client client = challenge.getClient();
 			client.setUseCount(client.getUseCount() + 1);
-			if (!StringUtils.isEmpty(clientVersion)) {
+			if (StringUtils.hasLength(clientVersion)) {
 				client.setClientVersion(clientVersion);
 			}
-			clientDao.save(client);
+			
+			clientService.save(client);
 		}
 		
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
-	@RequestMapping(path="/api/client", method = RequestMethod.DELETE)
+	@DeleteMapping("/api/client")
 	public ResponseEntity<?> deleteClient(@RequestHeader("deviceId") String deviceId) {
-		Client client = clientDao.getByDeviceId(deviceId);
+		Client client = clientService.getByDeviceId(deviceId);
 		if (client == null) {
 			return ResponseEntity.badRequest().build();
 		}
 
 		client.setDisabled(true);
-		clientDao.save(client);
+		clientService.save(client);
 
 		return new ResponseEntity<>(HttpStatus.OK);
 	}

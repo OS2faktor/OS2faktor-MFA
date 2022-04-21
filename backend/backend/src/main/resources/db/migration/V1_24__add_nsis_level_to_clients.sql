@@ -1,0 +1,2 @@
+ALTER TABLE clients ADD COLUMN nsis_level VARCHAR(64) NOT NULL DEFAULT 'NONE';
+UPDATE clients SET nsis_level = 'SUBSTANTIAL' WHERE user_id IS NOT NULL;

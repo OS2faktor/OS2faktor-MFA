@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="da-DK">
+<head>
+	<meta http-equiv="x-ua-compatible" content="IE=edge">
+	<meta charset="utf-8" />
+	<meta name="apple-mobile-web-app-capable" content="yes"/>
+	<meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no" />
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<meta name="format-detection" content="telephone=no" />
+
+	<title th:text="#{html.success.title}"></title>
+
+	<link rel="stylesheet" th:href="@{/css/app.css}" />
+	<link rel="stylesheet" th:href="@{/css/register.css}" />
+	<link rel="stylesheet" th:href="@{/libs/fontawesome-5.3.1/css/all.min.css}" />
+	<link rel="stylesheet" th:href="@{/libs/bootstrap/css/bootstrap.min.css}" />
+	<link rel="stylesheet" th:href="@{/libs/bootstrap/css/bootstrap4-buttons.css}" />
+	<link rel="stylesheet" th:href="@{/libs/sweetalert/css/sweetalert2.min.css}" />
+</head>
+
+<body>
+	<nav class="navbar navbar-expand-lg navbar-light bg-light">
+		<a class="navbar-brand" href="#">
+			<img class="img-fluid" src="/img/os2faktor.png" style="display: inline; max-width: 30vw; max-height: 40px;" />
+		</a>
+		
+		<button class="navbar-toggler" type="button" onclick="closeWindow();">
+            <span class="fa fa-times"></span>
+        </button>
+	</nav>
+
+	<div class="content">
+		<form class="form-register" name="postBackForm" method="post">
+			<h4 th:text="#{html.success.header}"></h4>
+			<div th:text="#{html.success.body}"></div>
+
+			<center>
+				<button type="button" onclick="closeWindow();" style="margin-top: 30px;" class="btn btn-lg btn-primary" th:text="#{html.button.close}" autofocus="autofocus"></button>
+			</center>
+		</form>
+	</div>
+
+	<!--[if lt IE 9]>
+		<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+	<![endif]-->
+	
+	<script type="text/javascript" th:src="@{/libs/jquery/js/jquery-3.3.1.min.js}"></script>
+	<script type="text/javascript" th:src="@{/libs/bootstrap/js/bootstrap.min.js}"></script>
+	<script type="text/javascript" th:src="@{/libs/sweetalert/js/sweetalert2.all.min.js}"></script>
+	<script type="text/javascript" th:src="@{/libs/promises/js/promise-polyfill.js}"></script>
+	
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+
+		/*[+
+			var url = [[@{/ui/register2/successPage}]];
+		+]*/
+		
+		function closeWindow() {
+			var endpoint = url + "?closeWindow=true";
+			window.location = endpoint;
+		}
+
+		/*]]>*/
+
+	</script>
+</body>
+</html>

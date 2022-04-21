@@ -7,8 +7,8 @@ import lombok.Value;
 @Value
 @EqualsAndHashCode(callSuper = true)
 public class InvalidSignatureCountException extends AssertionFailedException {
-
-    private final ByteArray credentialId;
+	private static final long serialVersionUID = -7808520972622984541L;
+	private final ByteArray credentialId;
     private final long expectedMinimum;
     private final long received;
 
@@ -22,5 +22,4 @@ public class InvalidSignatureCountException extends AssertionFailedException {
         this.expectedMinimum = expectedMinimum;
         this.received = received;
     }
-
 }

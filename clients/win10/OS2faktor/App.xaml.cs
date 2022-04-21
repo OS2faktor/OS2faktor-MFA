@@ -1,4 +1,5 @@
-﻿using OS2faktor.Service;
+﻿using Microsoft.Win32;
+using OS2faktor.Service;
 using OS2faktor.Service.DTO;
 using OS2faktor.Utils;
 using Quartz;

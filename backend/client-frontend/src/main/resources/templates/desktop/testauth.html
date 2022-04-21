@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head th:replace="fragments/header :: header" />
+<body class="top-navigation">
+	<div id="wrapper">
+		<div id="page-wrapper" class="gray-bg">
+			<div th:replace="fragments/topbar :: topbar"></div>
+
+			<div class="wrapper wrapper-content">
+				<div class="row">
+					<div class="col-lg-9">
+						<div class="ibox">
+							<div class="ibox-title">
+								<h5><em class="fa fa-gear"></em> &nbsp; Test OS2faktor enhed</span></h5>
+							</div>
+
+							<div class="ibox-content">
+								<form id="loginForm" th:action="@{/desktop/test}" method="post">
+									<th:block th:if="${challenge != null}">
+										<p>
+											Den valgte OS2faktor enhed vil nu blive aktiveret, og du vil blive præsenteret for nedenstående
+											kontrolkode i enheden
+										</p>
+							
+										<center>
+											<b th:text="${challenge}" style="font-size: larger;"></b>
+										</center>
+							
+										<br/>
+							
+										<p>
+										Hvis du ser denne kontrolkode i enheden, kan du enten godkende eller afvise forespørgslen via din enhed.
+										Hvis du gør dette, vil du se resultatet på denne side kort efter. Du kan også afbryde ved at klikke
+										på "Afbryd" knappen nedenunder.
+										</p>
+									</th:block>
+			
+									<th:block th:if="${redirectUrl != null}">
+										<p>
+											Tryk på "Login" knappen nedenfor. Dette vil åbne et nyt vindue, hvor du skal gennemføre
+											logon med din <span th:if="${yubikey}">hardwarenøgle</span><span th:if="${totp}">authenticator</span>.
+											Herefter lukker du vinduet, og vender tilbage til dette skærmbillede for at se resultatet af dit login.
+										</p>
+
+										<br/>
+
+										<div>
+											<div class="container">
+												<div class="row">
+													<div class="col-sm-12">
+														<button class="btn btn-lg btn-primary btn-block" type="button" onclick="login();" th:text="#{html.navigate.login}"></button>
+													</div>
+												</div>
+											</div>
+										</div>
+									</th:block>
+
+									<br/>
+									
+									<div>
+										<div class="container">
+											<div class="row">
+												<div class="col-sm-12">
+													<a style="text-decoration: none;" th:href="@{/desktop/selfservice}">
+														<button class="btn btn-lg btn-danger btn-block" type="button" th:text="#{html.navigate.abort}"></button>
+													</a>
+												</div>
+											</div>
+										</div>
+									</div>
+								</form>
+							</div>
+						</div>
+					</div>
+
+					<div th:replace="fragments/rightbar :: rightbar"></div>
+	            </div>
+	        </div>
+
+			<div th:replace="fragments/footer :: footer"></div>
+		</div>
+	</div>
+
+	<div th:replace="fragments/footer :: scripts"></div>
+	
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+
+		/*[+
+		var baseUrl = [[${baseUrl}]];
+		var pollingKey = [[${pollingKey}]];
+		var windowUrl = [[${redirectUrl}]];
+		+]*/
+		
+		function login() {
+			var myWindow = window.open(windowUrl);
+
+			myWindow.focus();
+		}
+		
+		$(document).ready(function() {
+			setInterval(function() {
+				$.ajax({
+					url: baseUrl + "/api/notification/" + pollingKey + "/poll",
+					success: function(data, textStatus, xhr) {
+						if (data && data.stateChange == true) {
+							$("#loginForm").submit();
+						}
+					}
+				});
+			}, 1000);
+		});
+
+        /*]]>*/
+   	</script>
+</body>
+</html>

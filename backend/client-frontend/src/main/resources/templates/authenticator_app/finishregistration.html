@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head th:replace="fragments/header :: header" />
+<body class="top-navigation">
+	<div id="wrapper">
+		<div id="page-wrapper" class="gray-bg">
+			<div th:replace="fragments/topbar :: topbar"></div>
+
+			<div class="wrapper wrapper-content">
+				<div class="row">
+					<th:block th:if="${session.SESSION_REDIRECT_URL == null}"><div class="col-lg-9"></th:block>
+					<th:block th:if="${session.SESSION_REDIRECT_URL != null}"><div class="col-lg-12"></th:block>
+						<div class="ibox">
+							<div class="ibox-title">
+								<h5><em class="fa fa-mobile"></em> &nbsp; Tilknyt authenticator</span></h5>
+							</div>
+
+							<div class="ibox-content">
+								<form id="registerForm" method="post" th:object="${form}" th:action="@{/authenticator/register}">
+									<input th:field="*{qrCode}" hidden>
+									<input th:field="*{qrCodeKey}" hidden>
+									<input th:field="*{partialClientId}" hidden>
+								
+									<h4 th:text="#{html.yubikey.title}"></h4>
+									<p>Du skal nu scanne QR koden med din Authenticator. Når registreringen er gennemført i app'en, skal du indtaste koden, som appen genererer og herefter trykke videre. Hvis koden er korrekt bliver din enhed registreret.</p>
+									<img class="offset-sm-3 col-sm-6" th:src="*{qrCode}" />
+									<p class="offset-sm-3 col-sm-8" th:text="'Konfigurationsnøgle: ' + *{qrCodeKey}"></p>
+									
+									<br/>
+									
+									<div class="form-group" style="margin-top: 10px;">
+										<input type="number" pattern="[0-9]*" inputmode="numeric" onKeyPress="if(this.value.length==6) return false;" placeholder="Indtast 6-cifret kode" th:field="*{mfaCode}" class="form-control"
+											oninput="this.setCustomValidity('')" required="required" oninvalid="this.setCustomValidity('Ugyldig kode')" />
+										<ul th:if="${#fields.hasErrors('mfaCode')} or ${invalidMfa}" style="color: red;">
+											<li th:if="${invalidMfa}">Forkert kode</li>
+											<li th:each="err : ${#fields.errors('mfaCode')}" th:text="${err}"></li>
+										</ul>
+									</div>
+									
+									<br/>
+						
+									<div class="row">
+										<div class="col-sm-6">
+											<a style="text-decoration: none;" th:href="@{/desktop/selfservice}"><button class="btn btn-lg btn-secondary btn-block" type="button" th:text="#{html.navigate.back}"></button></a>
+										</div>
+										<div class="col-sm-6">
+											<button class="btn btn-primary btn-lg btn-block" type="submit">Videre</button>
+										</div>
+									</div>
+								</form>
+							</div>
+						</div>
+					</div>
+								
+					<div th:if="${session.SESSION_REDIRECT_URL == null}" th:replace="fragments/rightbar :: rightbar"></div>
+				</div>
+			</div>
+
+			<div th:replace="fragments/footer :: footer"></div>
+		</div>
+	</div>
+
+	<style>
+		/* Remove arrows from number input */
+		/* Chrome, Safari, Edge, Opera */
+		input::-webkit-outer-spin-button,
+		input::-webkit-inner-spin-button {
+		  -webkit-appearance: none;
+		  margin: 0;
+		}
+		
+		/* Firefox */
+		input[type=number] {
+		  -moz-appearance: textfield;
+		}
+	</style>
+
+	<div th:replace="fragments/footer :: scripts"></div>
+
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+
+		/*[+
+		+]*/
+
+		$(document).ready(function() {
+			$('#mfaCode').focus();
+			
+			$("#mfaCode").on("keyup change", function(e) {
+			    if ($("#mfaCode").val().length == 6) {
+			    	if (e.which == 13) {
+						$("#registerForm").submit();
+			            event.preventDefault();
+			    	}
+				}
+			})
+
+		});
+		
+		/*]]>*/
+	</script>
+</body>
+</html>

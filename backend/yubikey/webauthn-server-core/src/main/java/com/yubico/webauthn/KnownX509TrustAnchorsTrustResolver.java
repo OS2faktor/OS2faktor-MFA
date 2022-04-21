@@ -24,16 +24,15 @@
 
 package com.yubico.webauthn;
 
-import com.yubico.webauthn.attestation.Attestation;
-import com.yubico.webauthn.attestation.MetadataService;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.List;
+
+import com.yubico.webauthn.attestation.Attestation;
+import com.yubico.webauthn.attestation.MetadataService;
+
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-
-@Slf4j
 @AllArgsConstructor
 final class KnownX509TrustAnchorsTrustResolver implements AttestationTrustResolver {
 
@@ -43,6 +42,4 @@ final class KnownX509TrustAnchorsTrustResolver implements AttestationTrustResolv
     public Attestation resolveTrustAnchor(List<X509Certificate> certificateChain) throws CertificateEncodingException {
         return metadataService.getAttestation(certificateChain);
     }
-
 }
-

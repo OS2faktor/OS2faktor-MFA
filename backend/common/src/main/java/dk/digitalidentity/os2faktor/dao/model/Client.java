@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import dk.digitalidentity.os2faktor.dao.model.enums.ClientType;
+import dk.digitalidentity.os2faktor.dao.model.enums.NSISLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -51,6 +52,11 @@ public class Client {
 	@Column(name = "client_type")
 	@Enumerated(EnumType.STRING)
 	private ClientType type;
+
+	// the registered nsisLevel on this client (might be overruled by the localClient registration)
+	@Column
+	@Enumerated(EnumType.STRING)
+	private NSISLevel nsisLevel;
 
 	// pretty name set by user, to be displayed in UI when picking MFA client
 	@Column
@@ -130,4 +136,8 @@ public class Client {
 	private boolean roaming;
 
 	private transient boolean hasPincode;
+	
+	@Column
+	@JsonIgnore
+	private String secret;
 }

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head th:replace="fragments/header :: header" />
+<body class="top-navigation">
+	<div id="wrapper">
+		<div id="page-wrapper" class="gray-bg">
+			<div th:replace="fragments/topbar :: topbar"></div>
+
+			<div class="wrapper wrapper-content">
+				<div class="row">
+					<div class="col-lg-6 offset-lg-3">
+						<div class="ibox">
+							<div class="ibox-title">
+								<h5><em class="fa fa-mobile"></em> &nbsp; Anvend authenticator</span></h5>
+							</div>
+
+							<div class="ibox-content">
+								<form id="loginForm" method="post" th:object="${form}">
+									<p>Du skal nu åbne din Authenticator og indtaste den 6-cifrede kode der vises i enheden</p>
+						
+									<br/>
+									
+									<input th:field="*{reject}" hidden>
+									<div class="form-group" style="margin-top: 10px;">
+										<input type="number" pattern="[0-9]*" inputmode="numeric" onKeyPress="if(this.value.length==6) return false;" placeholder="Indtast 6-cifret kode" th:field="*{mfaCode}" class="form-control" oninput="this.setCustomValidity('')" required="required" oninvalid="this.setCustomValidity('Ugyldig kode')" />
+
+										<ul th:if="${#fields.hasErrors('mfaCode')} or ${invalidMfa}" style="color: red;">
+											<li th:if="${invalidMfa}">Forkert kode</li>
+											<li th:each="err : ${#fields.errors('mfaCode')}" th:text="${err}"></li>
+										</ul>
+									</div>
+									
+									<br/>
+									
+									<div class="row">
+										<div class="col-sm-6">
+											<button class="btn btn-lg btn-danger btn-block" onclick="authenticatorService.reject(); return false;" type="button">Afvis</button>
+										</div>
+										<div class="col-sm-6">
+											<button class="btn btn-primary btn-lg btn-block" type="submit" id="loginBtn" disabled>Login</button>
+										</div>
+									</div>
+								</form>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div th:replace="fragments/footer :: footer"></div>
+		</div>
+	</div>
+
+	<style>
+		/* Remove arrows from number input */
+		/* Chrome, Safari, Edge, Opera */
+		input::-webkit-outer-spin-button,
+		input::-webkit-inner-spin-button {
+		  -webkit-appearance: none;
+		  margin: 0;
+		}
+		
+		/* Firefox */
+		input[type=number] {
+		  -moz-appearance: textfield;
+		}
+	</style>
+	
+	<div th:replace="fragments/footer :: scripts"></div>
+
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+
+		/*[+
+		+]*/
+		
+		var authenticatorService;
+		$(document).ready(function() {
+			authenticatorService = new AuthenticatorService();
+			
+			authenticatorService.init();
+			
+			$('#mfaCode').focus();
+		});
+		
+		function AuthenticatorService() {
+			this.init = function() {
+				$("#mfaCode").on("keyup change", function(e) {
+				    if ($("#mfaCode").val().length == 6) {
+				    	$("#loginBtn").prop("disabled", false);
+				    	
+				    	if (e.which == 13) {
+							$("#loginForm").submit();
+				            event.preventDefault();
+				    	}
+					}
+				    else {
+						$("#loginBtn").prop("disabled", true);
+					}
+				})
+			}
+			
+			this.reject = function() {
+				$("#reject").val("true");
+				$("#loginForm").submit();
+			}
+		}
+		
+		/*]]>*/
+	</script>
+</body>
+</html>

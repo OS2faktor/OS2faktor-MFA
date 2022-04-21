@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head th:replace="fragments/header :: header" />
+<body class="top-navigation">
+	<div id="wrapper">
+		<div id="page-wrapper" class="gray-bg">
+			<div th:replace="fragments/topbar :: topbar"></div>
+
+			<div class="wrapper wrapper-content">
+				<div class="row">
+					<div class="col-lg-6 offset-lg-3">
+						<div class="ibox">
+							<div class="ibox-title">
+								<h5><em class="fa fa-key"></em> &nbsp; Anvend hardwarenøgle</span></h5>
+							</div>
+
+							<div class="ibox-content">
+								<form id="loginForm" method="post" th:object="${form}">
+									<input type="hidden" th:field="*{response}" />
+						
+									<h4 th:text="#{html.yubikey.login.title}"></h4>
+									<p>Du skal nu godkende at browseren må anvende din hardwarenøgle. Hvis der ikke vises en browser-dialog, der spørger om lov til at tilgå
+									din hardwarenøgle, kan det skyldes at din browser ikke understøtter hardwarenøgle, eller at browseren forbyder adgangen til hardwaren.</p>
+									
+									<p>Hvis der ikke kommer en browser-dialog frem, skal du kontakte din it-afdeling for yderligere hjælp.</p>						
+								</form>
+								
+								<br/>
+								
+								<button class="btn btn-primary btn-block" style="display: none;" id="iosBtn" onclick="login();">Start Login</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div th:replace="fragments/footer :: footer"></div>
+		</div>
+	</div>
+	
+	<div th:replace="fragments/footer :: scripts"></div>
+
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+
+		/*[+
+			var challengeEncoded = [[${challenge}]];
+			var uidEncoded = [[${uid}]];
+		+]*/
+		
+		function strToBin(str) {
+			return Uint8Array.from(atob(str), c => c.charCodeAt(0));
+		}
+
+		function binToStr(bin) {
+			return btoa(new Uint8Array(bin).reduce((s, byte) => s + String.fromCharCode(byte), ''));
+		}
+		
+		function login() {
+			var chal = strToBin(challengeEncoded).buffer;
+			var uid = strToBin(uidEncoded).buffer;
+
+			navigator.credentials.get({
+				publicKey: {
+					allowCredentials: [{
+						type: 'public-key',
+						id: uid,
+					}],
+					rpId: document.domain,
+					challenge: chal
+				}
+			}).then(function(assertion) {
+				payloadObject = {
+					id:                 binToStr(assertion.rawId),
+					clientDataJson:     binToStr(assertion.response.clientDataJSON),
+					authenticatorData:  binToStr(assertion.response.authenticatorData),
+					signature:          binToStr(assertion.response.signature),
+					userHandle:         binToStr(assertion.response.userHandle)
+				};
+
+				var payload = JSON.stringify(payloadObject);
+				
+				$("#loginForm input").val(payload);
+				$("#loginForm").submit();
+			}).catch(function(err) {
+				console.log("login error");
+				console.log(err);
+				console.log(err.name);
+			});
+		}
+		
+		function isIOS() {
+			return [
+				'iPad Simulator',
+				'iPhone Simulator',
+				'iPad',
+				'iPhone'
+			].includes(navigator.platform);
+		}
+		
+		$(document).ready(function() {
+			if (!isIOS()) {
+				login();
+			}
+			else {
+				$('#iosBtn').show();
+			}
+		});
+		
+		/*]]>*/
+	</script>
+</body>
+</html>

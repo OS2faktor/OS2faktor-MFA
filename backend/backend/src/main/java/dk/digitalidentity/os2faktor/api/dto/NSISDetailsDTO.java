@@ -1,13 +1,11 @@
 package dk.digitalidentity.os2faktor.api.dto;
 
+import java.util.Date;
+
 import dk.digitalidentity.os2faktor.dao.model.Client;
-import dk.digitalidentity.os2faktor.dao.model.enums.ClientType;
-import dk.digitalidentity.os2faktor.dao.model.enums.NSISLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.Date;
 
 @Getter
 @Setter

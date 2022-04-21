@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head th:replace="fragments/header :: header" />
+<body class="top-navigation">
+	<div id="wrapper">
+		<div id="page-wrapper" class="gray-bg">
+			<div th:replace="fragments/topbar :: topbar"></div>
+
+			<div class="wrapper wrapper-content">
+				<div class="row">
+					<th:block th:if="${session.SESSION_REDIRECT_URL == null}"><div class="col-lg-9"></th:block>
+					<th:block th:if="${session.SESSION_REDIRECT_URL != null}"><div class="col-lg-12"></th:block>
+						<div class="ibox">
+							<div class="ibox-title">
+								<h5><em class="fa fa-mobile"></em> &nbsp; Tilknyt authenticator</span></h5>
+							</div>
+
+							<div class="ibox-content">
+								<form method="post" th:object="${form}">
+									<p>
+										Angiv et navn på din Authenticator, så du kan genkende den når du skal vælge OS2faktor enhed
+										på login tidspunktet. Navnet anvendes alene til præsentation, så du nemt kan genkende din enhed.
+									</p>
+						
+									<br/>
+						
+									<div class="form-group">
+										<strong th:text="#{html.registration.name}"></strong>
+										<input class="form-control" th:field="*{name}" required="required" oninvalid="this.setCustomValidity('Angiv et navn på din enhed')" oninput="this.setCustomValidity('')" autofocus="autofocus" />
+									</div>
+								
+									<br/>
+									
+									<div class="row">
+										<div class="col-sm">
+											<button class="btn btn-lg btn-primary btn-block" type="submit" th:text="#{html.registration.submit}"></button>
+										</div>
+									</div>
+								</form>
+							</div>
+						</div>
+					</div>
+
+					<div th:if="${session.SESSION_REDIRECT_URL == null}" th:replace="fragments/rightbar :: rightbar"></div>
+				</div>
+			</div>
+
+			<div th:replace="fragments/footer :: footer"></div>
+		</div>
+	</div>
+
+	<div th:replace="fragments/footer :: scripts"></div>
+
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+
+		/*[+
+		+]*/
+		
+		/*]]>*/
+	</script>
+</body>
+</html>

@@ -2,6 +2,7 @@ package dk.digitalidentity.os2faktor.api;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 
 import dk.digitalidentity.os2faktor.api.dto.NSISDetailsDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,7 +115,7 @@ public class NSISServerApi {
 				clientDTO.setDeviceId(client.getDeviceId());
 				clientDTO.setName(client.getName());
 				clientDTO.setType(client.getType());
-				clientDTO.setNsisLevel(NSISLevel.SUBSTANTIAL);
+				clientDTO.setNsisLevel(client.getNsisLevel());
 				clientDTO.setPrime(client.isPrime());
 				clientDTO.setRoaming(client.isRoaming());
 				
@@ -122,6 +123,10 @@ public class NSISServerApi {
 					clientDTO.setHasPincode(true);
 				}
 				else if (client.getType().equals(ClientType.YUBIKEY)) {
+					// for now the decision is that YubiKeys have a pincode build in due to its physical nature
+					clientDTO.setHasPincode(true);
+				}
+				else if (client.getType().equals(ClientType.TOTP)) {
 					// for now the decision is that YubiKeys have a pincode build in due to its physical nature
 					clientDTO.setHasPincode(true);
 				}
@@ -139,6 +144,11 @@ public class NSISServerApi {
 						continue;
 					}
 
+					// already added - skip
+					if (clients.stream().anyMatch(c -> Objects.equals(c.getDeviceId(), client.getDeviceId()))) {
+						continue;
+					}
+					
 					NSISClientDTO clientDTO = new NSISClientDTO();
 					clientDTO.setDeviceId(client.getDeviceId());
 					clientDTO.setName(client.getName());
@@ -147,7 +157,7 @@ public class NSISServerApi {
 						clientDTO.setNsisLevel(NSISLevel.valueOf(localClient.getNsisLevel()));
 					}
 					else {
-						clientDTO.setNsisLevel(NSISLevel.LOW);
+						clientDTO.setNsisLevel(NSISLevel.NONE);
 					}
 
 					if (client.getPincode() != null && client.getPincode().length() > 0) {
@@ -157,6 +167,11 @@ public class NSISServerApi {
 						// for now the decision is that YubiKeys have a pincode build in due to its physical nature
 						clientDTO.setHasPincode(true);
 					}
+					else if (client.getType().equals(ClientType.TOTP)) {
+						// for now the decision is that YubiKeys have a pincode build in due to its physical nature
+						clientDTO.setHasPincode(true);
+					}
+
 
 					clients.add(clientDTO);
 				}
@@ -164,16 +179,20 @@ public class NSISServerApi {
 		}
 	}
 	
-	// only return un-assigned clients here
 	private void addClientsByDeviceId(String deviceId, String cvr, HashSet<NSISClientDTO> clients) {
+		// already added - skip
+		if (clients.stream().anyMatch(c -> Objects.equals(c.getDeviceId(), deviceId))) {
+			return;
+		}
+
 		Client client = clientDao.getByDeviceId(deviceId);
-		if (client != null && client.getUser() == null) {
+		if (client != null) {
 			NSISClientDTO clientDTO = new NSISClientDTO();
 			clientDTO.setDeviceId(client.getDeviceId());
 			clientDTO.setHasPincode(client.isHasPincode());
 			clientDTO.setName(client.getName());
 			clientDTO.setType(client.getType());
-			clientDTO.setNsisLevel(NSISLevel.NONE);
+			clientDTO.setNsisLevel(client.getNsisLevel());
 			clientDTO.setPrime(client.isPrime());
 			clientDTO.setRoaming(client.isRoaming());
 
@@ -181,6 +200,10 @@ public class NSISServerApi {
 				clientDTO.setHasPincode(true);
 			}
 			else if (client.getType().equals(ClientType.YUBIKEY)) {
+				// for now the decision is that YubiKeys have a pincode build in due to its physical nature
+				clientDTO.setHasPincode(true);
+			}
+			else if (client.getType().equals(ClientType.TOTP)) {
 				// for now the decision is that YubiKeys have a pincode build in due to its physical nature
 				clientDTO.setHasPincode(true);
 			}

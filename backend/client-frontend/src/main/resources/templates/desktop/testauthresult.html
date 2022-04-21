@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head th:replace="fragments/header :: header" />
+<body class="top-navigation">
+	<div id="wrapper">
+		<div id="page-wrapper" class="gray-bg">
+			<div th:replace="fragments/topbar :: topbar"></div>
+
+			<div class="wrapper wrapper-content">
+				<div class="row">
+					<div class="col-lg-9">
+						<div class="ibox">
+							<div class="ibox-title">
+								<h5><em class="fa fa-gear"></em> &nbsp; Test OS2faktor enhed</span></h5>
+							</div>
+
+							<div class="ibox-content">
+								<h4>Test OS2faktor Klient</h4>
+								<p th:if="${result} == 0">
+									Der opstod en teknisk fejl i forbindelse med test af OS2faktor enheden.
+								</p>
+								
+								<p th:if="${result} == 1">
+									Testen blev godkendt på din OS2faktor enhed.
+								</p>
+								
+								<p th:if="${result} == 2">
+									Testen blev afvist på din OS2faktor enhed.
+								</p>
+							</div>
+						</div>
+					</div>
+
+					<div th:replace="fragments/rightbar :: rightbar"></div>
+	            </div>
+	        </div>
+
+			<div th:replace="fragments/footer :: footer"></div>
+		</div>
+	</div>
+
+	<div th:replace="fragments/footer :: scripts"></div>
+	
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+
+		/*[+
+		+]*/
+		
+        /*]]>*/
+   	</script>
+</body>
+</html>

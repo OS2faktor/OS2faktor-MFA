@@ -25,7 +25,9 @@
 package com.yubico.webauthn.extension.appid;
 
 public final class InvalidAppIdException extends Exception {
-    public InvalidAppIdException(String message) {
+	private static final long serialVersionUID = 1435280946225681658L;
+
+	public InvalidAppIdException(String message) {
         super(message);
     }
 

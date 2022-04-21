@@ -25,9 +25,9 @@
 package com.yubico.webauthn.data.exception;
 
 public final class HexException extends Exception {
+	private static final long serialVersionUID = -7764706750991610862L;
 
-    public HexException(String s, Throwable cause) {
+	public HexException(String s, Throwable cause) {
         super(s, cause);
     }
-
 }

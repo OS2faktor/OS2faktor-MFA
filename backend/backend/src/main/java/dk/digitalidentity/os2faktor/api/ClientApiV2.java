@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import dk.digitalidentity.os2faktor.api.dto.ClientStatus;
+import dk.digitalidentity.os2faktor.api.dto.PushTokenDTO;
 import dk.digitalidentity.os2faktor.api.dto.RegisterRequest;
 import dk.digitalidentity.os2faktor.api.dto.RegisterResponse;
 import dk.digitalidentity.os2faktor.api.dto.SetPinRequest;
@@ -25,6 +26,7 @@ import dk.digitalidentity.os2faktor.api.model.PinResult;
 import dk.digitalidentity.os2faktor.api.model.PinResultStatus;
 import dk.digitalidentity.os2faktor.dao.model.Client;
 import dk.digitalidentity.os2faktor.dao.model.enums.ClientType;
+import dk.digitalidentity.os2faktor.dao.model.enums.NSISLevel;
 import dk.digitalidentity.os2faktor.service.ClientService;
 import dk.digitalidentity.os2faktor.service.HashingService;
 import dk.digitalidentity.os2faktor.service.IdGenerator;
@@ -55,7 +57,7 @@ public class ClientApiV2 {
 		Client client = clientService.getByDeviceId(deviceId);
 		if (client != null) {
 			response.setDisabled(client.isDisabled());
-			response.setPinProtected(!StringUtils.isEmpty(client.getPincode()));
+			response.setPinProtected(StringUtils.hasLength(client.getPincode()));
 			response.setNemIdRegistered(client.getUser() != null);
 			
 			if (!client.isDisabled()) {
@@ -85,6 +87,7 @@ public class ClientApiV2 {
 		client.setToken(request.getToken());
 		client.setType(request.getType());
 		client.setClientVersion(clientVersion);
+		client.setNsisLevel(NSISLevel.NONE);
 
 		// Generate apiKey
 		String apiKey = idGenerator.generateUuid();
@@ -100,14 +103,14 @@ public class ClientApiV2 {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
-		if (!StringUtils.isEmpty(client.getToken())) {
+		if (StringUtils.hasLength(client.getToken())) {
 			if (client.getType().equals(ClientType.EDGE)) {
 				;
 			}
 			else {
 				try {
 					String notificationKey = snsService.createEndpoint(client.getToken(), client.getDeviceId(), client.getType());
-					if (!StringUtils.isEmpty(notificationKey)) {
+					if (StringUtils.hasLength(notificationKey)) {
 						client.setNotificationKey(notificationKey);
 						
 						// see if there are any existing clients with this notification key, and disable them
@@ -186,7 +189,7 @@ public class ClientApiV2 {
 				client.setFailedPinAttempts(client.getFailedPinAttempts() + 1);
 				if (client.getFailedPinAttempts() >= 5) {
 					Calendar c = Calendar.getInstance();
-					c.add(Calendar.HOUR_OF_DAY, 1);
+					c.add(Calendar.MINUTE, 5);
 					Date lockedUntil = c.getTime();
 
 					client.setLockedUntil(lockedUntil);
@@ -205,7 +208,7 @@ public class ClientApiV2 {
 		}
 
 		// update clientVersion and pin
-		if (!StringUtils.isEmpty(clientVersion)) {
+		if (StringUtils.hasLength(clientVersion)) {
 			client.setClientVersion(clientVersion);
 
 			try {
@@ -251,7 +254,7 @@ public class ClientApiV2 {
 		}
 
 		// update clientVersion
-		if (!StringUtils.isEmpty(clientVersion)) {
+		if (StringUtils.hasLength(clientVersion)) {
 			client.setClientVersion(clientVersion);
 		}
 
@@ -271,7 +274,7 @@ public class ClientApiV2 {
 			client.setFailedPinAttempts(client.getFailedPinAttempts() + 1);
 			if (client.getFailedPinAttempts() >= 5) {
 				Calendar c = Calendar.getInstance();
-				c.add(Calendar.HOUR_OF_DAY, 1);
+				c.add(Calendar.MINUTE, 5);
 				Date lockedUntil = c.getTime();
 
 				client.setLockedUntil(lockedUntil);
@@ -291,6 +294,30 @@ public class ClientApiV2 {
 		clientService.save(client);
 
 		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	@PostMapping("/api/client/v2/setRegId")
+	public ResponseEntity<PinResult> setRegId(@RequestHeader("deviceId") String deviceId, @RequestHeader("clientVersion") String clientVersion, @RequestBody PushTokenDTO token) {
+		Client client = clientService.getByDeviceId(deviceId);
+		if (client == null) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+		
+		if (client.isLocked()) {
+			log.warn("Client with deviceId: " + client.getDeviceId() + " tried to set a push token (regId) while being locked" );
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+		
+		// update clientVersion and reg id
+		if (StringUtils.hasLength(clientVersion)) {
+			client.setClientVersion(clientVersion);
+		}
+		
+		client.setNotificationKey(token.getToken());
+
+		clientService.save(client);
+		
+		return new ResponseEntity<>(HttpStatus.OK);
 	}
 	
 	public boolean isValidPin(String pinString) {

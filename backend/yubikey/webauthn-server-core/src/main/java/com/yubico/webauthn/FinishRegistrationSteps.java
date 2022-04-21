@@ -580,13 +580,13 @@ final class FinishRegistrationSteps {
 
                 case ATTESTATION_CA:
                 case BASIC:
-                    return attestationMetadata().filter(Attestation::isTrusted).isPresent();
+                    return Optional.of(attestationMetadata()).filter(Attestation::isTrusted).isPresent();
                 default:
                     throw new UnsupportedOperationException("Attestation type not implemented: " + attestationType);
             }
         }
 
-        public Optional<Attestation> attestationMetadata() {
+        public Attestation attestationMetadata() {
             return trustResolver.flatMap(tr -> {
                 try {
                     return Optional.of(tr.resolveTrustAnchor(attestationTrustPath.orElseGet(Collections::emptyList)));
@@ -594,7 +594,7 @@ final class FinishRegistrationSteps {
                     log.debug("Failed to resolve trust anchor for attestation: {}", attestation, e);
                     return Optional.empty();
                 }
-            });
+            }).orElse(null);
         }
 
         @Override
@@ -613,7 +613,7 @@ final class FinishRegistrationSteps {
     @Value
     class Step17 implements Step<Step18> {
         private final AttestationType attestationType;
-        private final Optional<Attestation> attestationMetadata;
+        private final Attestation attestationMetadata;
         private final boolean attestationTrusted;
         private final List<String> prevWarnings;
 
@@ -631,7 +631,7 @@ final class FinishRegistrationSteps {
     @Value
     class Step18 implements Step<Step19> {
         private final AttestationType attestationType;
-        private final Optional<Attestation> attestationMetadata;
+        private final Attestation attestationMetadata;
         private final boolean attestationTrusted;
         private final List<String> prevWarnings;
 
@@ -648,7 +648,7 @@ final class FinishRegistrationSteps {
     @Value
     class Step19 implements Step<CustomLastStep> {
         private final AttestationType attestationType;
-        private final Optional<Attestation> attestationMetadata;
+        private final Attestation attestationMetadata;
         private final boolean attestationTrusted;
         private final List<String> prevWarnings;
 
@@ -668,7 +668,7 @@ final class FinishRegistrationSteps {
     @Value
     class CustomLastStep implements Step<Finished> {
         private final AttestationType attestationType;
-        private final Optional<Attestation> attestationMetadata;
+        private final Attestation attestationMetadata;
         private final boolean attestationTrusted;
         private final List<String> prevWarnings;
 
@@ -699,7 +699,7 @@ final class FinishRegistrationSteps {
     @Value
     class Finished implements Step<Finished> {
         private final AttestationType attestationType;
-        private final Optional<Attestation> attestationMetadata;
+        private final Attestation attestationMetadata;
         private final boolean attestationTrusted;
         private final List<String> prevWarnings;
 

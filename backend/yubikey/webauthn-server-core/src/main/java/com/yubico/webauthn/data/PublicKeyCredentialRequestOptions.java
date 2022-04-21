@@ -24,12 +24,13 @@
 
 package com.yubico.webauthn.data;
 
+import java.util.List;
+import java.util.Optional;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.yubico.internal.util.CollectionUtil;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
@@ -63,7 +64,6 @@ public class PublicKeyCredentialRequestOptions {
      * This is treated as a hint, and MAY be overridden by the client.
      * </p>
      */
-    @Builder.ObtainVia(method = "wrapTimeout")
     private final Long timeout;
 
     /**
@@ -206,10 +206,4 @@ public class PublicKeyCredentialRequestOptions {
             return this;
         }
     }
-
-    // Needed so that Lombok's .toBuilder() doesn't call .timeout(null: long)
-    private Optional<Long> wrapTimeout() {
-        return Optional.ofNullable(timeout);
-    }
-
 }

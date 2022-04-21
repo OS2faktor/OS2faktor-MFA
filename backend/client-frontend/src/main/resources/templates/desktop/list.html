@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head th:replace="fragments/header :: header (datatables = true)" />
+<body class="top-navigation">
+	<div id="wrapper">
+		<div id="page-wrapper" class="gray-bg">
+			<div th:replace="fragments/topbar :: topbar"></div>
+
+			<div class="wrapper wrapper-content">
+				<div class="row">
+					<div class="col-lg-9">
+						<div class="ibox">
+							<div class="ibox-title">
+								<h5><em class="fa fa-mobile"></em> &nbsp; Mine enheder</h5>
+							</div>
+
+							<div class="ibox-content">
+								<table id="clients" class="table table-striped table-bordered table-hover" >
+									<thead>
+										<tr>
+											<th style="width: 200px;">OS2faktor ID</th>
+											<th style="width: 200px;">enhedstype</th>
+											<th>Navn</th>
+											<th style="width: 100px; text-align: center;">Handling</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr th:each="client : ${clients}">
+											<td th:text="${client.deviceId}"></td>
+											<td th:text="#{__${client.type.message}__}"></td>
+											<td>
+												<span th:text="${client.name}"></span>
+												<span th:if="${client.prime}" class="badge badge-primary">Primær</span>
+												<span th:if="${client.roaming}" class="badge badge-warning">Roaming</span>
+											</td>
+											<td style="text-align: center;">
+												<a th:href="@{/desktop/selfservice} + '/' + ${client.deviceId}" style="color: black;" title="Vis enhed"><em class="fa fa-fw fa-search"></em></a>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+
+					<div th:replace="fragments/rightbar :: rightbar"></div>
+	            </div>
+	        </div>
+
+			<div th:replace="fragments/footer :: footer" />
+		</div>
+	</div>
+
+	<div th:replace="fragments/footer :: scripts (datatables = true)" />
+	
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+
+		/*[+
+		+]*/
+
+        /*]]>*/
+   	</script>
+</body>
+</html>

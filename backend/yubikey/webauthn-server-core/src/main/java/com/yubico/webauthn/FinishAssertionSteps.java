@@ -24,18 +24,8 @@
 
 package com.yubico.webauthn;
 
+import static com.yubico.internal.util.ExceptionUtil.assure;
 
-import COSE.CoseException;
-import com.yubico.internal.util.CollectionUtil;
-import com.yubico.webauthn.data.AuthenticatorAssertionResponse;
-import com.yubico.webauthn.data.ByteArray;
-import com.yubico.webauthn.data.COSEAlgorithmIdentifier;
-import com.yubico.webauthn.data.ClientAssertionExtensionOutputs;
-import com.yubico.webauthn.data.CollectedClientData;
-import com.yubico.webauthn.data.PublicKeyCredential;
-import com.yubico.webauthn.data.UserVerificationRequirement;
-import com.yubico.webauthn.exception.InvalidSignatureCountException;
-import com.yubico.webauthn.extension.appid.AppId;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
@@ -46,15 +36,23 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
+import com.yubico.internal.util.CollectionUtil;
+import com.yubico.webauthn.data.AuthenticatorAssertionResponse;
+import com.yubico.webauthn.data.ByteArray;
+import com.yubico.webauthn.data.COSEAlgorithmIdentifier;
+import com.yubico.webauthn.data.ClientAssertionExtensionOutputs;
+import com.yubico.webauthn.data.CollectedClientData;
+import com.yubico.webauthn.data.PublicKeyCredential;
+import com.yubico.webauthn.data.UserVerificationRequirement;
+import com.yubico.webauthn.exception.InvalidSignatureCountException;
+import com.yubico.webauthn.extension.appid.AppId;
+
+import COSE.CoseException;
 import lombok.Builder;
 import lombok.Value;
-import lombok.extern.slf4j.Slf4j;
-
-import static com.yubico.internal.util.ExceptionUtil.assure;
-
 
 @Builder
-@Slf4j
 final class FinishAssertionSteps {
 
     private static final String CLIENT_DATA_TYPE = "webauthn.get";

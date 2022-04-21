@@ -132,8 +132,8 @@ public class RegistrationResult {
         this.attestationMetadata = attestationMetadata;
     }
 
-    public Optional<Attestation> getAttestationMetadata() {
-        return Optional.ofNullable(attestationMetadata);
+    public Attestation getAttestationMetadata() {
+        return attestationMetadata;
     }
 
     static RegistrationResultBuilder.MandatoryStages builder() {
@@ -170,8 +170,8 @@ public class RegistrationResult {
             }
         }
 
-        RegistrationResultBuilder attestationMetadata(@NonNull Optional<Attestation> attestationMetadata) {
-            this.attestationMetadata = attestationMetadata.orElse(null);
+        RegistrationResultBuilder attestationMetadata(@NonNull Attestation attestationMetadata) {
+            this.attestationMetadata = attestationMetadata;
             return this;
         }
     }

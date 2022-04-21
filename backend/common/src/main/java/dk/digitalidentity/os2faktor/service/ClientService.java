@@ -25,6 +25,10 @@ public class ClientService {
 		return clientDao.save(client);
 	}
 
+	public void saveAll(List<Client> clients) {
+		clientDao.saveAll(clients);
+	}
+
 	@Transactional
 	public void deleteAncientClients() {
 		Calendar calendar = Calendar.getInstance();

@@ -85,7 +85,7 @@ public class PublicKeyCredentialCreationOptions {
      * A time, in milliseconds, that the caller is willing to wait for the call to complete. This is treated as a hint,
      * and MAY be overridden by the client.
      */
-    @Builder.ObtainVia(method = "wrapTimeout")
+//    @Builder.ObtainVia(method = "wrapTimeout")
     private final Long timeout;
 
     /**
@@ -119,7 +119,7 @@ public class PublicKeyCredentialCreationOptions {
      * up-to-date list of registered WebAuthn Extensions.
      * </p>
      */
-    @NonNull
+//    @NonNull
     private final RegistrationExtensionInputs extensions;
 
     @JsonCreator
@@ -262,8 +262,10 @@ public class PublicKeyCredentialCreationOptions {
     }
 
     // Needed so that Lombok's .toBuilder() doesn't call .timeout(null: long)
+    /*
     private Optional<Long> wrapTimeout() {
         return Optional.ofNullable(timeout);
     }
+    */
 
 }

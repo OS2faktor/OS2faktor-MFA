@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="da-DK">
+<head>
+	<meta http-equiv="x-ua-compatible" content="IE=edge">
+	<meta charset="utf-8" />
+	<meta name="apple-mobile-web-app-capable" content="yes"/>
+	<meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no" />
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<meta name="format-detection" content="telephone=no" />
+
+	<title th:text="#{html.registration.title}"></title>
+
+	<link rel="stylesheet" th:href="@{/css/app.css}" />
+	<link rel="stylesheet" th:href="@{/css/register.css}" />
+	<link rel="stylesheet" th:href="@{/libs/fontawesome-5.3.1/css/all.min.css}" />
+	<link rel="stylesheet" th:href="@{/libs/bootstrap/css/bootstrap.min.css}" />
+	<link rel="stylesheet" th:href="@{/libs/bootstrap/css/bootstrap4-buttons.css}" />
+	<link rel="stylesheet" th:href="@{/libs/sweetalert/css/sweetalert2.min.css}" />
+</head>
+
+<body>
+	<nav class="navbar navbar-expand-lg navbar-light bg-light">
+		<a class="navbar-brand" href="#">
+			<img class="img-fluid" src="/img/os2faktor.png" style="display: inline; max-width: 30vw; max-height: 40px;" />
+		</a>
+		<div>
+	        <a th:if="${fromRedirect}" class="navbar-text" th:href="@{/ui/register2/successPage?apiKey=} + ${apiKey} + '&deviceId='+ ${deviceId}">
+	        	 <span class="btn btn-secondary">Udfør identitetssikring senere</span>
+	        </a>
+	   </div>
+	</nav>
+
+	<div id="register">
+		<form class="form-register" id="login" role="form" th:action="@{/sso/saml/login}" method="post">
+			<div class="form-group">
+				<span>
+				Før din 2-faktor enhed kan anvendes skal din identitet verificeres. Dette håndteres
+				enten ved brug af NemID eller MitID, og identitetssikringen gennemføres ved at klikke
+				på knappen nedenfor.
+				</span>
+			</div>
+			<br>
+			<div class="form-group row">
+				<a th:href="@{/auth/register2/nemid/complete}" class="btn btn-block btn-lg btn-primary col-sm-12">Verificer identitet</a>
+			</div>
+		</form>
+	</div>
+	
+	<!--[if lt IE 9]>
+		<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+	<![endif]-->
+	
+	<script type="text/javascript" th:src="@{/libs/jquery/js/jquery-3.3.1.min.js}"></script>
+	<script type="text/javascript" th:src="@{/libs/bootstrap/js/bootstrap.min.js}"></script>
+	<script type="text/javascript" th:src="@{/libs/sweetalert/js/sweetalert2.all.min.js}"></script>
+	<script type="text/javascript" th:src="@{/libs/promises/js/promise-polyfill.js}"></script>
+
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+
+		/*[+
+			var url = [[@{/ui/successPage}]];
+			var iframeSrc = [[${iframeSrc}]];
+			var iframeOrigin = [[${serverUrlPrefix}]];
+		+]*/
+
+		// delay loading the NemID applet for 1 second
+		$(document).ready(function() {
+
+        });
+		
+		function closeWindow() {
+			var endpoint = url + "?closeWindow=true";
+			window.location = endpoint;
+		}
+
+		/*]]>*/
+	</script>
+</body>
+</html>

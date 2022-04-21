@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head th:replace="fragments/header :: header" />
+<body class="top-navigation">
+	<div id="wrapper">
+		<div id="page-wrapper" class="gray-bg">
+			<div th:replace="fragments/topbar :: topbar"></div>
+
+			<div class="wrapper wrapper-content">
+				<div class="row">
+					<div class="col-lg-9">
+						<div class="ibox">
+							<div class="ibox-title">
+								<h5><em class="fa fa-mobile"></em> &nbsp; <span th:text="${client.name}"></span></h5>
+							</div>
+
+							<div class="ibox-content">
+								<form>
+									<div class="form-group row">
+										<label class="col-sm-2 col-form-label">OS2faktor ID</label>
+										<div class="col-sm-10">
+											<input type="text" class="form-control" disabled="disabled" th:value="${client.deviceId}"/>
+										</div>
+									</div>
+	
+									<div class="hr-line-dashed"></div>
+	
+									<div class="form-group row">
+										<label class="col-sm-2 col-form-label">Enhedstype</label>
+										<div class="col-sm-10">
+											<input type="text" class="form-control" disabled="disabled" th:value="#{__${client.type.message}__}"/>
+										</div>
+									</div>
+									
+									<div class="hr-line-dashed"></div>
+	
+									<div class="form-group row">
+										<label class="col-sm-2 col-form-label">Oprettet</label>
+										<div class="col-sm-10">
+											<input type="text" class="form-control" disabled="disabled" th:value="${#dates.format(client.created, 'yyyy-MM-dd HH:mm')}"/>
+										</div>
+									</div>
+	
+									<div class="hr-line-dashed"></div>
+	
+									<div class="form-group row">
+										<label class="col-sm-2 col-form-label">Sidst brugt</label>
+										<div class="col-sm-10">
+											<input type="text" class="form-control" disabled="disabled" th:value="${#dates.format(client.lastUsed, 'yyyy-MM-dd HH:mm')}"/>
+										</div>
+									</div>
+	
+									<div class="hr-line-dashed"></div>
+	
+									<div class="form-group row">
+										<div class="col-sm-12" style="margin-bottom: 20px;" th:if="${client.prime == false && client.type.name() != 'YUBIKEY' && client.type.name() != 'TOTP'}">
+											<button class="btn btn-lg btn-primary btn-block" onclick="setPrime(this.getAttribute('data-device-id'));"  th:data-device-id="${client.deviceId}" type="button">Vælg som primær enhed</button>
+										</div>
+				
+										<div class="col-sm-12" style="margin-bottom: 20px;" th:if="${client.prime == true && client.type.name() != 'YUBIKEY' && client.type.name() != 'TOTP'}">
+											<button class="btn btn-lg btn-warning btn-block" onclick="unsetPrime(this.getAttribute('data-device-id'));" th:data-device-id="${client.deviceId}" type="button">Fravælg som primær enhed</button>
+										</div>
+				
+										<div class="col-sm-12" style="margin-bottom: 20px;">
+											<a style="text-decoration: none;" th:href="@{/desktop/test/} + ${client.deviceId}">
+												<button class="btn btn-lg btn-primary btn-block" type="button">Test enhed</button>
+											</a>
+										</div>
+				
+										<div class="col-sm-12" style="margin-bottom: 20px;">
+											<button class="btn btn-lg btn-danger btn-block" onclick="deleteClient(this.getAttribute('data-clientId'));" th:attr="data-clientId=${client.deviceId}" type="button">Slet enhed</button>
+										</div>
+									</div>
+								</form>
+							</div>
+						</div>
+					</div>
+
+					<div th:replace="fragments/rightbar :: rightbar"></div>
+	            </div>
+	        </div>
+
+			<div th:replace="fragments/footer :: footer" />
+		</div>
+	</div>
+
+	<div th:replace="fragments/footer :: scripts" />
+	
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+
+		/*[+
+			var titleTxt = [[#{html.client.delete.title}]];
+			var bodyTxt = [[#{html.client.delete.body}]];
+			var confirmTxt = [[#{html.client.delete.confirm}]];
+			var cancelTxt = [[#{html.client.delete.cancel}]];
+
+			var primeTitleTxt = [[#{html.client.setprime.title}]];
+			var primeBodyTxt = [[#{html.client.setprime.body}]];
+			
+			var notPrimeTitleTxt = [[#{html.client.unsetprime.title}]];
+			var notPrimeBodyTxt = [[#{html.client.unsetprime.body}]];
+
+			var url = [[@{/desktop/selfservice}]];
+		+]*/
+
+		
+		function deleteClient(deviceId) {
+			var endpoint = url + "/" + deviceId + "/delete";
+
+			swal({
+				title: titleTxt,
+				html: bodyTxt,
+				type: "info",
+				showCancelButton: true,
+				confirmButtonText : confirmTxt,
+				cancelButtonText : cancelTxt,
+				allowOutsideClick: false
+			}, function(result) {
+				if (result) {
+					window.location = endpoint;
+				}
+			});
+		}
+
+		function setPrime(deviceId) {
+			var endpoint = url + "/" + deviceId + "/prime";
+
+			swal({
+				title: primeTitleTxt,
+				html: primeBodyTxt,
+				type: "info",
+				showCancelButton: true,
+				confirmButtonText : confirmTxt,
+				cancelButtonText : cancelTxt,
+				allowOutsideClick: false
+			}, function(result) {
+				if (result) {
+					window.location = endpoint;
+				}
+			});
+		}
+
+		function unsetPrime(deviceId) {
+			var endpoint = url + "/" + deviceId + "/notprime";
+
+			swal({
+				title: notPrimeTitleTxt,
+				html: notPrimeBodyTxt,
+				type: "info",
+				showCancelButton: true,
+				confirmButtonText : confirmTxt,
+				cancelButtonText : cancelTxt,
+				allowOutsideClick: false
+			}, function(result) {
+				if (result) {
+					window.location = endpoint;
+				}
+			});
+		}
+		
+        /*]]>*/
+   	</script>
+</body>
+</html>

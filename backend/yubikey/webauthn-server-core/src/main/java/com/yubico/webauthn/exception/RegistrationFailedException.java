@@ -25,9 +25,9 @@
 package com.yubico.webauthn.exception;
 
 public final class RegistrationFailedException extends Exception {
+	private static final long serialVersionUID = 3046045151530115378L;
 
-    public RegistrationFailedException(IllegalArgumentException e) {
+	public RegistrationFailedException(IllegalArgumentException e) {
         super(e);
     }
-
 }

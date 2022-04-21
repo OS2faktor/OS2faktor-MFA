@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head th:replace="fragments/header :: header" />
+<body class="top-navigation">
+	<div id="wrapper">
+		<div id="page-wrapper" class="gray-bg">
+			<div th:replace="fragments/topbar :: topbar"></div>
+
+			<div class="wrapper wrapper-content">
+				<div class="row">
+					<div class="col-lg-6 offset-lg-3">
+						<div class="ibox">
+							<div class="ibox-title">
+								<h5><em class="fa fa-mobile"></em> &nbsp; Authenticator login fejlet</span></h5>
+							</div>
+
+							<div class="ibox-content">
+								<form method="post" th:object="${form}">
+									<p th:unless="${lockedOut}">
+										Login med Authenticator blev afbrudt med en fejl. Luk dette vindue og forsøg igen.
+									</p>
+									
+									<p th:if="${lockedOut}">
+										Du har indtastet koden forkert for mange gange, enheden er derfor blevet låst i en kort tidsperiode.
+									</p>
+								</form>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div th:replace="fragments/footer :: footer"></div>
+		</div>
+	</div>
+	
+	<div th:replace="fragments/footer :: scripts"></div>
+
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+
+		/*[+
+		+]*/
+		
+		/*]]>*/
+	</script>
+</body>
+</html>

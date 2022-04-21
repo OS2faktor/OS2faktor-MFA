@@ -67,7 +67,7 @@ public class HashingService {
 	public boolean matches(String string, String encodedString) throws Exception {
 		String newEncodedString = encryptAndEncodeString(string);
 
-		if (StringUtils.isEmpty(string) || StringUtils.isEmpty(encodedString)) {
+		if (!StringUtils.hasLength(string) || !StringUtils.hasLength(encodedString)) {
 			return false;
 		}
 

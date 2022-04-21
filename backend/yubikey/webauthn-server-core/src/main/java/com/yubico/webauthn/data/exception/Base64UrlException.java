@@ -25,8 +25,9 @@
 package com.yubico.webauthn.data.exception;
 
 public final class Base64UrlException extends Exception {
+	private static final long serialVersionUID = -7944236777831294499L;
 
-    public Base64UrlException(String s, Throwable throwable) {
+	public Base64UrlException(String s, Throwable throwable) {
         super(s, throwable);
     }
 

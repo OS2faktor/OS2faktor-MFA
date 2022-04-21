@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>dk.digitalidentity.os2faktor</groupId>
+	<artifactId>os2faktor-client-frontend</artifactId>
+	<packaging>jar</packaging>
+	<name>OS2faktor Client Frontend Module</name>
+
+	<parent>
+		<groupId>dk.digitalidentity.os2faktor</groupId>
+		<artifactId>os2faktor-parent</artifactId>
+		<version>1.0.0</version>
+	</parent>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<layout>ZIP</layout>
+					<directories>
+						<directory>${basedir}/config</directory>
+					</directories>
+					<addResources>
+						true
+					</addResources>
+				</configuration>
+			</plugin>
+		</plugins>
+
+		<finalName>os2faktor-client-frontend</finalName>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+
+                <dependency>
+                        <groupId>org.thymeleaf.extras</groupId>
+                        <artifactId>thymeleaf-extras-springsecurity5</artifactId>
+                </dependency>
+
+		<dependency>
+			<groupId>dk.digitalidentity.os2faktor</groupId>
+			<artifactId>os2faktor-common</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>dk.digitalidentity</groupId>
+			<artifactId>saml-module</artifactId>
+			<version>2.1.6</version>
+		</dependency>
+
+		<dependency>
+			<groupId>dk.digitalidentity.webjars</groupId>
+			<artifactId>inspinia-webjar-lib</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>yubico.com</groupId>
+			<artifactId>webauthn-server-core</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jboss.aerogear</groupId>
+			<artifactId>aerogear-otp-java</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.zxing</groupId>
+			<artifactId>core</artifactId>
+			<version>3.3.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.zxing</groupId>
+			<artifactId>javase</artifactId>
+			<version>3.3.0</version>
+		</dependency>
+	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>shared-resources</id>
+			<name>Shared Resources</name>
+			<url>https://mvn.digital-identity.dk/release</url>
+		</repository>
+	</repositories>
+</project>

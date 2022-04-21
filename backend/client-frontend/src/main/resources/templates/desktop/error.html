@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head th:replace="fragments/header :: header" />
+<body class="top-navigation">
+	<div id="wrapper">
+		<div id="page-wrapper" class="gray-bg">
+			<div th:replace="fragments/topbar :: topbar"></div>
+
+			<div class="wrapper wrapper-content">
+				<div class="row">
+					<th:block sec:authorize="!isAuthenticated()"><div class="col-lg-12"></th:block>
+					<th:block sec:authorize="isAuthenticated()"><div class="col-lg-9"></th:block>
+						<div class="ibox">
+							<div class="ibox-title">
+								<h5><em class="fa fa-exclamation"></em> &nbsp; Der er opstået en teknisk fejl</h5>
+							</div>
+
+							<div class="ibox-content">
+								<form name="postBackForm" method="post">
+									<th:block th:if="${flow != null}">
+										<h4 th:text="#{__${flow.message}__}"></h4>
+										<div th:if="${errorType != null}" th:text="#{__${errorType.message}__}"></div>
+										
+										<th:block th:if="${uuid != null}">
+											<br/>
+											<div th:utext="#{html.label.errorcode}"></div>
+											<div th:text="${uuid}"></div>
+						
+											<th:block th:if="${nemIDErrorKey != null}">
+												<br/>
+												<div th:utext="#{html.label.nemiderrorcode}"></div>
+												<div th:utext="#{__${nemIDErrorKey}__(${nemIDErrorCode})}"></div>
+											</th:block>
+										</th:block>
+									</th:block>
+									
+									<th:block th:if="${flow == null}">
+										<h4 th:text="#{html.failedflow.unknown}"></h4>
+										<div th:text="#{html.errortype.unknown}"></div>
+									</th:block>
+								</form>
+							</div>
+						</div>
+					</div>
+
+					<div sec:authorize="isAuthenticated()" th:replace="fragments/rightbar :: rightbar"></div>
+	            </div>
+	        </div>
+
+			<div th:replace="fragments/footer :: footer" />
+		</div>
+	</div>
+
+	<div th:replace="fragments/footer :: scripts" />
+	
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+
+		/*[+
+		+]*/
+
+        /*]]>*/
+   	</script>
+</body>
+</html>

@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import dk.digitalidentity.os2faktor.api.model.PollingResponse;
-import dk.digitalidentity.os2faktor.dao.ClientDao;
 import dk.digitalidentity.os2faktor.dao.NotificationDao;
 import dk.digitalidentity.os2faktor.dao.PseudonymDao;
 import dk.digitalidentity.os2faktor.dao.ServerDao;
@@ -34,6 +33,7 @@ import dk.digitalidentity.os2faktor.dao.model.Statistic;
 import dk.digitalidentity.os2faktor.dao.model.User;
 import dk.digitalidentity.os2faktor.dao.model.enums.ClientType;
 import dk.digitalidentity.os2faktor.security.AuthorizedServerHolder;
+import dk.digitalidentity.os2faktor.service.ClientService;
 import dk.digitalidentity.os2faktor.service.IdGenerator;
 import dk.digitalidentity.os2faktor.service.LocalClientService;
 import dk.digitalidentity.os2faktor.service.PushNotificationSenderService;
@@ -50,7 +50,7 @@ import nl.martijndwars.webpush.Subscription.Keys;
 public class ServerApi {
 	
 	@Autowired
-	private ClientDao clientDao;
+	private ClientService clientService;
 	
 	@Autowired
 	private ServerDao serverDao;
@@ -136,7 +136,7 @@ public class ServerApi {
 	
 			if (deviceIds != null && deviceIds.length > 0) {
 				for (String deviceId : deviceIds) {
-					Client client = clientDao.getByDeviceId(deviceId);
+					Client client = clientService.getByDeviceId(deviceId);
 	
 					if (client != null) {
 						clients.add(client);
@@ -157,6 +157,11 @@ public class ServerApi {
 					// for now the decision is that YubiKeys have a pincode build in due to its physical nature
 					client.setHasPincode(true);
 				}
+				else if (client.getType().equals(ClientType.TOTP)) {
+					// not really pincode protected - but we will default to say it has, as TOTP clients can be
+					// rejected by the customer by type if they do not approve the use of these
+					client.setHasPincode(true);
+				}
 			}
 		}
 		catch (Exception ex) {
@@ -169,7 +174,7 @@ public class ServerApi {
 	
 	@PutMapping("/api/server/client/{deviceId}/authenticate")
 	public ResponseEntity<Notification> authenticateClient(@PathVariable("deviceId") String deviceId, @RequestParam(value = "emitChallenge", defaultValue = "true", required = false) boolean emitChallenge) {
-		Client client = clientDao.getByDeviceId(deviceId);
+		Client client = clientService.getByDeviceId(deviceId);
 		if (client == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
@@ -229,15 +234,18 @@ public class ServerApi {
 				PushStatus status = notificationService.publish("Login forsøg", client.getNotificationKey());
 				if (status.equals(PushStatus.DISABLED)) {
 					client.setDisabled(true);
-					clientDao.save(client);
+					clientService.save(client);
 					
 					return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 				}
 			}
 		}
 		else if (client.getType().equals(ClientType.YUBIKEY)) {
-			subscriptionInfo.setRedirectUrl(frontendBaseUrl + "/ui/yubikey/login/" + subscriptionInfo.getPollingKey());
+			subscriptionInfo.setRedirectUrl(frontendBaseUrl + "/mfalogin/yubikey/" + subscriptionInfo.getPollingKey());
 			subscriptionInfo.setChallenge(Base64.getEncoder().encodeToString(idGenerator.getRandomBytes(32)));
+		}
+		else if (client.getType().equals(ClientType.TOTP)) {
+			subscriptionInfo.setRedirectUrl(frontendBaseUrl + "/mfalogin/authenticator/" + subscriptionInfo.getPollingKey());
 		}
 
 		subscriptionInfoDao.save(subscriptionInfo);
@@ -292,7 +300,7 @@ public class ServerApi {
 		List<LocalClient> localClients = localClientService.getByEncodedSsnAndCvr(encodedSsn, cvr);
 		if (localClients != null && localClients.size() > 0) {
 			for (LocalClient localClient : localClients) {
-				Client client = clientDao.getByDeviceId(localClient.getDeviceId());
+				Client client = clientService.getByDeviceId(localClient.getDeviceId());
 
 				if (client != null) {
 					clients.add(client);

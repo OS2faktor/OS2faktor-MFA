@@ -24,12 +24,13 @@
 
 package com.yubico.webauthn.data;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import lombok.Builder;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.NonNull;
 import lombok.Value;
 
@@ -50,7 +51,6 @@ import lombok.Value;
  * @see <a href="https://www.w3.org/TR/2019/PR-webauthn-20190117/#extensions">§9. WebAuthn Extensions</a>
  */
 @Value
-@Builder(toBuilder = true)
 public class ClientAssertionExtensionOutputs implements ClientExtensionOutputs {
 
     /**
@@ -64,7 +64,6 @@ public class ClientAssertionExtensionOutputs implements ClientExtensionOutputs {
      * @see <a href="https://www.w3.org/TR/2019/PR-webauthn-20190117/#sctn-appid-extension">§10.1. FIDO AppID Extension
      * (appid)</a>
      */
-    @Builder.ObtainVia(method = "getAppid")
     private final Boolean appid;
 
     @JsonCreator

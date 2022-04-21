@@ -25,8 +25,9 @@
 package com.yubico.webauthn.exception;
 
 public class AssertionFailedException extends Exception {
+	private static final long serialVersionUID = -16348958219407800L;
 
-    public AssertionFailedException(IllegalArgumentException e) {
+	public AssertionFailedException(IllegalArgumentException e) {
         super(e);
     }
 

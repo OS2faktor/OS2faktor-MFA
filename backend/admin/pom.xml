@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>dk.digitalidentity.os2faktor</groupId>
+	<artifactId>os2faktor-frontend</artifactId>
+	<packaging>jar</packaging>
+	<name>OS2faktor Frontend Module</name>
+
+	<parent>
+		<groupId>dk.digitalidentity.os2faktor</groupId>
+		<artifactId>os2faktor-parent</artifactId>
+		<version>1.0.0</version>
+	</parent>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<layout>ZIP</layout>
+					<directories>
+						<directory>${basedir}/config</directory>
+					</directories>
+					<addResources>
+						true
+					</addResources>
+				</configuration>
+			</plugin>
+		</plugins>
+
+		<finalName>os2faktor-frontend</finalName>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>dk.digitalidentity.os2faktor</groupId>
+			<artifactId>os2faktor-common</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>dk.digitalidentity</groupId>
+			<artifactId>saml-module</artifactId>
+			<version>2.1.5</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+	</dependencies>
+
+        <repositories>
+                <repository>
+                        <id>shared-resources</id>
+                        <name>Shared Resources</name>
+                        <url>https://mvn.digital-identity.dk/release</url>
+                </repository>
+        </repositories>
+</project>

@@ -29,7 +29,6 @@ import dk.digitalidentity.os2faktor.dao.ClientDao;
 import dk.digitalidentity.os2faktor.dao.NotificationDao;
 import dk.digitalidentity.os2faktor.dao.model.Client;
 import dk.digitalidentity.os2faktor.dao.model.Notification;
-import dk.digitalidentity.os2faktor.dao.model.enums.ClientType;
 import dk.digitalidentity.os2faktor.service.model.ClientSession;
 import dk.digitalidentity.os2faktor.service.model.CustomWebSocketPayload;
 import dk.digitalidentity.os2faktor.service.model.WSMessageDTO;
@@ -339,7 +338,7 @@ public class SocketHandler extends TextWebSocketHandler {
 			ClientSession session = clientSession.get();
 
 			String challengeValue = challenge.getChallenge();
-			if (StringUtils.isEmpty(challengeValue)) {
+			if (!StringUtils.hasLength(challengeValue)) {
 				// supported since version 2.1.x
 				if (getMajorClientVersion(session) < 2 || (getMajorClientVersion(session) == 2 && getMinorClientVersion(session) < 1)) {
 					// hack - no challenge actually exists, so we generate a random one

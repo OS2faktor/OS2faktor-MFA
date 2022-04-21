@@ -36,17 +36,17 @@
 			<version>2.11.0</version>
 		</dependency>
 
-                <dependency>
-                        <groupId>com.fasterxml.jackson.dataformat</groupId>
-                        <artifactId>jackson-dataformat-cbor</artifactId>
-                        <version>2.11.0</version>
-                </dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-cbor</artifactId>
+			<version>2.11.0</version>
+		</dependency>
 
-                <dependency>
-                        <groupId>com.fasterxml.jackson.datatype</groupId>
-                        <artifactId>jackson-datatype-jdk8</artifactId>
-                        <version>2.11.0</version>
-                </dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jdk8</artifactId>
+			<version>2.11.0</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -54,16 +54,15 @@
 			<version>1.7.25</version>
 		</dependency>
 
-<dependency>
-    <groupId>com.upokecenter</groupId>
-    <artifactId>cbor</artifactId>
-    <version>4.0.1</version>
-</dependency>
+		<dependency>
+			<groupId>com.upokecenter</groupId>
+			<artifactId>cbor</artifactId>
+			<version>4.0.1</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>1.18.4</version>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>

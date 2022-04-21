@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<body>
+	<div th:fragment="rightbar" class="col-lg-3">
+		<div class="ibox">
+			<div class="ibox-title">
+				<h5><em class="fa fa-gear"></em> &nbsp; Handlinger</h5>
+			</div>
+
+			<div class="ibox-content">
+				<div class="row">
+					<ul>
+						<li><a th:href="@{/}">Mine enheder</a></li>
+						<li><a th:href="@{/authenticator}">Tilknyt authenticator</a></li>
+						<li><a th:href="@{/yubikey}">Tilknyt hardwarenøgle</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

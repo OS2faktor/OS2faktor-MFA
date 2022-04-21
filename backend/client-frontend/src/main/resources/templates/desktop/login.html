@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head th:replace="fragments/header :: header" />
+<body class="top-navigation">
+	<div id="wrapper">
+		<div id="page-wrapper" class="gray-bg">
+			<div th:replace="fragments/topbar :: topbar"></div>
+
+			<div class="wrapper wrapper-content">
+				<div class="row">
+					<div class="col-lg-12">
+						<div class="ibox">
+							<div class="ibox-title">
+								<h5><em class="fa fa-gear"></em> &nbsp; Login til selvbetjeningen</span></h5>
+							</div>
+
+							<div class="ibox-content">
+								<p>
+								I OS2faktor selvbetjeningen kan du få et overblik over dine OS2faktor enheder, og udføre administration af disse.
+								Her kan du bl.a.
+								</p>
+								
+								<ul>
+									<li>Registrere hardwarenøgler og authenticator apps som OS2faktor enheder</li>
+									<li>Slette gamle enheder du ikke brugere længere</li>
+									<li>Teste at dine enheder stadig virker</li>
+								</ul>
+
+								<a th:href="@{/saml/login}" class="btn btn-block btn-lg btn-primary col-sm-12">Login</a>
+							</div>
+						</div>
+					</div>
+				</div>
+	        </div>
+
+			<div th:replace="fragments/footer :: footer"></div>
+		</div>
+	</div>
+
+	<div th:replace="fragments/footer :: scripts"></div>
+
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+
+		/*[+
+			var loginUrl = [[@{/saml/login}]];
+		+]*/
+		
+		// delay loading the NemID applet for 1 second
+		$(document).ready(function() {
+// can cause infinite login-loops, so disabled for now
+//			window.location = loginUrl;
+        });
+
+		/*]]>*/
+	</script>
+</body>
+</html>

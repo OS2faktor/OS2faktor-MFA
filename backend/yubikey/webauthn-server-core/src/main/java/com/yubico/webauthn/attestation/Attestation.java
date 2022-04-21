@@ -41,8 +41,9 @@ import lombok.Value;
 @Value
 @Builder(toBuilder = true)
 public class Attestation implements Serializable {
+	private static final long serialVersionUID = -8927038803457294504L;
 
-    /**
+	/**
      * <code>true</code> if and only if the contained information has been verified to be cryptographically supported by
      * a trusted attestation root.
      */

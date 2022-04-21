@@ -55,6 +55,7 @@ public class PartialClient {
 	@JoinColumn(name = "user_id")
 	private User user;
 
+	// for type authenticator_app this field is used for the secret
 	@Column
 	@NotNull
 	private String challenge;

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="da-DK">
+<head>
+	<meta http-equiv="x-ua-compatible" content="IE=edge">
+	<meta charset="utf-8" />
+	<meta name="apple-mobile-web-app-capable" content="yes"/>
+	<meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no" />
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+
+	<title th:text="#{html.os2faktor.title}"></title>
+
+    <link rel="stylesheet" th:href="@{/desktop/lib/fontawesome/css/all.min.css}" />
+	<link rel="stylesheet" th:href="@{/desktop/lib/bootstrap/css/bootstrap.min.css}" />
+	<link rel="stylesheet" th:href="@{/desktop/css/app.css}" />
+</head>
+
+<body>
+	<div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom box-shadow">
+		<h5 class="my-0 mr-md-auto font-weight-normal">
+			<img class="img-fluid" th:src="@{/img/os2faktor.png}" style="display: inline; max-width: 30vw; max-height: 40px;" />
+		</h5>
+
+		<nav class="my-2 my-md-0 mr-md-3">
+			<a class="p-2 text-dark active" th:href="@{/admin}">Søg</a>
+			<a class="p-2 text-dark" th:href="@{/admin/list}">Registreringer</a>
+			<a class="p-2 text-dark" th:href="@{/admin/statistics}">Statistik</a>
+			<a class="p-2 text-dark" th:href="@{/saml/logout}">Log af</a>
+		</nav>
+	</div>
+
+	<div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto">
+		<h4 th:text="#{html.admin.success.header}"></h4>
+		<p th:text="#{html.admin.success.intro}"></p>
+	
+		<a style="text-decoration: none;" th:href="@{/admin}">
+			<button class="btn btn-lg btn-primary btn-block" type="button" th:text="#{html.admin.ok}"></button>
+		</a>
+	</div>
+</body>
+</html>

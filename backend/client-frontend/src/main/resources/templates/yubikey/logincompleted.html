@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head th:replace="fragments/header :: header" />
+<body class="top-navigation">
+	<div id="wrapper">
+		<div id="page-wrapper" class="gray-bg">
+			<div th:replace="fragments/topbar :: topbar"></div>
+
+			<div class="wrapper wrapper-content">
+				<div class="row">
+					<div class="col-lg-6 offset-lg-3">
+						<div class="ibox">
+							<div class="ibox-title">
+								<h5><em class="fa fa-key"></em> &nbsp; Hardwarenøgle login gennemført</span></h5>
+							</div>
+
+							<div class="ibox-content">
+								<form method="post" th:object="${form}">
+									<h4 th:text="#{html.authenticator.login.title}"></h4>
+									<p>
+										Login med hardwarenøgle gennemført succesfuldt. Luk dette vindue for at fortsætte login-flowet.
+									</p>
+								</form>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div th:replace="fragments/footer :: footer"></div>
+		</div>
+	</div>
+	
+	<div th:replace="fragments/footer :: scripts"></div>
+
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+
+		/*[+
+		+]*/
+
+		$(document).ready(function() {
+			try {
+				self.close();
+			}
+			catch (err) {
+				console.log("Failed to automatically close window: " + err);
+			}
+		});
+
+		
+		/*]]>*/
+	</script>
+</body>
+</html>

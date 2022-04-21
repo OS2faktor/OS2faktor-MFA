@@ -30,9 +30,9 @@ namespace OS2faktor
             webview.Source = new Uri(urlString);
         }
 
-        private void webview_Navigating(object sender, System.Windows.Navigation.NavigatingCancelEventArgs e)
+        private void webview_NavigationStarting(object sender, Microsoft.Web.WebView2.Core.CoreWebView2NavigationStartingEventArgs e)
         {
-            var queryDictionary = System.Web.HttpUtility.ParseQueryString(e.Uri.Query);
+            var queryDictionary = System.Web.HttpUtility.ParseQueryString(new Uri(e.Uri).Query);
 
             string closeWindow = queryDictionary["closeWindow"];
             if (closeWindow != null)

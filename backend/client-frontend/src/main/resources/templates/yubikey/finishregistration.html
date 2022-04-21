@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head th:replace="fragments/header :: header" />
+<body class="top-navigation">
+	<div id="wrapper">
+		<div id="page-wrapper" class="gray-bg">
+			<div th:replace="fragments/topbar :: topbar"></div>
+
+			<div class="wrapper wrapper-content">
+				<div class="row">
+					<th:block th:if="${session.SESSION_REDIRECT_URL == null}"><div class="col-lg-9"></th:block>
+					<th:block th:if="${session.SESSION_REDIRECT_URL != null}"><div class="col-lg-12"></th:block>
+						<div class="ibox">
+							<div class="ibox-title">
+								<h5><em class="fa fa-mobile"></em> &nbsp; Tilknyt hardwarenøgle</span></h5>
+							</div>
+
+							<div class="ibox-content">
+								<form id="registerForm" method="post" th:object="${form}" th:action="@{/yubikey/register}">
+									<h4 th:text="#{html.yubikey.title}"></h4>
+									<p>Du skal nu godkende at browseren må anvende din hardwarenøgle. Hvis der ikke vises en browser-dialog, der spørger om lov til at tilgå
+									din hardwarenøgle, kan det skyldes at din browser ikke understøtter hardwarenøgler, eller at browseren forbyder adgangen til hardwaren.</p>
+									
+									<p>Hvis der ikke kommer en browser-dialog frem, skal du kontakte din it-afdeling for yderligere hjælp.</p>
+						
+									<input type="hidden" th:field="*{id}" />
+									<input id="yubikeyField" type="hidden" th:field="*{response}" />
+									
+									<br/>
+
+									<div class="row">
+										<div class="col-sm">
+											<a class="btn btn-primary btn-lg btn-block" href="#" onclick="register(); return false;">Start registrering</a>
+										</div>
+									</div>
+									
+									<pre id="debugger" style="display: none;"></pre>
+								</form>
+							</div>
+						</div>
+					</div>
+								
+					<div th:if="${session.SESSION_REDIRECT_URL == null}" th:replace="fragments/rightbar :: rightbar"></div>
+				</div>
+			</div>
+
+			<div th:replace="fragments/footer :: footer"></div>
+		</div>
+	</div>
+
+	<div th:replace="fragments/footer :: scripts"></div>
+
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+
+		/*[+
+			var username = [[${name}]];
+			var challengeEncoded = [[${challenge}]];
+			var uidEncoded = [[${uid}]];
+		+]*/
+
+		function strToBin(str) {
+			return Uint8Array.from(atob(str), c => c.charCodeAt(0));
+		}
+
+		function binToStr(bin) {
+			return btoa(new Uint8Array(bin).reduce((s, byte) => s + String.fromCharCode(byte), ''));
+		}
+		
+		function logg(str) {
+			try {
+				const urlParams = new URLSearchParams(window.location.search);
+
+				if (urlParams.get('debug') != null) {
+					$('#debugger').show();
+					$('#debugger').append(str);
+					$('#debugger').append('\n');
+				}
+			}
+			catch (err) {
+				; // ignore
+			}
+		}
+
+		var stuff = null;
+
+		function register() {
+			var chal = strToBin(challengeEncoded).buffer;
+			var uid = strToBin(uidEncoded).buffer;
+
+			try {
+				navigator.credentials.create({
+					publicKey: {
+						challenge: chal,
+						rp: {
+							name: "OS2faktor"
+						},
+						user: {
+							id: uid,
+							name: username,
+							displayName: username
+						},
+						pubKeyCredParams: [{ // TODO: are these values sane?
+								type: "public-key",
+								alg: -7 // "ES256" as registered in the IANA COSE Algorithms registry
+							}, {
+								type: "public-key",
+								alg: -257 // Value registered by this specification for "RS256"
+							}
+						],
+						authenticatorSelection: {
+							userVerification: "discouraged",
+							authenticatorAttachment: "cross-platform"
+						},
+						excludeCredentials: [],
+						attestation: "direct"
+					}
+				}).then(function(attestation) {
+					var payloadObject = {
+						id:                 binToStr(attestation.rawId),
+						attestationObject:  binToStr(attestation.response.attestationObject),
+						clientDataJson:     binToStr(attestation.response.clientDataJSON)
+					};
+		
+					var payload = JSON.stringify(payloadObject);
+					$("#yubikeyField").val(payload);
+					$("#registerForm").submit();
+				}).catch(function(err) {
+					stuff = err;
+
+					logg("registration error");
+					logg(err.name);
+					logg(err.message);
+					logg(err.code);
+
+					$('#tryBtn').show();
+				});
+			}
+			catch (err) {
+				logg('exception: ' + err);
+				
+				$('#tryBtn').show();
+			}
+		}
+		
+		$(document).ready(function() {
+			register();
+		});
+		
+		/*]]>*/
+	</script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="da-DK">
+<head>
+	<meta http-equiv="x-ua-compatible" content="IE=edge">
+	<meta charset="utf-8" />
+	<meta name="apple-mobile-web-app-capable" content="yes"/>
+	<meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no" />
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<meta name="format-detection" content="telephone=no" />
+
+	<title th:text="#{html.os2faktor.title}"></title>
+
+	<link rel="stylesheet" th:href="@{/css/app.css}" />
+	<link rel="stylesheet" th:href="@{/css/register.css}" />
+	<link rel="stylesheet" th:href="@{/libs/fontawesome-5.3.1/css/all.min.css}" />
+	<link rel="stylesheet" th:href="@{/libs/bootstrap/css/bootstrap.min.css}" />
+	<link rel="stylesheet" th:href="@{/libs/bootstrap/css/bootstrap4-buttons.css}" />
+	<link rel="stylesheet" th:href="@{/libs/sweetalert/css/sweetalert2.min.css}" />
+</head>
+
+<body>
+	<nav class="navbar navbar-expand-lg navbar-light bg-light">
+		<a class="navbar-brand" href="#">
+			<img class="img-fluid" src="/img/os2faktor.png" style="display: inline; max-width: 30vw; max-height: 40px;" />
+		</a>
+
+		<button class="navbar-toggler" type="button" onclick="closeWindow();">
+            <span class="fa fa-times"></span>
+        </button>
+	</nav>
+
+	<div id="register">
+		<form class="form-register" id="login" role="form" th:action="@{/sso/saml/login}" method="post">
+			<div class="form-group">
+				<span>
+				Før din 2-faktor enhed kan anvendes skal din identitet verificeres. Den 2-faktor enhed
+				du anvender er dog enten for gammel, eller også afvikles den i en ældre Internet Explorer
+				tilstand. Fra version 2.3.1 anvender OS2faktor ikke længere Internet Explorer, men Edge,
+				og der vil ikke være nogen problemer.
+				</span>
+				
+				<br><br>
+				
+				<span>
+				Hvis du ikke har mulighed for at opgradere til version 2.3.1 eller nyere, kan du også
+				ændre en konfigurationsindstilling på din computer som beskrevet nedenfor.
+				</span>
+				
+				<br><br>
+				
+				<span>
+				Læs mere om årsagen til den nødvendige opgradering, samt muligheder for at tilføje en
+				konfigurationsindstilling til den nuværende klient <a href="https://www.os2faktor.dk/identitetssikring-windows-enheder.html">på OS2faktor websitet</a>.
+				</span>
+			</div>
+
+			<br>
+
+			<div class="form-group row">
+				<a onclick="closeWindow();" class="btn btn-block btn-lg btn-secondary col-sm-12">OK</a>
+			</div>
+		</form>
+	</div>
+
+	
+	<!--[if lt IE 9]>
+		<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+	<![endif]-->
+	
+	<script type="text/javascript" th:src="@{/libs/jquery/js/jquery-3.3.1.min.js}"></script>
+	<script type="text/javascript" th:src="@{/libs/bootstrap/js/bootstrap.min.js}"></script>
+	<script type="text/javascript" th:src="@{/libs/sweetalert/js/sweetalert2.all.min.js}"></script>
+	<script type="text/javascript" th:src="@{/libs/promises/js/promise-polyfill.js}"></script>
+	
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+
+		/*[+
+			var url = [[@{/ui/successPage}]];
+		+]*/
+
+		function closeWindow() {
+			var endpoint = url + "?closeWindow=true";
+			window.location = endpoint;
+		}
+
+		/*]]>*/
+
+	</script>
+</body>
+</html>

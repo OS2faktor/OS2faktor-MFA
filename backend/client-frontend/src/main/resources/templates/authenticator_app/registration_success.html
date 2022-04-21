@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head th:replace="fragments/header :: header" />
+<body class="top-navigation">
+	<div id="wrapper">
+		<div id="page-wrapper" class="gray-bg">
+			<div th:replace="fragments/topbar :: topbar"></div>
+
+			<div class="wrapper wrapper-content">
+				<div class="row">
+					<th:block th:if="${session.SESSION_REDIRECT_URL == null}"><div class="col-lg-9"></th:block>
+					<th:block th:if="${session.SESSION_REDIRECT_URL != null}"><div class="col-lg-12"></th:block>
+						<div class="ibox">
+							<div class="ibox-title">
+								<h5><em class="fa fa-mobile"></em> &nbsp; Tilknyt authenticator</span></h5>
+							</div>
+
+							<div class="ibox-content">
+								<p>
+									Din klient er registreret og kan nu bruges til at logge ind.
+								</p>
+							</div>
+						</div>
+					</div>
+
+					<div th:if="${session.SESSION_REDIRECT_URL == null}" th:replace="fragments/rightbar :: rightbar"></div>
+				</div>
+			</div>
+
+			<div th:replace="fragments/footer :: footer"></div>
+		</div>
+	</div>
+
+	<div th:replace="fragments/footer :: scripts"></div>
+
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+
+		/*[+
+		+]*/
+		
+		/*]]>*/
+	</script>
+</body>
+</html>
