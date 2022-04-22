@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="utf-8" />
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="format-detection" content="telephone=no" />
+
+    <title>OS2faktor</title>
+
+    <link rel="stylesheet" href="inspinia/2.9.3/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="inspinia/2.9.3/font-awesome/css/font-awesome.css" />
+    <link rel="stylesheet" href="inspinia/2.9.3/css/style.css" />
+    <link rel="stylesheet" href="css/google-fingerprint-icon.css" />
+</head>
+
+<body class="top-navigation">
+
+    <!-- loading screen -->
+    <div id="loader">
+        <div id="page-wrapper" class="gray-bg">
+            <div class="wrapper wrapper-content" style="padding: 10px 0px 0px 0px !important">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox">
+                            <div class="ibox-content" style="min-height: calc(100vh - 35px);">
+                                <center>
+                                    <img class="img-fluid" src="img/os2faktor.png" style="margin-top: 50%; max-width: 75vw;">
+                                </center>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- pincode login window -->
+    <div id="pinlogin" style="display: none;">
+        <div id="page-wrapper" class="gray-bg">
+            <div class="row border-bottom white-bg">
+                <nav class="navbar navbar-expand-lg navbar-static-top" role="navigation">
+                    <a class="navbar-brand" style="background: white;">
+                        <img class="img-fluid" src="img/os2faktor.png" style="display: inline; max-width: 30vw; max-height: 25px;">
+                    </a>
+                </nav>
+            </div>
+
+            <div class="wrapper wrapper-content" style="padding: 10px 0px 0px 0px !important">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="ibox" id="enterPin">
+                            <div class="ibox-content" style="min-height: calc(100vh - 120px);">
+                                <div class="valignbox">
+                                    <div class="pinbox-holder">
+                                        <div class="pinbox rounded-circle"><div class="pinfill1 rounded-circle"></div></div>
+                                        <div class="pinbox rounded-circle"><div class="pinfill2 rounded-circle"></div></div>
+                                        <div class="pinbox rounded-circle"><div class="pinfill3 rounded-circle"></div></div>
+                                        <div class="pinbox rounded-circle"><div class="pinfill4 rounded-circle"></div></div>
+                                    </div>
+
+                                    <table class="table pin">
+                                        <tr>
+                                            <td style="width: 33%;" onclick="enterPin(this, '1', uiService.login);">1</td>
+                                            <td style="width: 34%;" onclick="enterPin(this, '2', uiService.login);">2</td>
+                                            <td style="width: 33%;" onclick="enterPin(this, '3', uiService.login);">3</td>
+                                        </tr>
+                                        <tr>
+                                            <td onclick="enterPin(this, '4', uiService.login);">4</td>
+                                            <td onclick="enterPin(this, '5', uiService.login);">5</td>
+                                            <td onclick="enterPin(this, '6', uiService.login);">6</td>
+                                        </tr>
+                                        <tr>
+                                            <td onclick="enterPin(this, '7', uiService.login);">7</td>
+                                            <td onclick="enterPin(this, '8', uiService.login);">8</td>
+                                            <td onclick="enterPin(this, '9', uiService.login);">9</td>
+                                        </tr>
+                                        <tr>
+                                            <td><i id="loginBioButton" onclick="biometricService.start();" class="material-icons" style="font-size:36px">fingerprint</i></td>
+                                            <td onclick="enterPin(this, '0', uiService.login);">0</td>
+                                            <td onclick="enterPin(this, 'del', uiService.login);"><em class="fa fa-fw fa-arrow-left"></em></td>
+                                        </tr>
+                                    </table>
+
+                                    <div class="pinbox-footer" style="text-align: center; margin-top: 30px;">
+                                        <h4>Angiv pinkode</h4>
+                                        <p>
+                                        Indtast din pinkode for at logge ind
+                                        </p>
+										
+										<p><a role="button" class="forgotPin" onclick="uiService.openResetWindowForgotPin();">Glemt pinkode? Klik her</a></p>
+										
+                                        <div id="loginErrorMsg" style="color: red; font-weight: bold; font-size: larger; display: none;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+						
+						<!-- reset -->
+                        <div class="ibox" id="box-forgot-pin" style="display: none;">
+                            <div class="ibox-content" style="min-height: calc(100vh - 120px);">
+                                <div class="panel panel-primary" style="margin-top: 30%;">
+                                    <div class="panel-heading" style="font-weight: bold;">
+                                        Nulstil 2-faktor enhed
+                                    </div>
+
+                                    <div class="panel-body">
+                                        <p>
+										Hvis du har glemt din pinkode, bliver du nødt til at nulstille 2-faktor enheden. <br/>
+                                        Efter 2-faktor enheden er blevet nulstillet, kan den ikke anvendes længere, og skal
+                                        gen-aktiveres hvis den skal bruges i fremtiden.
+                                        </p>
+                                        
+                                        <p>
+                                        Er du sikker på at du vil nulstille denne 2-faktor enhed?
+                                        </p>
+                                        
+                                        <div style="widht: 100%; text-align: center;">
+                                            <button type="button" onclick="backendService.reset();" class="btn btn-lg btn-primary" style="width: 45%;">Ja</button>
+                                            <button type="button" onclick="uiService.update();" class="btn btn-lg btn-default" style="width: 45%; margin-left: 10px;">Nej</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer fixed">
+                <div id="footerPin" style="text-align: center;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- main window -->
+    <div id="main" style="display: none;">
+        <div id="page-wrapper" class="gray-bg">
+            <div class="row border-bottom white-bg">
+                <nav class="navbar navbar-expand-lg navbar-static-top" role="navigation">
+                    <a class="navbar-brand" style="background: white;">
+                        <img onclick="enableDevMode();" class="img-fluid" src="img/os2faktor.png" style="display: inline; max-width: 30vw; max-height: 25px;">
+                    </a>
+
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-label="Toggle navigation">
+                        <i class="fa fa-bars"></i>
+                    </button>
+
+                    <div class="navbar-collapse collapse" id="navbar">
+                        <ul class="nav navbar-nav mr-auto">
+                            <li>
+                                <a role="button" onclick="uiService.openResetWindow();"><i class="fa fa-repeat"></i>&nbsp; Nulstil enhed</a>
+                            </li>
+
+                            <li id="nemIdRegisterMenuItem">
+                                <a role="button" onclick="uiService.openNemIDWindow();"><i class="fa fa-key"></i>&nbsp; Udfør aktivering med NemID</a>
+                            </li>
+                            
+                            <li id="pinCodeRegisterMenuItem">
+                                <a role="button" onclick="uiService.openSetPinWindow(null);"><i class="fa fa-th"></i>&nbsp; Vælg pinkode</a>
+                            </li>
+                            
+                            <li id="selfServiceMenuItem">
+                                <a role="button" onclick="uiService.openSelfServiceWindow();"><i class="fa fa-users"></i>&nbsp; Administration af enheder</a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+
+            <textarea readonly style="width: 88%; margin-top: 20px; margin-left: 10px; background: transparent; min-height:30vh; max-height: 60vh; position: absolute; z-index: 100; border: none; display: none;" id="console"></textarea>
+
+            <div class="wrapper wrapper-content" style="padding: 10px 0px 0px 0px !important">
+                <div class="row">
+                    <div class="col-lg-12">
+                    
+                        <!-- scan -->
+                        <div class="ibox" id="box-scan">
+                            <div class="ibox-content" style="min-height: calc(100vh - 120px);">
+                                <center style="margin-top: 40%;">
+                                    <h3>Klar til anmodninger</h3>
+                                    <p>
+                                      Når du vælger at anvende denne 2-faktor enhed til at gennemføre et login på
+                                      en hjemmeside, så vil login forespørgslen komme frem her, hvor du kan godkende
+                                      den.
+                                    </p>
+                                    
+                                    <button id="btn-logout" onclick="logout();" type="button" class="btn btn-lg btn-block btn-primary" style="margin-top: 40px; display: none;">Log ud</button>
+                                </center>
+                            </div>
+                        </div>
+                        
+                        <!-- challenge -->
+                        <div class="ibox" id="box-challenge" style="display: none;">
+                            <div class="ibox-content" style="min-height: calc(100vh - 120px);">
+
+                                <div class="panel panel-primary" style="margin-top: 30%;">
+                                    <span id="ch-challengeUuid" style="display: none;"></span>
+
+                                    <div class="panel-heading" style="font-weight: bold;">
+                                        Godkend login forespørgsel
+                                    </div>
+
+                                    <div class="panel-body">
+                                        <p>
+                                        Der er ankommet en login forespørgsel <span id="ch-tts"></span> fra
+                                        </p>
+
+                                        <div id="ch-serverName" style="font-size: larger; font-weight: bold; text-align: center; margin-bottom: 10px;"></div>
+
+                                        <div id="ch-challenge-block" style="margin-top: 20px;">
+                                            <p>
+                                            Vil du godkende nedenstående kontrolkode og gennemføre login?
+                                            </p>
+
+                                            <div id="ch-challenge" style="font-size: x-large; font-weight: bold; text-align: center;"></div>
+                                        </div>
+                                        
+                                        <div id="ch-nochallenge-block" style="margin-top: 20px; display: none;">
+                                            <p>
+                                            Ønsker du at godkende denne login forespørgsel?
+                                            </p>
+                                        </div>
+
+                                        <div style="widht: 100%; text-align: center; margin-top: 30px;">
+                                            <button type="button" onclick="backendService.acceptChallenge($('#ch-challengeUuid').text());" class="btn btn-lg btn-primary" style="width: 45%;">Godkend</button>
+                                            <button type="button" onclick="backendService.rejectChallenge($('#ch-challengeUuid').text());" class="btn btn-lg btn-danger" style="width: 45%; margin-left: 10px;">Afvis</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- register name -->
+                        <div class="ibox" id="box-register" style="display: none;">
+                            <div class="ibox-content" style="min-height: calc(100vh - 120px);">
+                              <p>
+                              Din 2-faktor enhed er ikke registreret endnu. For at gennemføre en registrering,
+                              skal du gennemføre følgende punkter
+                              </p>
+                              
+                              <ol>
+                                  <li>Giv enheden et navn</li>
+                                  <li>Vælg en pinkode til enheden</li>
+                                  <li>Aktiver enheden med NemID</li>
+                              </ol>
+                              
+                              <div class="form-group">
+                                  <input type="text" id="reg-name" placeholder="Navngiv din 2-faktor enhed" class="form-control"></input>
+                                  <button type="button" id="reg-name-btn" class="btn btn-lg btn-primary btn-block m-t">Gem navn</button>
+                              </div>
+                            </div>
+                        </div>
+                        
+                        <!-- register pin -->
+                        <div class="ibox" id="box-register-pin" style="display: none;">
+                            <div class="ibox-content" style="min-height: calc(100vh - 120px);">
+                                <div class="valignbox">
+                                    <div class="pinbox-holder">
+                                        <div class="pinbox rounded-circle"><div class="pinfill1 rounded-circle"></div></div>
+                                        <div class="pinbox rounded-circle"><div class="pinfill2 rounded-circle"></div></div>
+                                        <div class="pinbox rounded-circle"><div class="pinfill3 rounded-circle"></div></div>
+                                        <div class="pinbox rounded-circle"><div class="pinfill4 rounded-circle"></div></div>
+                                    </div>
+
+                                    <table class="table pin">
+                                        <tr>
+                                            <td style="width: 33%;" onclick="enterPin(this, '1', uiService.finishPin);">1</td>
+                                            <td style="width: 34%;" onclick="enterPin(this, '2', uiService.finishPin);">2</td>
+                                            <td style="width: 33%;" onclick="enterPin(this, '3', uiService.finishPin);">3</td>
+                                        </tr>
+                                        <tr>
+                                            <td onclick="enterPin(this, '4', uiService.finishPin);">4</td>
+                                            <td onclick="enterPin(this, '5', uiService.finishPin);">5</td>
+                                            <td onclick="enterPin(this, '6', uiService.finishPin);">6</td>
+                                        </tr>
+                                        <tr>
+                                            <td onclick="enterPin(this, '7', uiService.finishPin);">7</td>
+                                            <td onclick="enterPin(this, '8', uiService.finishPin);">8</td>
+                                            <td onclick="enterPin(this, '9', uiService.finishPin);">9</td>
+                                        </tr>
+                                        <tr>
+                                            <td>&nbsp;</td>
+                                            <td onclick="enterPin(this, '0', uiService.finishPin);">0</td>
+                                            <td onclick="enterPin(this, 'del', uiService.finishPin);"><em class="fa fa-fw fa-arrow-left"></em></td>
+                                        </tr>
+                                    </table>
+									
+                                    <div class="pinbox-footer" style="text-align: center; margin-top: 30px;">
+                                        <h4>Vælg pinkode</h4>
+                                        <p>
+                                        Vælg en pinkode til at beskytte din 2-faktor enhed
+                                        </p>
+                                        
+                                        <div id="registerPinErrorMsg" style="color: red; font-weight: bold; font-size: larger; display: none;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- reset -->
+                        <div class="ibox" id="box-reset" style="display: none;">
+                            <div class="ibox-content" style="min-height: calc(100vh - 120px);">
+                                <div class="panel panel-primary" style="margin-top: 30%;">
+                                    <div class="panel-heading" style="font-weight: bold;">
+                                        Nulstil 2-faktor enhed
+                                    </div>
+
+                                    <div class="panel-body">
+                                        <p>
+                                        Efter 2-faktor enheden er blevet nulstillet, kan den ikke anvendes længere, og skal
+                                        gen-aktiveres hvis den skal bruges i fremtiden.
+                                        </p>
+                                        
+                                        <p>
+                                        Er du sikker på at du vil nulstille denne 2-faktor enhed?
+                                        </p>
+                                        
+                                        <div style="widht: 100%; text-align: center;">
+                                            <button type="button" onclick="backendService.reset();" class="btn btn-lg btn-primary" style="width: 45%;">Ja</button>
+                                            <button type="button" onclick="uiService.update();" class="btn btn-lg btn-default" style="width: 45%; margin-left: 10px;">Nej</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer fixed">
+                <div id="footer" style="text-align: center;">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <style>
+    table.pin td {
+        text-align: center;
+        font-size: xx-large;
+        transition: background 250ms;
+    }
+    
+    table.pin tr:first-child td {
+        border-top: 0px !important;
+    }
+    
+    div.pinbox-holder {
+        height: 30px;
+        width: 100%;
+        text-align: center;
+        margin-bottom: 40px;
+        margin-top: 30px;
+    }
+    
+    div.pinbox-holder > .pinbox {
+        height: 40px;
+        width: 40px;
+        border: 1px solid black;
+        display: inline-block;
+        margin: 0px 7px;
+    }
+    
+    div.pinbox-holder .filled {
+        margin: 3px;
+        height: 32px;
+        width: 32px;
+        background: black;
+    }
+    
+    div.valignbox {
+        margin-top: 5vh;
+    }
+	
+	.forgotPin:active {
+		color: #1ab394 !important;
+		font-weight: bold !important;
+	}
+
+    /* tall screens should do more vertical centering */
+    @media (min-height: 700px) {
+        div.valignbox {
+            margin-top: 15vh;
+        }
+    }
+    </style>
+
+    <script src="inspinia/2.9.3/js/jquery-3.1.1.min.js"></script>
+    <script src="inspinia/2.9.3/js/popper.min.js"></script>
+    <script src="inspinia/2.9.3/js/bootstrap.min.js"></script>
+    <script src="inspinia/2.9.3/js/inspinia.js"></script>
+
+    <script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript" src="js/connectivity.js"></script>
+    <script type="text/javascript" src="js/rotationLock.js"></script>
+
+    <script type="text/javascript" src="js/selfServiceService.js"></script>
+    <script type="text/javascript" src="js/nemidService.js"></script>
+    <script type="text/javascript" src="js/backendService.js"></script>
+    <script type="text/javascript" src="js/uiService.js"></script>
+    <script type="text/javascript" src="js/biometricService.js"></script>
+    <script type="text/javascript" src="js/scannerService.js"></script>
+    <script type="text/javascript" src="js/logService.js"></script>
+    <script type="text/javascript" src="js/pushService.js"></script>
+    <script type="text/javascript" src="js/dbService.js"></script>
+    <script type="text/javascript" src="js/index.js"></script>
+    
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $('#reg-name').on('keyup', function(e) {
+          var name = $('#reg-name').val();
+          if (!name || name.length < 2) {
+            $('#reg-name-btn').prop('disabled', true);
+            return;
+          }
+          
+          $('#reg-name-btn').prop('disabled', false);
+
+          if (e.key === 'Enter' || e.keyCode === 13) {
+            uiService.openSetPinWindow(name);
+          }
+        });
+
+        $('#reg-name-btn').on('click', function() {
+          var name = $('#reg-name').val();
+
+          uiService.openSetPinWindow(name);
+        });
+      });
+      
+      function saveBiometric(checkbox) {
+        if (checkbox.checked) {
+          dbService.setValue("biometrics", true);
+        }
+        else {
+          dbService.setValue("biometrics", false);
+        }
+      }
+
+      function getBiometric() {
+        var biometrics = dbService.getValue('biometrics');
+
+        if (biometrics != null && (biometrics == 'true' || biometrics == true)) {
+          return true;
+        }
+        else {
+          return false;
+        }
+      }
+	  
+      function logout() {
+        uiService.logout();
+      }
+
+      var devModeCounter = 0;
+      function enableDevMode() {
+        devModeCounter++;
+        if (devModeCounter >= 20 && !devMode) {
+          devMode = true;
+          $("#console").show();
+          logService.logg("Fejlsøgning slået til!");
+        }
+      }
+
+      var pin = '';
+      function enterPin(btn, c, handler) {
+        // animation effect from grey to white when clicked
+        $(btn).css("background", "lightgrey");
+
+        window.setTimeout(function() {
+          $(btn).css("background", "white");
+        }, 250);
+
+        if (c == 'del') {
+          if (pin.length > 1) {
+            pin = pin.substring(0, pin.length - 1)
+          }
+          else if (pin.length == 1) {
+            pin = '';
+          }
+        }
+        else {
+          if (pin.length < 4) {
+            pin = pin + c;
+          }
+
+          if (pin.length == 4) {
+            var actualPin = pin;
+
+            pin = '';
+            for (var i = pin.length + 1; i <= 4; i++) {
+              $('.pinfill' + i).removeClass('filled');
+            }
+            
+            handler(actualPin);
+          }
+        }
+
+        for (var i = 1; i <= pin.length; i++) {
+          $('.pinfill' + i).addClass('filled');
+        }
+
+        for (var i = pin.length + 1; i <= 4; i++) {
+          $('.pinfill' + i).removeClass('filled');
+        }
+      }
+    </script>
+</body>
+</html>
