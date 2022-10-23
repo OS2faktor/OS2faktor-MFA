@@ -66,4 +66,38 @@ public class ExternalLoginController {
 		
 		return "redirect:/yubikey";
 	}
+	
+	@GetMapping("/external/authenticatorHandoff/{sessionKey}")
+	public String authenticatorHandoff(Model model, @PathVariable("sessionKey") String sessionKey, @RequestParam(required = true) String redirect, HttpServletRequest request) throws Exception {
+		ExternalLoginSession externalLoginSession  = externalLoginSessionService.findBySessionKey(sessionKey);
+		if (externalLoginSession == null) {
+			return ControllerUtil.handleError(model, FailedFlow.EXTERNAL_LOGIN, ErrorType.UNAUTHORIZED, "supplied sessionKey did not exist: " + sessionKey, PageTarget.DESKTOP);
+		}
+
+		if (externalLoginSession.getTts() == null || new Date().after(externalLoginSession.getTts())) {
+			return ControllerUtil.handleError(model, FailedFlow.EXTERNAL_LOGIN, ErrorType.EXTERNAL_SESSION_EXPIRED, "session for supplied key has expired.", PageTarget.DESKTOP);
+		}
+		
+		User user = userService.getByEncryptedAndEncodedSsn(externalLoginSession.getSsn());
+		if (user == null) {
+        	user = new User();
+        	user.setClients(new ArrayList<Client>());
+            user.setPid("external-" + externalLoginSession.getLoginServiceProvider().getCvr() + "-" + UUID.randomUUID().toString());
+            user.setSsn(externalLoginSession.getSsn());
+
+        	user = userService.save(user);
+		}
+
+		// store authenticated user on session
+		HttpSession session = request.getSession();
+		session.setAttribute(ClientSecurityFilter.SESSION_USER, user);
+		session.setAttribute(ClientSecurityFilter.SESSION_REDIRECTURL, redirect);
+		session.setAttribute(ClientSecurityFilter.SESSION_CVR, externalLoginSession.getLoginServiceProvider().getCvr());
+		session.setAttribute(ClientSecurityFilter.SESSION_NSIS_LEVEL, externalLoginSession.getNsisLevel().toString());
+
+		// note that we explicitly do not give the ROLE_USER grant here, to prevent
+		// access to any other pages (which all require that specific grant)
+		
+		return "redirect:/authenticator";
+	}
 }

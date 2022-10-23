@@ -34,6 +34,19 @@
 			<h4 th:text="#{html.success.header}"></h4>
 			<div th:text="#{html.success.body}"></div>
 
+			<div th:if="${nsisWarning == true}" style="margin-top: 20px;">
+			    <h5>Ufuldstændige ID-oplysninger</h5>
+			    
+				<p>
+				De ID-oplysninger der er modtaget fra NemLog-in er ikke fuldt opdateret. Det anbefales at du får opdateret disse ID-oplysninger, da der kan være tjenester som du ikke kan logge ind i før dette er gjort. Læs mere nedenfor
+				</p>
+
+				<ul>
+					<li><a href="https://www.borger.dk/Om-borger-dk/Saadan-bruger-du-borgerdk/opdatering-af-id-oplysninger">Opdatering af ID-oplysninger (borger.dk)</a></li>
+					<li><a href="https://digst.dk/nyheder/nyhedsarkiv/2021/august/overgangen-til-mitid-er-i-gang/">Information (Digitaliseringsstyrelsen)</a></li>
+				</ul>
+			</div>
+
 			<center>
 				<button type="button" onclick="closeWindow();" style="margin-top: 30px;" class="btn btn-lg btn-primary" th:text="#{html.button.close}"></button>
 			</center>

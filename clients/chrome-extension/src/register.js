@@ -1,6 +1,6 @@
 var backendUrl;
 var roaming;
-var clientVersion = "2.0.3";
+var clientVersion = "2.1.1";
 
 $(document).ready(function() {
 
@@ -112,14 +112,14 @@ $(document).ready(function() {
         })
     });
 
-    // focus on input field    
+    // focus on input field
     $('#inputName').click().focus();
 });
 
 
 function moveToPinRegistration() {
     $('a[data-toggle="tab"][href="#pinRegisterStep"]').click();
-    
+
     window.setTimeout(function() {
       $('#inputPin').click().focus();
     }, 250);
@@ -182,12 +182,12 @@ function performNemIdRegisterPopup(result) {
             width: 800,
             height: 1000
         }, function (win) {
-            window.close();
 
-            chrome.runtime.getBackgroundPage(function(backgroundPage) {
-                backgroundPage.runNemIdRegistrationMonitorTask(win.id);
-                backgroundPage.closePopup();
-            });
+            chrome.runtime.sendMessage({
+                runNemIdRegistrationMonitorTask : win.id
+			}, function(response) {
+                window.close();
+			});
         });
     }
 }

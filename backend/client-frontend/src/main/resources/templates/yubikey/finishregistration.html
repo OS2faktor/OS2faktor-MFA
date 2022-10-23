@@ -54,17 +54,28 @@
 		/*<![CDATA[*/
 
 		/*[+
-			var username = [[${name}]];
-			var challengeEncoded = [[${challenge}]];
-			var uidEncoded = [[${uid}]];
+			var creationOptions = [[${creationOptions}]];
 		+]*/
 
 		function strToBin(str) {
+			var str = str.replace(/-/g, '+').replace(/_/g, '/');
+
+			var pad = str.length % 4;
+			if(pad) {
+				if(pad === 1) {
+					throw new Error('InvalidLengthError: Input base64url string is the wrong length to determine padding');
+				}
+				str += new Array(5-pad).join('=');
+			}
+
 			return Uint8Array.from(atob(str), c => c.charCodeAt(0));
 		}
 
 		function binToStr(bin) {
-			return btoa(new Uint8Array(bin).reduce((s, byte) => s + String.fromCharCode(byte), ''));
+			return btoa(new Uint8Array(bin).reduce((s, byte) => s + String.fromCharCode(byte), ''))
+				.replace(/\+/g, '-')
+				.replace(/\//g, '_')
+				.replace(/=/g, '');;
 		}
 		
 		function logg(str) {
@@ -82,52 +93,27 @@
 			}
 		}
 
-		var stuff = null;
-
-		function register() {
-			var chal = strToBin(challengeEncoded).buffer;
-			var uid = strToBin(uidEncoded).buffer;
-
+		function register(creationOptions) {
 			try {
-				navigator.credentials.create({
-					publicKey: {
-						challenge: chal,
-						rp: {
-							name: "OS2faktor"
-						},
-						user: {
-							id: uid,
-							name: username,
-							displayName: username
-						},
-						pubKeyCredParams: [{ // TODO: are these values sane?
-								type: "public-key",
-								alg: -7 // "ES256" as registered in the IANA COSE Algorithms registry
-							}, {
-								type: "public-key",
-								alg: -257 // Value registered by this specification for "RS256"
-							}
-						],
-						authenticatorSelection: {
-							userVerification: "discouraged",
-							authenticatorAttachment: "cross-platform"
-						},
-						excludeCredentials: [],
-						attestation: "direct"
-					}
-				}).then(function(attestation) {
+				creationOptions.publicKey.user.id = strToBin(creationOptions.publicKey.user.id).buffer;
+				creationOptions.publicKey.challenge = strToBin(creationOptions.publicKey.challenge).buffer;
+
+				navigator.credentials.create(creationOptions).then(function(attestation) {
 					var payloadObject = {
-						id:                 binToStr(attestation.rawId),
-						attestationObject:  binToStr(attestation.response.attestationObject),
-						clientDataJson:     binToStr(attestation.response.clientDataJSON)
+						id: attestation.id,
+						rawId: binToStr(attestation.rawId),
+						type: attestation.type,
+						response: {
+							clientDataJSON: binToStr(attestation.response.clientDataJSON),
+							attestationObject: binToStr(attestation.response.attestationObject)
+						},
+                		clientExtensionResults: {}
 					};
 		
 					var payload = JSON.stringify(payloadObject);
 					$("#yubikeyField").val(payload);
 					$("#registerForm").submit();
 				}).catch(function(err) {
-					stuff = err;
-
 					logg("registration error");
 					logg(err.name);
 					logg(err.message);
@@ -144,7 +130,8 @@
 		}
 		
 		$(document).ready(function() {
-			register();
+			creationOptions = JSON.parse(creationOptions);
+			register(creationOptions);
 		});
 		
 		/*]]>*/

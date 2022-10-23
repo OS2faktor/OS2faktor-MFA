@@ -1,6 +1,5 @@
 package dk.digitalidentity.os2faktor.controller.desktop;
 
-import java.util.Base64;
 import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
@@ -14,8 +13,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.yubico.webauthn.data.PublicKeyCredentialCreationOptions;
+
 import dk.digitalidentity.os2faktor.controller.BaseController;
-import dk.digitalidentity.os2faktor.controller.model.RegisterPayload;
 import dk.digitalidentity.os2faktor.controller.model.Registration;
 import dk.digitalidentity.os2faktor.controller.model.YubiKeyRegistration;
 import dk.digitalidentity.os2faktor.dao.PartialClientDao;
@@ -30,6 +31,7 @@ import dk.digitalidentity.os2faktor.service.HashingService;
 import dk.digitalidentity.os2faktor.service.IdGenerator;
 import dk.digitalidentity.os2faktor.service.LocalClientService;
 import dk.digitalidentity.os2faktor.service.UserService;
+import dk.digitalidentity.os2faktor.service.YubiKeyService;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -50,6 +52,9 @@ public class YubiKeyRegisterController extends BaseController {
 	
 	@Autowired
 	private HashingService hashingService;
+
+	@Autowired
+	private YubiKeyService yubiKeyService;
 
 	@GetMapping("/yubikey")
 	public String index(Model model, HttpServletRequest request) {
@@ -91,6 +96,14 @@ public class YubiKeyRegisterController extends BaseController {
 			return "yubikey/initregistration";
 		}
 
+		if (registration.getName().length() < 3 || registration.getName().length() > 128) {
+			model.addAttribute(bindingResult.getAllErrors());
+			model.addAttribute("registration", registration);
+			model.addAttribute("nameError", true);
+
+			return "yubikey/initregistration";
+		}
+
 		// reload user
 		User user = userService.getByEncryptedAndEncodedSsn(userOrLoginPage.user.getSsn());
 		if (user == null) {
@@ -104,27 +117,34 @@ public class YubiKeyRegisterController extends BaseController {
 			return "redirect:/desktop/selfservice/login";
 		}
 
-		byte[] uid = idGenerator.getRandomBytes(16);
-		byte[] challenge = idGenerator.getRandomBytes(32);
-		String challengeB64 = Base64.getEncoder().encodeToString(challenge);
-		String uidB64 = Base64.getEncoder().encodeToString(uid);
+		try {
+			// Start yubikey registration
+			PublicKeyCredentialCreationOptions creationOptions = yubiKeyService.startYubiKeyRegistration(registration.getName());
+			model.addAttribute("creationOptions", creationOptions.toCredentialsCreateJson());
 
-		PartialClient partialClient = new PartialClient();
-		partialClient.setChallenge(challengeB64);
-		partialClient.setName(registration.getName());
-		partialClient.setType(ClientType.YUBIKEY);
-		partialClient.setUser(user);
-		partialClient = partialClientDao.save(partialClient);
-		
-		YubiKeyRegistration form = new YubiKeyRegistration();
-		form.setId(partialClient.getId());
+			// Create partial client for later
+			PartialClient partialClient = new PartialClient();
+			partialClient.setChallenge(creationOptions.getChallenge().getBase64());
+			partialClient.setName(registration.getName());
+			partialClient.setType(ClientType.YUBIKEY);
+			partialClient.setUser(user);
+			partialClient = partialClientDao.save(partialClient);
 
-		model.addAttribute("name", registration.getName());
-		model.addAttribute("uid", uidB64);
-		model.addAttribute("challenge", challengeB64);
-		model.addAttribute("form", form);
-		
-		return "yubikey/finishregistration";
+			// Include partial client info in the model
+			YubiKeyRegistration form = new YubiKeyRegistration();
+			form.setId(partialClient.getId());
+			model.addAttribute("form", form);
+
+			return "yubikey/finishregistration";
+		}
+		catch (JsonProcessingException ex) {
+			model.addAttribute(ex);
+			model.addAttribute("registration", registration);
+			model.addAttribute("nameError", false);
+
+			log.error("Parsing assertionRequest (Yubikey Login Options) to JSON failed", ex);
+			return "yubikey/initregistration";
+		}
 	}
 	
 	@PostMapping("/yubikey/register")
@@ -136,7 +156,7 @@ public class YubiKeyRegisterController extends BaseController {
 			if (existingRedirectUrl != null) {
 				return existingRedirectUrl;
 			}
-			
+
 			return userOrLoginPage.loginPage;
 		}
 
@@ -150,15 +170,15 @@ public class YubiKeyRegisterController extends BaseController {
 			if (existingRedirectUrl != null) {
 				return existingRedirectUrl;
 			}
-			
-			return "redirect:/desktop/selfservice/login";			
+
+			return "redirect:/desktop/selfservice/login";
 		}
-		
-		RegisterPayload payload = form.decode();
+
+		YubiKeyService.YubikeyRegistrationDTO registration = yubiKeyService.finalizeYubikeyRegistration(partialClient, form.getResponse());
 
 		NSISLevel nsisLevel = getNsisLevel(request);
 		String cvr = null;
-		
+
 		Object oCvr = request.getSession().getAttribute(ClientSecurityFilter.SESSION_CVR);
 		if (oCvr != null && oCvr instanceof String && ((String)oCvr).length() > 0) {
 			cvr = (String) oCvr;
@@ -171,9 +191,9 @@ public class YubiKeyRegisterController extends BaseController {
 		client.setApiKey(hashingService.encryptAndEncodeString(idGenerator.generateUuid()));
 		client.setName(partialClient.getName());
 		client.setType(partialClient.getType());
-		client.setYubikeyUid(payload.getId());
-		client.setYubikeyAttestation(payload.getAttestationObject());
-		
+		client.setYubikeyUid(registration.result().getKeyId().getId().getBase64());
+		client.setYubikeyAttestation(registration.response().getResponse().getAttestationObject().getBase64());
+
 		// for hand-offs (cvr != null), we do not set User/NSISLevel, these are stored in localClient
 		client.setUser(!StringUtils.hasLength(cvr) ? partialClient.getUser() : null);
 		client.setNsisLevel(!StringUtils.hasLength(cvr) ? nsisLevel : NSISLevel.NONE);
@@ -184,8 +204,8 @@ public class YubiKeyRegisterController extends BaseController {
 			client.setAssociatedUserTimestamp(new Date());
 		}
 
-		client = clientService.save(client);	
-		
+		client = clientService.save(client);
+
 		// store a localClient if this is an external login, which links to the actual user
 		if (StringUtils.hasLength(cvr)) {
 			LocalClient localClient = new LocalClient();
@@ -196,7 +216,7 @@ public class YubiKeyRegisterController extends BaseController {
 			localClient.setNsisLevel(nsisLevel.toString());
 			localClient.setSsn(partialClient.getUser().getSsn());
 			localClient.setTs(new Date());
-			
+
 			localClientService.save(localClient);
 		}
 

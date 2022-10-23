@@ -7,10 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Component;
 
 import dk.digitalidentity.os2faktor.dao.model.Client;
@@ -51,26 +48,12 @@ public class SecurityUtil {
 
 	@SneakyThrows
 	public void updateTokenUser(TokenUser tokenUser) {
-		// so spring really likes caching this object, so we need to make sure Spring knows about the new version
-		if (SecurityContextHolder.getContext() != null &&
-				SecurityContextHolder.getContext().getAuthentication() != null &&
-				SecurityContextHolder.getContext().getAuthentication() instanceof UsernamePasswordAuthenticationToken) {
-			
-			SecurityContext securityContext = SecurityContextHolder.getContext();
-			UsernamePasswordAuthenticationToken authentication = (UsernamePasswordAuthenticationToken) securityContext.getAuthentication();
-
-			authentication.setDetails(tokenUser);
-			SecurityContextHolder.getContext().setAuthentication(authentication);
-
-			if (request != null) {
-				HttpSession session = request.getSession(true);
-				session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
-			}
-		}
 		
-		// now update/create user context on session
-
+		// update/create user context on session
 		String cpr = getCpr(tokenUser);
+		if (cpr == null) {
+			// TODO: throw some sort of error
+		}
 
 		// if the user does not exist, create the user
 		User user = userService.getByPlainTextSsn(cpr);
@@ -90,13 +73,12 @@ public class SecurityUtil {
 
         	userService.save(user);
         }
-
+        
         // store authenticated user on session
-        // TODO: make user serializeable, so we can store in JDBC session
         HttpSession session = request.getSession();
         session.setAttribute(ClientSecurityFilter.SESSION_USER, user);
         session.setAttribute(ClientSecurityFilter.SESSION_ROLE, "ROLE_USER");
-        
+
         // pull out the NSIS level from the token
 		NSISLevel nsisLevel = NSISLevel.NONE;
 
@@ -117,10 +99,10 @@ public class SecurityUtil {
 				}
 			}
 			else {
-				log.error("Undefined loa level on attrinbute: " + loaObj.toString());
+				log.error("Undefined loa level on attribute: " + ((loaObj != null) ? loaObj.toString() : "<null>"));
 			}
 		}
-		
+
 		session.setAttribute(ClientSecurityFilter.SESSION_NSIS_LEVEL, nsisLevel.toString());
 	}
 

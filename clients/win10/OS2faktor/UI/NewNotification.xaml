@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:OS2faktor.UI"
         xmlns:fa5="http://schemas.fontawesome.com/icons/"
         mc:Ignorable="d"
-       Title="Notification Popup" Width="540" SizeToContent="Height" WindowStyle="None" AllowsTransparency="True" Background="Transparent" Padding="20,20,20,20" MouseDown="Window_MouseDown" TextInput="Window_TextInput" KeyDown="Window_KeyDown" Closed="NotificationClosed">
+       Title="Notification Popup" Width="540" SizeToContent="Height" WindowStyle="None" AllowsTransparency="True" Background="Transparent" Padding="20,20,20,20" MouseDown="Window_MouseDown" TextInput="Window_TextInput" KeyDown="Window_KeyDown" Closed="NotificationClosed" Deactivated="Window_Deactivated">
     <Window.Resources>
         <!--Bootstrap like buttons-->
         <Style x:Key="btn" TargetType="Button">

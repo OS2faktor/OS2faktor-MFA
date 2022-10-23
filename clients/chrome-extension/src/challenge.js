@@ -1,6 +1,6 @@
 var backendUrl;
 var roaming;
-var clientVersion = "2.0.3";
+var clientVersion = "2.1.1";
 
 const swalWithBootstrapButtons = swal.mixin({
     confirmButtonClass: 'btn',
@@ -21,7 +21,7 @@ const swalWithBootstrapButtons = swal.mixin({
 			$("#noChallenge").show();
 		}
 	}
-	
+
 	function checkForChallenges(registrationId, apiKey, deviceId, pinRegistered) {
 		chrome.storage.local.get(["isPaused"], function (result) {
 			var isPaused = result["isPaused"];
@@ -35,7 +35,7 @@ const swalWithBootstrapButtons = swal.mixin({
 							if (data !== "") {
 								chrome.storage.local.set({ isPaused: true });
 								foundChallenge = true;
-								
+
 								showChallenge(data, apiKey, deviceId, pinRegistered, false);
 							}
 						},
@@ -145,7 +145,7 @@ const swalWithBootstrapButtons = swal.mixin({
 		// display a waiting page if nothing happens for a while
 		setTimeout(showWaiting, 1800);
 	}
-	
+
 	// read global settings and perform initialization
 	chrome.storage.managed.get(["BackendUrl", "Roaming"], function(policy) {
 		if (policy.BackendUrl) {

@@ -17,8 +17,9 @@ namespace OS2faktorPlugin
         private string apiKey;
         private string connectorVersion;
         private bool requirePin;
+        private bool disallowTotp;
 
-        public ServiceStub(string baseUrl, string apiKey, string connectorVersion, bool requirePin, string os2faktorLoginBaseUrl)
+        public ServiceStub(string baseUrl, string apiKey, string connectorVersion, bool requirePin, string os2faktorLoginBaseUrl, bool disallowTotp)
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
@@ -34,6 +35,7 @@ namespace OS2faktorPlugin
             this.connectorVersion = connectorVersion;
             this.apiKey = apiKey;
             this.requirePin = requirePin;
+            this.disallowTotp = disallowTotp;
 
             if (!string.IsNullOrEmpty(os2faktorLoginBaseUrl))
             {
@@ -92,6 +94,11 @@ namespace OS2faktorPlugin
             if (requirePin)
             {
                 clients.RemoveAll(c => !c.hasPincode);
+            }
+
+            if (disallowTotp)
+            {
+                clients.RemoveAll(c => c.type.Equals("TOTP"));
             }
 
             // sort by name
@@ -167,6 +174,11 @@ namespace OS2faktorPlugin
             if (requirePin)
             {
                 clients.RemoveAll(c => !c.hasPincode);
+            }
+
+            if (disallowTotp)
+            {
+                clients.RemoveAll(c => c.type.Equals("TOTP"));
             }
 
             if (sortByActive)

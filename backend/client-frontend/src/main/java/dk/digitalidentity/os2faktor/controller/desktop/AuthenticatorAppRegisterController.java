@@ -94,6 +94,14 @@ public class AuthenticatorAppRegisterController extends BaseController {
 
 			return "authenticator_app/initregistration";
 		}
+		
+		if (registration.getName().length() < 3 || registration.getName().length() > 128) {
+			model.addAttribute(bindingResult.getAllErrors());
+			model.addAttribute("form", registration);
+			model.addAttribute("nameError", true);
+
+			return "authenticator_app/initregistration";
+		}
 
 		// reload user
 		User user = userService.getByEncryptedAndEncodedSsn(userOrLoginPage.user.getSsn());
@@ -107,9 +115,15 @@ public class AuthenticatorAppRegisterController extends BaseController {
 
 			return "redirect:/";
 		}
+		
+		// Microsoft Authenticator App does not like names with spaces, special characters, numbers, etc, so we
+		// do not use the name entered (though it works fine on other Authenticator apps), but instead just
+		// hardcode it to "os2faktor".
+		String name = "OS2faktor";
+		// String name = registration.getName();
 
 		String secret = mfaTokenManager.generateSecretKey();
-		String qrCode = mfaTokenManager.getQRCode(secret, registration.getName());
+		String qrCode = mfaTokenManager.getQRCode(secret, name);
 		
 		if (qrCode == null) {
 			log.warn("Failed to generate QR code for new (partial) client with name: " + registration.getName());

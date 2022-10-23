@@ -308,17 +308,17 @@ namespace OS2faktor
 
             System.Windows.Forms.MenuItem resetMenu = new System.Windows.Forms.MenuItem();
             resetMenu.Tag = "Reset";
-            resetMenu.Text = "Nulstil klient";
+            resetMenu.Text = "Nulstil enhed";
             resetMenu.Click += new EventHandler(resetMenu_Click);
 
             System.Windows.Forms.MenuItem registerMenu = new System.Windows.Forms.MenuItem();
             registerMenu.Tag = "Register";
-            registerMenu.Text = "Registrer klient";
+            registerMenu.Text = "Aktiver enhed";
             registerMenu.Click += new EventHandler(registerMenu_Click);
 
             System.Windows.Forms.MenuItem registerNemIDMenu = new System.Windows.Forms.MenuItem();
             registerNemIDMenu.Tag = "NemID";
-            registerNemIDMenu.Text = "Udfør NemID registrering";
+            registerNemIDMenu.Text = "Udfør aktivering med NemID/MitID";
             registerNemIDMenu.Click += new EventHandler(registerNemIDMenu_Click);
 
             System.Windows.Forms.MenuItem registerPinMenu = new System.Windows.Forms.MenuItem();
@@ -338,7 +338,7 @@ namespace OS2faktor
 
             System.Windows.Forms.MenuItem selfServiceMenu = new System.Windows.Forms.MenuItem();
             selfServiceMenu.Tag = "SelfService";
-            selfServiceMenu.Text = "Administration af klienter";
+            selfServiceMenu.Text = "Administration af enheder";
             selfServiceMenu.Click += new EventHandler(selfServiceMenu_Click);
 
             // Initialize contextMenu1

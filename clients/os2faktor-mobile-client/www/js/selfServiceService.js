@@ -11,7 +11,7 @@ function SelfServiceService() {
     });
 
     // https://cordova.apache.org/docs/en/latest/reference/cordova-plugin-inappbrowser/
-    browserWindow = cordova.InAppBrowser.open(browserUrl, '_blank', 'clearsessioncache=yes,clearcache=yes,location=no,toolbar=no,disallowoverscroll=yes,zoom=no,useWideViewPort=no,footer=no');
+    browserWindow = cordova.InAppBrowser.open(browserUrl, '_system', 'clearsessioncache=yes,clearcache=yes,location=no,toolbar=no,disallowoverscroll=yes,zoom=no,useWideViewPort=no,footer=no');
 
     browserWindow.addEventListener('loadstop', function() {
       if (getDeviceType() != "IOS") {

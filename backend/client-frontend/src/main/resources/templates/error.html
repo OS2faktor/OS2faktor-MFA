@@ -30,7 +30,7 @@
 	</nav>
 
 	<div id="register">
-		<form class="form-register" name="postBackForm 	" method="post">
+		<form class="form-register" name="postBackForm" method="post">
 			<th:block th:if="${flow != null}">
 				<h4 th:text="#{__${flow.message}__}"></h4>
 				<div th:if="${errorType != null}" th:text="#{__${errorType.message}__}"></div>

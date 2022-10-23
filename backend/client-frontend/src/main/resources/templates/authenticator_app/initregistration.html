@@ -16,7 +16,7 @@
 							</div>
 
 							<div class="ibox-content">
-								<form method="post" th:object="${form}">
+								<form method="post" th:object="${form}" th:action="@{/authenticator}">
 									<p>
 										Angiv et navn på din Authenticator, så du kan genkende den når du skal vælge OS2faktor enhed
 										på login tidspunktet. Navnet anvendes alene til præsentation, så du nemt kan genkende din enhed.
@@ -26,7 +26,8 @@
 						
 									<div class="form-group">
 										<strong th:text="#{html.registration.name}"></strong>
-										<input class="form-control" th:field="*{name}" required="required" oninvalid="this.setCustomValidity('Angiv et navn på din enhed')" oninput="this.setCustomValidity('')" autofocus="autofocus" />
+										<input class="form-control" th:field="*{name}" required="required" minlength="3" maxlength="128" oninvalid="this.setCustomValidity('Angiv et navn på din enhed')" oninput="this.setCustomValidity('')" autofocus="autofocus" />
+										<p th:if="${nameError}" style="color:red;">Navnet skal være mellem 3 og 128 tegn</p>
 									</div>
 								
 									<br/>

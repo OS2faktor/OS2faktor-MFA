@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="dk.digitalidentity.os2faktor" version="1.8.1" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="dk.digitalidentity.os2faktor" version="1.8.3" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>OS2faktor</name>
     <description>
         OS2faktor er en kommunal 2-faktor login løsning, der anvende af kommunale medarbejdere.
@@ -23,8 +23,7 @@
             <meta-data android:name="google_analytics_adid_collection_enabled" android:value="false" />
             <meta-data android:name="firebase_crash_collection_enabled" android:value="false" />
         </config-file>
-        <preference name="android-targetSdkVersion" value="29" />
-
+        <preference name="android-targetSdkVersion" value="31" />
         <splash density="ldpi" src="res/android-splash/splash-port-ldpi.png" />
         <splash density="mdpi" src="res/android-splash/splash-port-mdpi.png" />
         <splash density="hdpi" src="res/android-splash/splash-port-hdpi.png" />
@@ -58,18 +57,14 @@
         <icon height="1024" platform="ios" src="res/icons/ios/icon-1024.png" width="1024" />
     </platform>
     <preference name="DisallowOverscroll" value="true" />
-    <preference name="phonegap-version" value="cli-8.1.1" />
-    <plugin name="cordova-plugin-whitelist" spec="^1.3.3" />
     <plugin name="cordova-plugin-dialogs" spec="^2.0.1" />
     <plugin name="cordova-plugin-device" spec="^2.0.2" />
     <plugin name="cordova-plugin-inappbrowser" spec="^5.0.0" />
     <plugin name="cordova-sqlite-evcore-extbuild-free" spec="^0.9.7" />
     <plugin name="cordova-plugin-statusbar" spec="^2.4.2" />
-    <plugin name="phonegap-plugin-push" spec="^2.2.3" />
     <plugin name="cordova-plugin-network-information" spec="^2.0.1" />
     <plugin name="cordova-plugin-screen-orientation" spec="^3.0.1" />
     <plugin name="cordova-plugin-fingerprint-aio" spec="^4.0.2" />
     <plugin name="cordova-plugin-androidx-adapter" spec="^1.0.0" />
-    <plugin name="cordova-plugin-wkwebview-engine" spec="^1.2.1" />
-    <engine name="android" spec="^9.0.0" />
+    <plugin name="@havesource/cordova-plugin-push" spec="3.0.0" />
 </widget>

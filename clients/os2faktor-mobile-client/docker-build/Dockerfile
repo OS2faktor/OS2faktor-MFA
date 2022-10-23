@@ -10,29 +10,31 @@ apt-key adv --keyserver keyserver.ubuntu.com --recv-keys D7CC6F019D06AF36 && \
 add-apt-repository ppa:cwchien/gradle && \
 apt-get update -y && \
 apt-get install gradle -y && \
-curl https://nodejs.org/dist/v10.15.0/node-v10.15.0-linux-x64.tar.gz | tar xz -C /usr/local/ --strip=1 && \
-npm install -g cordova@9.0.0
+curl https://nodejs.org/dist/v16.17.1/node-v16.17.1-linux-x64.tar.xz | tar xJ -C /usr/local/ --strip=1 && \
+npm install -g cordova@11.0.0
 
-# install java 8 for building android package
-RUN apt-get remove -y openjdk-11-jre-headless
+# install java 11 for building android package
 RUN \
 apt-get update && \
-apt-get install -y openjdk-8-jdk && \
-rm -rf /var/lib/apt/lists/*
+apt-get install -y openjdk-11-jdk
 
 # install android SDK tools
-COPY commandlinetools-linux-6609375_latest.zip .
+COPY commandlinetools-linux-8512546_latest.zip .
 RUN mkdir -p sdk/cmdline-tools
-RUN unzip commandlinetools-linux-6609375_latest.zip -d sdk/cmdline-tools
+RUN unzip commandlinetools-linux-8512546_latest.zip -d sdk/cmdline-tools
 
 ENV ANDROID_SDK_ROOT /app/sdk
 ENV ANDROID_HOME /app/sdk
-ENV PATH $PATH:$ANDROID_HOME/cmdline-tools/tools/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/29.0.2
+ENV PATH $PATH:$ANDROID_HOME/cmdline-tools/cmdline-tools/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/31.0.0
 
 RUN gradle --version
 
-# accept license and update android-sdk to API 29
-RUN ( sleep 5 && while [ 1 ]; do sleep 1; echo y; done ) | (cd /app/sdk/ && sdkmanager "build-tools;29.0.2" "platform-tools" "platforms;android-29")
+# accept license and update android-sdk to API 31
+# for some reason (probably gradle) we need specific 30.0.3 version of build-tools
+# I found quotes online related to this bug https://github.com/apache/cordova-android/issues/1391
+# "Build tools 30.0.3 is the only version supported by Android Studio that works"
+# versions 31.x and 32.x lead to "Installed Build Tools revision X is corrupted."
+RUN ( sleep 5 && while [ 1 ]; do sleep 1; echo y; done ) | (cd /app/sdk/ && sdkmanager "build-tools;30.0.3" "platform-tools" "platforms;android-31")
 
 # Copy dependency configuration files
 COPY tmp/ /app/
@@ -41,22 +43,21 @@ COPY tmp/ /app/
 RUN npm install
 
 # Install android platform
-RUN cordova platform add android@9.0.0
+RUN cordova platform add android
 
 # get all we need to build
 RUN cordova prepare android
 
-# does it work?
+# should fail if requirements are not met
 RUN cordova requirements
 
-# if it does, then build the APK (signing happens outside Docker)
-RUN cordova build --release android
+# build the APK
+# APK
+RUN cordova build android --release -- --keystore="android-prod.keystore" --storePassword=Test1234 --alias=android --password=Test1234 --packageType=apk
+# AAB
+#RUN cordova build android --release -- --keystore="android-prod.keystore" --storePassword=Test1234 --alias=android --password=Test1234 --packageType=bundle
 
 RUN ls -l /app/sdk
-
-# finally sign the binary
-RUN zipalign -v -p 4 /app/platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk aligned.apk
-RUN apksigner sign --ks /app/android-prod.keystore --ks-pass pass:Test1234 --out release.apk aligned.apk
 
 # run the shell script that copies to the file to the mounted volume
 ENTRYPOINT ["/bin/bash", "run.sh"]

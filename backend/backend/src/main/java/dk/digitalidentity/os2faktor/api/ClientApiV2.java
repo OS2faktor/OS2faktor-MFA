@@ -5,6 +5,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -104,7 +106,7 @@ public class ClientApiV2 {
 		}
 
 		if (StringUtils.hasLength(client.getToken())) {
-			if (client.getType().equals(ClientType.EDGE)) {
+			if (client.getType().equals(ClientType.EDGE) || (client.getType().equals(ClientType.CHROME) && isJSONValid(client.getToken()))) {
 				;
 			}
 			else {
@@ -341,6 +343,22 @@ public class ClientApiV2 {
 			return false;
 		}
 
+		return true;
+	}
+	
+	private boolean isJSONValid(String test) {
+		try {
+			new JSONObject(test);
+		}
+		catch (Exception ex) {
+			try {
+				new JSONArray(test);	
+			}
+			catch (Exception ex1) {
+				return false;
+			}
+		}
+		
 		return true;
 	}
 }

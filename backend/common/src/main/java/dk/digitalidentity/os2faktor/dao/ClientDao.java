@@ -14,6 +14,8 @@ public interface ClientDao extends JpaRepository<Client, String> {
 	// we do not have an index on this field, so lookup will be slow if we use this
 	@Deprecated
 	Client getByApiKey(String apiKey);
+
+	Client getByYubikeyUid(String uid);
 	
 	List<Client> getByNotificationKey(String notificationKey);
 

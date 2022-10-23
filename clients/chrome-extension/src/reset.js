@@ -14,15 +14,15 @@ function showReset() {
 			roaming = policy.Roaming;
 		}
 		else {
-		      roaming = false;
+			roaming = false;
 		}
 	});
-	
+
 	var swalText = 'Er du sikker på at du vil nulstille din klient?';
 	if (roaming) {
 		swalText += ' Bemærk at 2-faktor klienten vil blive slettet fra alle de maskiner den er installeret på';
 	}
-	
+
 
 	swalWithBootstrapButtons({
 		title: 'Nulstil klient',
@@ -43,10 +43,6 @@ function showReset() {
 			} else {
 				chrome.storage.local.remove(["apiKey","deviceId","nemIdRegistered","pinRegistered"]);
 			}
-
-			chrome.runtime.getBackgroundPage(function(backgroundPage) {
-				backgroundPage.closePopup();
-			});
 		}
 
 		window.close();

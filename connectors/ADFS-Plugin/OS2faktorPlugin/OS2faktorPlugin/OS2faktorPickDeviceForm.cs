@@ -52,6 +52,10 @@ namespace OS2faktorPlugin
                     {
                         cssClass = "fa-edge";
                     }
+                    else if ("TOTP".Equals(client.type))
+                    {
+                        cssClass = "fa-mobile";
+                    }
 
                     clientArray += "{ \"name\" : \"" + client.name + "\", \"deviceId\" : \"" + client.deviceId + "\", \"cssClass\" : \"" + cssClass + "\" }";
                     first = false;

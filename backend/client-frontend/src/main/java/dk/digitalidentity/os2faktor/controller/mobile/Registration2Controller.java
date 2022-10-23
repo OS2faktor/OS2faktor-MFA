@@ -10,6 +10,7 @@ import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -60,7 +61,10 @@ public class Registration2Controller extends BaseController {
 
 	@Autowired
 	private SecurityUtil securityUtil;
-
+	
+	@Value("${os2faktor.extensions.chrome.id}")
+	private String chromeExtensionId;
+	
 	// updated registration flow with NemID inlined
 	// basically a copy of the registrationController, which can be deleted once all clients are updated (beware ancient windows clients)
 	
@@ -247,12 +251,20 @@ public class Registration2Controller extends BaseController {
         // Remove any local registrations on client
         localClientService.deleteByDeviceId(client.getDeviceId());
 
-		return "redirect:/ui/register2/successPage?status=true&apiKey=" + apiKey + "&deviceId=" + client.getDeviceId();
+        String nsisWarning = "";
+        if (NSISLevel.NONE.equals(client.getNsisLevel())) {
+        	nsisWarning = "&nsisWarning=true";
+        }
+        
+		return "redirect:/ui/register2/successPage?status=true&apiKey=" + apiKey + "&deviceId=" + client.getDeviceId() + nsisWarning;
 	}
 
 	// GET/POST, both are handled here
 	@RequestMapping("/ui/register2/successPage")
-	public String successPage() {
+	public String successPage(Model model, @RequestParam(value = "nsisWarning", required = false, defaultValue = "false") String nsisWarning) {
+		model.addAttribute("chromeExtensionId", chromeExtensionId);
+		model.addAttribute("nsisWarning", ("true".equals(nsisWarning)));
+		
 		return "successPage2";
 	}
 }

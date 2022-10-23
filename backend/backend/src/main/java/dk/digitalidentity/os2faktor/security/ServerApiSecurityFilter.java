@@ -1,6 +1,7 @@
 package dk.digitalidentity.os2faktor.security;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -36,7 +37,8 @@ public class ServerApiSecurityFilter implements Filter {
 			Server server = null;
 			try {
 				server = serverDao.getByApiKey(apiKey);
-			} catch (Exception ex) {
+			}
+			catch (Exception ex) {
 				throw new ServletException(ex);
 			}
 
@@ -47,6 +49,14 @@ public class ServerApiSecurityFilter implements Filter {
 			}
 
 			try {
+				String tlsVersion = request.getHeader("x-amzn-tls-version");
+				tlsVersion = (tlsVersion != null) ? ((tlsVersion.length() > 64) ? (tlsVersion.substring(0, 60) + "...") : tlsVersion) : null;
+
+				if (tlsVersion != null && !Objects.equals(server.getTlsVersion(), tlsVersion)) {
+					server.setTlsVersion(tlsVersion);
+					server = serverDao.save(server);
+				}
+
 				AuthorizedServerHolder.setServer(server);
 
 				filterChain.doFilter(servletRequest, servletResponse);

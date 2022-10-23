@@ -7,6 +7,7 @@ mkdir tmp
 mkdir output
 
 # gather relevant files
+cp ~/projects/os2faktor-mobile-client/android-prod.keystore tmp
 cp ~/projects/os2faktor-deploy/keys/prod/android/android-prod.keystore tmp
 cp ../config.xml tmp
 cp ../google-services.json tmp
@@ -14,6 +15,7 @@ cp ../package.json tmp
 cp -R ../res tmp
 cp -R ../www tmp
 cp run.sh tmp
+cp bundletool-all-1.11.2.jar tmp
 
 # build and run
 docker build -t os2faktor-mobile:build . && \

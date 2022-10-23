@@ -44,4 +44,7 @@ public class Server {
 	
 	@Column
 	private long useCount;
+	
+	@Column
+	private String tlsVersion;
 }

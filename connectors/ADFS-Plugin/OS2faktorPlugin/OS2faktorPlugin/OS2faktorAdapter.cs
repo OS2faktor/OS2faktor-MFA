@@ -41,6 +41,7 @@ namespace OS2faktorPlugin
         private const string REGKEY_REMEMBER_DEVICE_DAYS = "RememberDeviceDays";
         private const string REGKEY_ALLOWED_RELYING_PARTIES = "RememberDeviceRelyingParties";
         private const string REGKEY_OS2FAKTOR_LOGIN_BASEURL = "OS2faktorLoginBaseUrl";
+        private const string REGKEY_DISALLOW_TOTP = "DisallowTotp";
 
         private const string REGKEY_IDENTIFY_SERVICE_URL = "IdentifyServiceUrl";
         private const string REGKEY_IDENTIFY_STS_URL = "IdentifyStsUrl";
@@ -179,6 +180,8 @@ namespace OS2faktorPlugin
             hmacKey = (string)key.GetValue(REGKEY_HMAC_KEY, "");
             var registryValue = key.GetValue(REGKEY_ALLOWED_RELYING_PARTIES, new string[] { });
             allowedRelyingParties = new List<string>(registryValue as string[]);
+            string disallowTotpString = (string)key.GetValue(REGKEY_DISALLOW_TOTP, "false");
+            bool disallowTotp = "true".Equals(disallowTotpString);
 
             string adUrl = (string)key.GetValue(REGKEY_ADURL, "");
             string adUsername = (string)key.GetValue(REGKEY_ADUSERNAME, "");
@@ -191,7 +194,7 @@ namespace OS2faktorPlugin
                 useOS2faktorLoginPassthrough = true;
             }
 
-            serviceStub = new ServiceStub(url, apiKey, connectorVersion, requirePin, os2faktorLoginBaseUrl);
+            serviceStub = new ServiceStub(url, apiKey, connectorVersion, requirePin, os2faktorLoginBaseUrl, disallowTotp);
 
             string trustAll = (string)key.GetValue(REGKEY_TRUSTALL, "false");
             if ("true".Equals(trustAll))
@@ -207,7 +210,7 @@ namespace OS2faktorPlugin
             identifyUsername = (string)key.GetValue(REGKEY_IDENTIFY_USERNAME, "");
             identifyPassword = (string)key.GetValue(REGKEY_IDENTIFY_PASSWORD, "");
 
-            log.Info("pidField: " + pidField + ", pseudonymField: " + pseudonymField + ", deviceIdField: " + deviceIdField + ", cprField: " + cprField + ", url: " + url + ", allowSelfRegistration: " + allowSelfRegistration + ", requirePin: " + requirePin + " usingSQL: " + ((string.IsNullOrEmpty(connectionString) ? "false" : "true")));
+            log.Info("pidField: " + pidField + ", pseudonymField: " + pseudonymField + ", deviceIdField: " + deviceIdField + ", cprField: " + cprField + ", url: " + url + ", allowSelfRegistration: " + allowSelfRegistration + ", requirePin: " + requirePin + " disallowTotp: " + disallowTotp + " usingSQL: " + ((string.IsNullOrEmpty(connectionString) ? "false" : "true")));
         }
 
         public void OnAuthenticationPipelineUnload()

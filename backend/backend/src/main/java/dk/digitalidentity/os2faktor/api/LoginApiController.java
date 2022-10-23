@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import dk.digitalidentity.os2faktor.api.dto.AuthenticateUserRequestBody;
@@ -44,11 +45,15 @@ public class LoginApiController {
 	private String frontendBaseUrl;
 
 	@PostMapping("/api/login/authenticateUser")
-	public ResponseEntity<?> authenticateUser(@RequestBody AuthenticateUserRequestBody body) throws Exception {
+	public ResponseEntity<?> authenticateUser(@RequestBody AuthenticateUserRequestBody body, @RequestParam(defaultValue = "yubikey") String type) throws Exception {
 		// should not happen, but better safe than NullPointer ;)
 		LoginServiceProvider loginServiceProvider = AuthorizedLoginServiceProviderHolder.getLoginServiceProvider();
 		if (loginServiceProvider == null) {
 			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+		}
+		
+		if (!"yubikey".equals(type) && !"authenticator".equals(type)) {
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 
 		String sessionKey = UUID.randomUUID().toString();
@@ -67,8 +72,8 @@ public class LoginApiController {
 		externalLoginSession.setTts(inFiveMinutes);
 
 		externalLoginSessionService.save(externalLoginSession);
-
-		return ResponseEntity.ok(frontendBaseUrl + "/external/yubikeyHandoff/" + sessionKey);
+		
+		return ResponseEntity.ok(frontendBaseUrl + "/external/" + type + "Handoff/" + sessionKey);
 	}
 
 	@PostMapping("/api/login/disableClient/{deviceId}")

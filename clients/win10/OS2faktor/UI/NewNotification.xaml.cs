@@ -1,4 +1,5 @@
-﻿using OS2faktor.WebSockets;
+﻿using OS2faktor.Utils;
+using OS2faktor.WebSockets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,18 +35,20 @@ namespace OS2faktor.UI
         private string pin = "" + OPEN_CIRCLE + OPEN_CIRCLE + OPEN_CIRCLE + OPEN_CIRCLE;
         private string enteredPin = "";
         private bool isPinRegistered = OS2faktor.Properties.Settings.Default.IsPinRegistered;
+        private int reactivatedWindowCounter = 0;
 
         public NewNotification()
         {
             InitializeComponent();
             tbPIN.Text = pin;
-            
+
             if (isPinRegistered)
             {
                 tbText.Text = "Indtast PIN-kode";
                 tbText.Focus();
                 btnApply.Visibility = Visibility.Hidden;
-            } else
+            }
+            else
             {
                 tbText.Text = "";
                 btnApply.Visibility = Visibility.Visible;
@@ -89,6 +92,11 @@ namespace OS2faktor.UI
             }
 
             this.Top = top;
+
+            AsyncUtils.DelayCall(200, () =>
+            {
+                this.Activate();
+            });
         }
 
         private void NotificationClosed(object sender, EventArgs e)
@@ -170,7 +178,7 @@ namespace OS2faktor.UI
         {
             this.subscriptionKey = subscriptionKey;
         }
-        
+
         internal string getSubscriptionKey()
         {
             return this.subscriptionKey;
@@ -189,7 +197,7 @@ namespace OS2faktor.UI
          */
         private void Window_TextInput(object sender, TextCompositionEventArgs e)
         {
-            if(!isPinRegistered)
+            if (!isPinRegistered)
             {
                 return;
             }
@@ -206,12 +214,12 @@ namespace OS2faktor.UI
                         DisplayPincode();
                     }
                     //entered last character
-                    else if(enteredPin.Length == 3)
+                    else if (enteredPin.Length == 3)
                     {
                         enteredPin += e.Text;
                         DisplayPincode();
                         WSCommunication.Accept(subscriptionKey, enteredPin);
-                         
+
                         preventSpam = true;
                         DelayedAntispamUnlock();
                     }
@@ -266,7 +274,8 @@ namespace OS2faktor.UI
         private void ShakeAnimation()
         {
             Storyboard sb = this.FindResource("ShakeAnimation") as Storyboard;
-            if (sb != null) {
+            if (sb != null)
+            {
                 BeginStoryboard(sb);
             }
         }
@@ -306,5 +315,18 @@ namespace OS2faktor.UI
                 }
             }
         }
+
+        private void Window_Deactivated(object sender, EventArgs e)
+        {
+            if (reactivatedWindowCounter < 10)
+            {
+                AsyncUtils.DelayCall(200, () =>
+                {
+                    reactivatedWindowCounter++;
+                    this.Activate();
+                });
+            }
+        }
+
     }
 }

@@ -16,7 +16,7 @@
 							</div>
 
 							<div class="ibox-content">
-								<form method="post" th:object="${form}">
+								<form method="post" th:object="${form}" th:action="@{/yubikey}">
 									<h4 th:text="#{html.yubikey.title}"></h4>
 									<p>
 										Angiv et navn på din  Tilknyt hardwarenøgle, så du kan genkende den når du skal vælge OS2faktor enhed
@@ -27,7 +27,8 @@
 
 									<div class="form-group">
 										<strong th:text="#{html.registration.name}"></strong>
-										<input class="form-control" th:field="*{name}" required="required" oninvalid="this.setCustomValidity('Angiv et navn på din klient')" oninput="this.setCustomValidity('')" autofocus="autofocus" />
+										<input class="form-control" th:field="*{name}" required="required" minlength="3" maxlength="128" oninvalid="this.setCustomValidity('Angiv et navn på din klient')" oninput="this.setCustomValidity('')" autofocus="autofocus" />
+										<p th:if="${nameError}" style="color:red;">Navnet skal være mellem 3 og 128 tegn</p>
 									</div>
 								
 									<div class="row">

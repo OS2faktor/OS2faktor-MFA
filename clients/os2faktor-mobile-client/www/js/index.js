@@ -1,5 +1,5 @@
 var devMode = false;
-var clientVersion = "1.8.2";
+var clientVersion = "1.8.3";
 var frontendUrl = "https://frontend.os2faktor.dk";
 var backendUrl = "https://backend.os2faktor.dk";
 

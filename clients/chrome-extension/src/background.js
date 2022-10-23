@@ -1,40 +1,10 @@
-var monitorNemIdUrlTask;
-var nemIdWindowId;
-var nemIdResponseHandled;
-
-var pinWindowId;
-var monitorPinUrlTask;
-
-var monitorSelfServiceUrlTask;
-var selfServiceWindowId;
-
-var notificationCount = 0;
-
-// challenge window
-var challengePopupId;
-
-var roaming;
-var backendUrl;
-
-chrome.storage.managed.get("Roaming", function(policy) {
-	if (policy.Roaming) {
-		roaming = policy.Roaming;
-	}
-	else {
-		roaming = false;
-	}
-});
-
 /* utility method for generating a Login session */
 function obtainSession(sessionUrl) {
-    $.ajax({
-        url: sessionUrl,
-        type: 'GET'
-    });
+	fetch(sessionUrl, { method: 'GET', cache: "default" });
 }
 
 chrome.storage.managed.onChanged.addListener((changes, areaName) => {
-    if (changes == null || changes.timestamp.newValue == null || changes.token.newValue == null) {
+    if (changes == null || changes.timestamp?.newValue == null || changes.token?.newValue == null) {
         return;
     }
 
@@ -63,184 +33,328 @@ function guid() {
 	return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
 }
 
-// listener for events from HTML - for direct AD FS integration
-chrome.extension.onMessage.addListener(function(message, sender, sendResponse) {
-	showChallengeWindow();
+// INTERNAL MESSAGES
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+
+	//Pause challanges for dialog windows
+	if (request.runPinRegistrationMonitorTask || request.runNemIdRegistrationMonitorTask || request.runSelfServiceMonitorTask) {
+		chrome.storage.local.set({ isPaused: true });
+	}
+
+	if (request.runPinRegistrationMonitorTask) {
+		console.log("Running runPinRegistrationMonitorTask task");
+		runPinRegistrationMonitorTask(request.runPinRegistrationMonitorTask);
+	}
+
+	if (request.runNemIdRegistrationMonitorTask) {
+		console.log("Running runNemIdRegistrationMonitorTask task");
+		runNemIdRegistrationMonitorTask(request.runNemIdRegistrationMonitorTask);
+		sendResponse(); // we need this to close the registration window
+	}
+
+	if (request.runSelfServiceMonitorTask) {
+		console.log("Running runSelfServiceMonitorTask task");
+		runSelfServiceMonitorTask(request.runSelfServiceMonitorTask);
+	}
+
+	//Comes from "shortcut" to open challenge window
+	if (request.os2faktorEvent) {
+		showChallengeWindow();
+	}
 
 	return true;
 });
 
-// listener for events from GCM - for indirect integration
-chrome.gcm.onMessage.addListener(function(message) {
-	showChallengeWindow();
-});
-
-function showChallengeWindow() {
-        var w = 600;
-        var h = 400;
-        var left = Math.round(screen.width/2) - Math.round(w/2);
-        var top = Math.round(screen.height/2) - Math.round(h/2);
-
-        if (challengePopupId == null){
-                chrome.windows.create({
-                        url: "challenge.html",
-                        type: "popup",
-                        state: "normal",
-                        focused: true,
-                        width: w,
-                        height: h,
-                        left: left,
-                        top: top
-                }, function (win) {
-                        challengePopupId = win.id;
-                });
-        }
-}
-
-chrome.gcm.onSendError.addListener(function (err) {
-	console.log(err);
-})
-
-function closePopup() {
-  var windows = chrome.extension.getViews();
-
-  for (var x = 0; x < windows.length; x++) {
-    if (windows[x].location.pathname == "/popup.html") {
-       windows[x].close();
-    }
-  }
-}
-
-function monitorNemIdUrl() {
-	chrome.windows.get(nemIdWindowId, { populate: true }, function (win) {
-		var url = new URL(win.tabs[0].url);
-		var status = url.searchParams.get("status");
-		var closeWindow = url.searchParams.get("closeWindow");
-
-		if (status && status == "true" && nemIdResponseHandled == false) {
-			nemIdResponseHandled = true;
-			if (roaming) {
+//EXTERNAL MESSAGES
+chrome.runtime.onMessageExternal.addListener(function(request, sender, sendResponse) {
+	if (request.nemIdRegistration) {
+		chrome.storage.local.get("Roaming", function(result) {
+			if (result.Roaming) {
 				chrome.storage.sync.set({ nemIdRegistered: true });
 			} else {
 				chrome.storage.local.set({ nemIdRegistered: true });
 			}
-		}
+		});
+	}
+});
 
-		if (closeWindow) {
-			chrome.windows.remove(win.id);
+// listener for events from GCM - for indirect integration
+chrome.gcm.onMessage.addListener(function(message) {
+	console.log("Got push message from GCM");
+	showChallengeWindow();
+});
+
+chrome.gcm.onSendError.addListener(function (err) {
+	console.log("addLister Error: " + err);
+});
+
+// listener for events from FCM
+self.addEventListener('push', event => {
+	console.log("Got push message from FCM");
+	showChallengeWindow();
+});
+
+function showChallengeWindow() {
+	try {
+		chrome.system.display.getInfo(function(displayInfo) {
+			var w = 600;
+			var h = 400;
+			var left = Math.round(displayInfo[0].bounds.width/2) - Math.round(w/2);
+			var top = Math.round(displayInfo[0].bounds.height/2) - Math.round(h/2);
+
+			chrome.storage.local.get(["challengePopupId"], function (result) {
+				//check if there are no other challenge windows
+				if (!result.challengePopupId) {
+					chrome.windows.create({
+						url: "challenge.html",
+						type: "popup",
+						state: "normal",
+						focused: true,
+						width: w,
+						height: h,
+						top: top,
+						left: left
+					}, function (win) {
+						chrome.storage.local.set({ challengePopupId: win.id });
+					});
+				}
+			});
+
+		});
+	}
+	catch (err) {
+		console.log("failed to open through display.getInfo() - " + err);
+
+		var w = 600;
+		var h = 400;
+		var left = 340; // 1280 x 720 assumption
+		var top = 160;
+
+		chrome.storage.local.get(["challengePopupId"], function (result) {
+			//check if there are no other challenge windows
+			if (!result.challengePopupId) {
+				chrome.windows.create({
+					url: "challenge.html",
+					type: "popup",
+					state: "normal",
+					focused: true,
+					width: w,
+					height: h,
+					top: top,
+					left: left
+				}, function (win) {
+					chrome.storage.local.set({ challengePopupId: win.id });
+				});
+			}
+		});
+	}
+}
+
+// Handle alarms
+chrome.alarms.onAlarm.addListener(function( alarm ) {
+	if (alarm.name == "runSelfServiceMonitorTask") {
+		monitorSelfServiceUrl();
+	}
+	if (alarm.name == "runPinRegistrationMonitorTask") {
+		monitorPinUrl();
+	}
+	if (alarm.name == "runNemIdRegistrationMonitorTask") {
+		monitorNemIdUrl();
+	}
+});
+
+function monitorNemIdUrl() {
+	chrome.storage.local.get(["nemIdWindowId", "Roaming"], function (result) {
+		roaming = result["Roaming"];
+		nemIdWindowId = result["nemIdWindowId"];
+		if (nemIdWindowId == null) {
+			stopNemIdRegistrationMonitorTask();
+			return;
+		}
+		try {
+			chrome.windows.get(nemIdWindowId, { populate: true }, function (win) {
+				//sometimes "win.tabs[0].url" is empty probably because the page has not loaded yet
+				if (win.tabs[0].url) {
+					var url = new URL(win.tabs[0].url);
+					var status = url.searchParams.get("status");
+					var closeWindow = url.searchParams.get("closeWindow");
+
+					if (status && status == "true") {
+						if (roaming) {
+							chrome.storage.sync.set({ nemIdRegistered: true });
+						} else {
+							chrome.storage.local.set({ nemIdRegistered: true });
+						}
+					}
+
+					if (closeWindow) {
+						chrome.windows.remove(win.id);
+						stopNemIdRegistrationMonitorTask();
+					}
+				}
+			});
+		} catch (error) {
+			stopNemIdRegistrationMonitorTask();
+			return;
 		}
 	});
 }
 
 function runNemIdRegistrationMonitorTask(windowId){
-	nemIdResponseHandled = false;
-	nemIdWindowId = windowId;
-	monitorNemIdUrlTask = setInterval(monitorNemIdUrl, 200);
+	chrome.storage.local.set({ nemIdWindowId: windowId });
+	chrome.alarms.create("runNemIdRegistrationMonitorTask", { periodInMinutes: 0.004 });
+}
+
+function stopNemIdRegistrationMonitorTask() {
+	chrome.alarms.clear("runNemIdRegistrationMonitorTask");
+	chrome.storage.local.set({ nemIdWindowId: null });
+	chrome.storage.local.set({ isPaused: false });
 }
 
 function monitorPinUrl() {
-	if (pinWindowId == null) { //TODO probably same logic required in other monitor tasks
-		clearInterval(monitorPinUrlTask);
-		chrome.storage.local.set({ isPaused: false });
-
-		return;
-	}
-	chrome.windows.get(pinWindowId, { populate: true }, function (win) {
-		var url = new URL(win.tabs[0].url);
-		var status = url.searchParams.get("status");
-		var closeWindow = url.searchParams.get("closeWindow");
-
-		if (status && status == "true") {
-			if (roaming) {
-				chrome.storage.sync.set({ pinRegistered: true });
-			} else {
-				chrome.storage.local.set({ pinRegistered: true });
-			}
+	chrome.storage.local.get(["pinWindowId", "Roaming"], function (result) {
+		var roaming = result["Roaming"];
+		var pinWindowId = result["pinWindowId"];
+		if (pinWindowId == null) {
+			stopPinRegistrationMonitorTask();
+			return;
 		}
 
-		if (closeWindow) {
-			chrome.windows.remove(win.id);
+		try {
+			chrome.windows.get(pinWindowId, { populate: true }, function (win) {
+				if (win.tabs[0].url) {
+					var url = new URL(win.tabs[0].url);
+					var status = url.searchParams.get("status");
+					var closeWindow = url.searchParams.get("closeWindow");
+
+					if (status && status == "true") {
+						if (roaming) {
+							chrome.storage.sync.set({ pinRegistered: true });
+						} else {
+							chrome.storage.local.set({ pinRegistered: true });
+						}
+					}
+
+					if (closeWindow) {
+						chrome.windows.remove(win.id);
+						stopPinRegistrationMonitorTask();
+					}
+				}
+			});
+		} catch (error) {
+			stopPinRegistrationMonitorTask();
+			return;
 		}
 	});
 }
 
-function runPinRegistrationMonitorTask(windowId){
-	pinWindowId = windowId;
-	monitorPinUrlTask = setInterval(monitorPinUrl, 200);
+function runPinRegistrationMonitorTask(windowId) {
+	chrome.storage.local.set({ pinWindowId: windowId });
+	chrome.alarms.create("runPinRegistrationMonitorTask", { periodInMinutes: 0.004 });
+}
+
+function stopPinRegistrationMonitorTask() {
+	chrome.alarms.clear("runPinRegistrationMonitorTask");
+	chrome.storage.local.set({ pinWindowId: null });
+	chrome.storage.local.set({ isPaused: false });
 }
 
 function monitorSelfServiceUrl() {
-	chrome.windows.get(selfServiceWindowId, { populate: true }, function (win) {
-		var url = new URL(win.tabs[0].url);
-		var closeWindow = url.searchParams.get("closeWindow");
+	chrome.storage.local.get(["selfServiceWindowId"], function (result) {
+		selfServiceWindowId = result["selfServiceWindowId"];
+		if (selfServiceWindowId == null) {
+			stopSelfServiceMonitorTask();
+			return;
+		}
+		try {
+			chrome.windows.get(selfServiceWindowId, { populate: true }, function (win) {
+				if (win.tabs[0].url) {
+					var url = new URL(win.tabs[0].url);
+					var closeWindow = url.searchParams.get("closeWindow");
 
-		if (closeWindow) {
-			chrome.windows.remove(win.id);
+					if (closeWindow) {
+						chrome.windows.remove(win.id);
+						stopSelfServiceMonitorTask();
+					}
+				}
+			});
+		} catch (error) {
+			stopSelfServiceMonitorTask();
+			return;
 		}
 	});
 }
 
 function runSelfServiceMonitorTask(windowId){
-	selfServiceWindowId = windowId;
-	monitorSelfServiceUrlTask = setInterval(monitorSelfServiceUrl, 200);
+	chrome.storage.local.set({ selfServiceWindowId: windowId });
+	chrome.alarms.create("runSelfServiceMonitorTask", { periodInMinutes: 0.004 });
+}
+
+function stopSelfServiceMonitorTask() {
+	chrome.alarms.clear("runSelfServiceMonitorTask");
+	chrome.storage.local.set({ selfServiceWindowId: null });
+	chrome.storage.local.set({ isPaused: false });
 }
 
 chrome.windows.onRemoved.addListener(function (windowId) {
-	if (nemIdWindowId != null && windowId == nemIdWindowId) {
-		clearInterval(monitorNemIdUrlTask);
-		nemIdWindowId = null;
-	}
+	chrome.storage.local.get(["nemIdWindowId", "pinWindowId", "selfServiceWindowId", "challengePopupId"], function (result) {
+		nemIdWindowId = result["nemIdWindowId"];
+		pinWindowId = result["pinWindowId"];
+		selfServiceWindowId = result["selfServiceWindowId"];
+		challengePopupId = result["challengePopupId"];
 
-	if (pinWindowId != null && windowId == pinWindowId) {
-		clearInterval(monitorPinUrlTask);
-		pinWindowId = null;
-		chrome.storage.local.set({ isPaused: false });
-	}
+		if (nemIdWindowId != null && windowId == nemIdWindowId) {
+			chrome.alarms.clear("runNemIdRegistrationMonitorTask");
+			chrome.storage.local.set({ nemIdWindowId: null });
+			chrome.storage.local.set({ isPaused: false });
+		}
 
-	if (selfServiceWindowId != null && windowId == selfServiceWindowId) {
-		clearInterval(monitorSelfServiceUrlTask);
-		selfServiceWindowId = null;
-	}
+		if (pinWindowId != null && windowId == pinWindowId) {
+			chrome.alarms.clear("runPinRegistrationMonitorTask");
+			chrome.storage.local.set({ pinWindowId: null });
+			chrome.storage.local.set({ isPaused: false });
+		}
 
-	if (challengePopupId != null && windowId == challengePopupId) {
-		challengePopupId = null;
-	}
+		if (selfServiceWindowId != null && windowId == selfServiceWindowId) {
+			chrome.alarms.clear("runSelfServiceMonitorTask");
+			chrome.storage.local.set({ selfServiceWindowId: null });
+			chrome.storage.local.set({ isPaused: false });
+		}
+
+		if (challengePopupId != null && windowId == challengePopupId) {
+			chrome.storage.local.set({ challengePopupId: null });
+		}
+	});
 });
 
 //Startup listner to fetch current state from backend
 
 chrome.runtime.onStartup.addListener(function () {
-		// read global settings and perform initialization
-		chrome.storage.managed.get(["BackendUrl", "Roaming"], function(policy) {
-			if (policy.BackendUrl) {
-				backendUrl = policy.BackendUrl;
-			}
-			else {
-				backendUrl = "https://backend.os2faktor.dk";
-			}
+	// read global settings and perform initialization
+	chrome.storage.managed.get(["BackendUrl", "Roaming"], function(policy) {
+		if (policy.BackendUrl) {
+			backendUrl = policy.BackendUrl;
+		}
+		else {
+			backendUrl = "https://backend.os2faktor.dk";
+		}
 
-			if (policy.Roaming) {
-				roaming = policy.Roaming;
-			}
-			else {
-				roaming = false;
-			}
-
-			if (roaming) {
-				chrome.storage.sync.get(["apiKey", "deviceId", "pinRegistered", "nemIdRegistered"], function (result) {
-					fetchStatusFromBackend(result);
-				});
-			}
-			else {
-				chrome.storage.local.get(["apiKey", "deviceId", "pinRegistered", "nemIdRegistered"], function (result) {
-					fetchStatusFromBackend(result);
-				});
-			}
-		});
-
+		if (policy.Roaming) {
+			chrome.storage.local.set({ Roaming: policy.Roaming });
+			chrome.storage.sync.get(["apiKey", "deviceId", "pinRegistered", "nemIdRegistered"], function (result) {
+				fetchStatusFromBackend(result, policy.Roaming, backendUrl);
+			});
+		}
+		else {
+			chrome.storage.local.set({ Roaming: false });
+			chrome.storage.local.get(["apiKey", "deviceId", "pinRegistered", "nemIdRegistered"], function (result) {
+				fetchStatusFromBackend(result, false, backendUrl);
+			});
+		}
+	});
 });
 
-function fetchStatusFromBackend(dbVariables) {
+function fetchStatusFromBackend(dbVariables, roaming, backendUrl) {
 	var apiKey = dbVariables["apiKey"];
 	var deviceId = dbVariables["deviceId"];
 	var dbPinRegistered = dbVariables["pinRegistered"];
@@ -258,33 +372,44 @@ function fetchStatusFromBackend(dbVariables) {
 		return;
 	}
 
-	$.ajax({
+	//We cannot use $.ajax so we use fetch instead
+	//https://stackoverflow.com/a/66468860/6205976
+	fetch(backendUrl + "/api/client/v2/status", {
+		method: 'GET',
 		headers: {
 			'ApiKey': apiKey,
 			'deviceId': deviceId,
-		},
-		url: backendUrl + "/api/client/v2/status",
-		type: 'GET',
-		success: function (data) {
+		}
+	}).then(response =>
+		response.json().then(data => ({
+			data: data,
+			status: response.status
+		}))
+	)
+	.then(res => {
+		if (res.status == 200) {
+			var data = res.data;
 			statusResult.exists = !data.disabled;
 			statusResult.pinProtected = data.pinProtected;
 			statusResult.nemIdRegistered = data.nemIdRegistered;
 
-			handleBackendStatus(statusResult, dbPinRegistered, dbNemIdRegistered);
-		},
-		error: function (jqXHR, textStatus, errorThrown) {
-			// 401 means the client has been physically deleted, so that is NOT a lookup failure
-			if (jqXHR.status != 401) {
+			handleBackendStatus(statusResult, dbPinRegistered, dbNemIdRegistered, roaming);
+		} else {
+			if (res.status != 401) {
 				statusResult.lookupFailed = true;
 			}
 
-			console.error("getStatusError: " + JSON.stringify(jqXHR));
-			handleBackendStatus(statusResult, dbPinRegistered, dbNemIdRegistered);
+			// TODO this is an expected error maybe we should change it to warning?
+			console.error("getStatusError: " + JSON.stringify(res));
+			handleBackendStatus(statusResult, dbPinRegistered, dbNemIdRegistered, roaming);
 		}
+	})
+	.catch((error) => {
+		console.error('fetchStatusFromBackend Error:', error);
 	});
 }
 
-function handleBackendStatus(result, dbPinRegistered, dbNemIdRegistered) {
+function handleBackendStatus(result, dbPinRegistered, dbNemIdRegistered, roaming) {
 	if (result.exists) {
 		var changes = false;
 

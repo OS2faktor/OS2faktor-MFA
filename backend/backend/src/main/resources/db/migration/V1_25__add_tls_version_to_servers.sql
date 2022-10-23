@@ -1,0 +1,1 @@
+ALTER TABLE servers ADD COLUMN tls_version VARCHAR(64) NULL;

@@ -12,7 +12,7 @@ function NemIDService() {
     });
 
     // https://cordova.apache.org/docs/en/latest/reference/cordova-plugin-inappbrowser/
-    browserWindow = cordova.InAppBrowser.open(browserUrl, '_blank', 'clearsessioncache=yes,clearcache=yes,location=no,toolbar=no,disallowoverscroll=yes,zoom=no,useWideViewPort=no,footer=no');
+    browserWindow = cordova.InAppBrowser.open(browserUrl, '_system', 'clearsessioncache=yes,clearcache=yes,location=yes,toolbar=no,disallowoverscroll=yes,zoom=no,useWideViewPort=no,footer=no');
 
     browserWindow.addEventListener('loadstop', function() {
       if (getDeviceType() != "IOS") {
@@ -29,9 +29,12 @@ function NemIDService() {
     }
 
     browserWindow.addEventListener('loaderror', function (params) {
-      closeInAppWindow(browserWindow);
-      browserWindow = undefined;
-      window.location = "error.html";
+      // put this into a setTimeout, so we can see the actual error before the window closes
+      window.setTimeout(function() {
+        closeInAppWindow(browserWindow);
+        browserWindow = undefined;
+        window.location = "error.html";
+      }, 5000);
     });
 
     $(browserWindow).on('loadstart', function (e) {

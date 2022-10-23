@@ -4,6 +4,8 @@ var roaming;
 // challenge window
 var challengePopupId;
 
+const applicationServerKey = "BJgHwxgz45mYC9_gGqOF3RiCL97HVwt3tP9RqYz2btuv_r0Ev3bJ4A9PMzwpHVbsXnA715ZJmxhn5DDRDHoBnGI=";
+
 document.addEventListener('DOMContentLoaded', function () {
 	chrome.storage.managed.get(["FrontendUrl", "Roaming"], function(policy) {
 		if (policy.FrontendUrl) {
@@ -137,32 +139,53 @@ function initializeDropdown(registrationId, apiKey, deviceId, pinRegistered, reg
 	});
 }
 
-function performRegister(result) {
+function urlB64ToUint8Array(base64String) {
+	const padding = '='.repeat((4 - base64String.length % 4) % 4);
+	const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
 
-	// If already registered, bail out.
-	if (result["registered"]) {
-		console.log("Already registered");
+	const rawData = window.atob(base64);
+	const outputArray = new Uint8Array(rawData.length);
 
-		if (roaming) {
-			chrome.storage.sync.get("apiKey", function (result) {
-				var apiKey = result["apiKey"];
-				if (!apiKey){
-					registerInFrontend();
-				}
-			});
-		}
-		else {
-			chrome.storage.local.get("apiKey", function (result) {
-				var apiKey = result["apiKey"];
-				if (!apiKey){
-					registerInFrontend();
-				}
-			});
-		}
-
-		return;
+	for (let i = 0; i < rawData.length; ++i) {
+		outputArray[i] = rawData.charCodeAt(i);
 	}
 
+	return outputArray;
+}
+
+// New register with Web Push or FCM stuff
+function register() {
+	navigator.serviceWorker.getRegistration().then(registration => {
+		registration.pushManager.subscribe({
+			userVisibleOnly: true,
+			applicationServerKey: urlB64ToUint8Array(applicationServerKey)
+		}).then(subscription => {
+			const json = JSON.stringify(subscription.toJSON(), null, 2);
+			console.log(json);
+			if (roaming) {
+				chrome.storage.sync.set({
+					registrationId: json
+				}, function() {
+					performRegisterInFrontend(json);
+				});
+			}
+			else {
+				chrome.storage.local.set({
+					registrationId: json
+				}, function() {
+					performRegisterInFrontend(json);
+				});
+			}
+		},
+		error => {
+			console.log("error getting push permission", error);
+			performRegisterInFrontend(null);
+		});
+	});
+}
+
+//Old registration using gcm
+function oldRegister() {
 	// identifier for push notifications
 	var senderIds = ["786549201808"];
 	chrome.gcm.register(senderIds, function (registrationId) {
@@ -180,7 +203,7 @@ function performRegister(result) {
 					chrome.storage.local.set({ registrationId: 'N/A' });
 				}
 
-				registerInFrontend();
+				performRegisterInFrontend(registrationId);
 				return;
 			}
 			else {
@@ -194,7 +217,7 @@ function performRegister(result) {
 				registered: true,
 				registrationId: registrationId
 			}, function() {
-				registerInFrontend();
+				performRegisterInFrontend(registrationId);
 			});
 		}
 		else {
@@ -202,27 +225,13 @@ function performRegister(result) {
 				registered: true,
 				registrationId: registrationId
 			}, function() {
-				registerInFrontend();
+				performRegisterInFrontend(registrationId);
 			});
 		}
 	});
 }
 
-function register() {
-	if (roaming) {
-		chrome.storage.sync.get("registered", function (result) {
-			performRegister(result);
-		});
-	} else {
-		chrome.storage.local.get("registered", function (result) {
-			performRegister(result);
-		});
-	}
-}
-
-function performRegisterInFrontend(result) {
-	var registrationId = result["registrationId"];
-
+function performRegisterInFrontend(registrationId) {
 	if (registrationId) {
 		// Chromium Edge workaround
 		if (registrationId == 'N/A') {
@@ -247,21 +256,7 @@ function performRegisterInFrontend(result) {
 			left: left,
 			top: top
 		}, function (win) {
-			chrome.runtime.getBackgroundPage(function(backgroundPage) {
-				backgroundPage.closePopup();
-			});
-		});
-	}
-}
 
-function registerInFrontend() {
-	if (roaming) {
-		chrome.storage.sync.get("registrationId", function (result) {
-			performRegisterInFrontend(result);
-		});
-	} else {
-		chrome.storage.local.get("registrationId", function (result) {
-			performRegisterInFrontend(result);
 		});
 	}
 }
@@ -283,9 +278,10 @@ function performNemIdRegisterPopup(result) {
 			width: 800,
 			height: 600
 		}, function (win) {
-			chrome.runtime.getBackgroundPage(function(backgroundPage){
-				backgroundPage.runNemIdRegistrationMonitorTask(win.id);
-				backgroundPage.closePopup();
+			chrome.runtime.sendMessage({
+				runNemIdRegistrationMonitorTask : win.id
+			}, function(response) {
+				//We're not expecting a response here
 			});
 		});
 	}
@@ -320,9 +316,10 @@ function performPinRegisterPopup(result) {
 			width: 800,
 			height: 600
 		}, function (win) {
-			chrome.runtime.getBackgroundPage(function(backgroundPage){
-				backgroundPage.runPinRegistrationMonitorTask(win.id);
-				backgroundPage.closePopup();
+			chrome.runtime.sendMessage({
+				runPinRegistrationMonitorTask : win.id
+			}, function(response) {
+				//We're not expecting a response here
 			});
 		});
 	}
@@ -357,9 +354,10 @@ function performSelfServicePopup(result) {
 			width: 800,
 			height: 600
 		}, function (win) {
-			chrome.runtime.getBackgroundPage(function(backgroundPage){
-				backgroundPage.runSelfServiceMonitorTask(win.id);
-				backgroundPage.closePopup();
+			chrome.runtime.sendMessage({
+				runSelfServiceMonitorTask : win.id
+			}, function(response) {
+				//We're not expecting a response here
 			});
 		});
 	}

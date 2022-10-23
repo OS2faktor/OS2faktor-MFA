@@ -1,5 +1,6 @@
 package dk.digitalidentity.os2faktor.controller.desktop;
 
+import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -29,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 @Controller
 public class AuthenticatorAppLoginController extends BaseController {
 	private static final String SESSION_REDIRECT_URL = "SESSION_REDIRECT_URL";
+	private static final String SESSION_REDIRECT_URL_TTS = "SESSION_REDIRECT_URL_TTS";
 
 	@Autowired
 	private NotificationDao notificationDao;
@@ -82,6 +84,7 @@ public class AuthenticatorAppLoginController extends BaseController {
 
 		if (StringUtils.hasLength(redirectUrl)) {
 			request.getSession().setAttribute(SESSION_REDIRECT_URL, redirectUrl);
+			request.getSession().setAttribute(SESSION_REDIRECT_URL_TTS, LocalDateTime.now());
 		}
 		
 		model.addAttribute("form", new AuthenticatorForm("", false));
@@ -157,6 +160,7 @@ public class AuthenticatorAppLoginController extends BaseController {
 		}
 
 		client.setFailedPinAttempts(0);
+		client.setUseCount(client.getUseCount() + 1);
 		clientService.save(client);
 		
 		notification.setClientAuthenticated(true);
@@ -164,7 +168,10 @@ public class AuthenticatorAppLoginController extends BaseController {
 		notificationDao.save(notification);
 
 		String redirectUrl = (String) request.getSession().getAttribute(SESSION_REDIRECT_URL);
-		if (StringUtils.hasLength(redirectUrl)) {
+		LocalDateTime redirectUrlTts = (LocalDateTime) request.getSession().getAttribute(SESSION_REDIRECT_URL_TTS);
+		request.getSession().removeAttribute(SESSION_REDIRECT_URL);
+		request.getSession().removeAttribute(SESSION_REDIRECT_URL_TTS);
+		if (StringUtils.hasLength(redirectUrl) && redirectUrlTts.plusMinutes(10).isAfter(LocalDateTime.now())) {
 			return "redirect:" + redirectUrl;
 		}
 		

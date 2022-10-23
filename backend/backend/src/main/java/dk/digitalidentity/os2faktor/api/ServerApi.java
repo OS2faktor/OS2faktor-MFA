@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,10 +49,10 @@ import nl.martijndwars.webpush.Subscription.Keys;
 @CrossOrigin
 @RestController
 public class ServerApi {
-	
+
 	@Autowired
 	private ClientService clientService;
-	
+
 	@Autowired
 	private ServerDao serverDao;
 
@@ -60,10 +61,10 @@ public class ServerApi {
 
 	@Autowired
 	private NotificationDao subscriptionInfoDao;
-	
+
 	@Autowired
 	private PushNotificationSenderService notificationService;
-	
+
 	@Autowired
 	private LocalClientService localClientService;
 
@@ -72,30 +73,25 @@ public class ServerApi {
 
 	@Autowired
 	private IdGenerator idGenerator;
-	
+
 	@Autowired
 	private StatisticDao statisticDao;
-	
+
 	@Autowired
 	private PushService pushService;
-	
+
 	@Value("${os2faktor.frontend.baseurl}")
 	private String frontendBaseUrl;
 
 	@GetMapping("/api/server/clients")
-	public ResponseEntity<?> getClients(
-			@RequestParam(required = false, value = "ssn") String encodedSsn,
-			@RequestParam(required = false, value = "pid") String pid,
-			@RequestParam(required = false, value = "pseudonym") String pseudonym,
-			@RequestParam(required = false, value = "deviceId") String[] deviceIds,
-			@RequestHeader("connectorVersion") String connectorVersion) {
+	public ResponseEntity<?> getClients(@RequestParam(required = false, value = "ssn") String encodedSsn, @RequestParam(required = false, value = "pid") String pid, @RequestParam(required = false, value = "pseudonym") String pseudonym, @RequestParam(required = false, value = "deviceId") String[] deviceIds, @RequestHeader("connectorVersion") String connectorVersion) {
 
 		// should not happen, but better safe than NullPointer ;)
 		Server server = AuthorizedServerHolder.getServer();
 		if (server == null) {
 			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 		}
-		
+
 		if (server.getConnectorVersion() == null && connectorVersion != null || !server.getConnectorVersion().equals(connectorVersion)) {
 			if (connectorVersion.length() > 32) {
 				return new ResponseEntity<>("ConnectorVersion header must not be longer than 32 characters!", HttpStatus.BAD_REQUEST);
@@ -113,7 +109,7 @@ public class ServerApi {
 			}
 			else if (pid != null && pid.length() > 0) {
 				User user = userService.getByPid(pid);
-	
+
 				if (user != null && user.getClients() != null && user.getClients().size() > 0) {
 					clients.addAll(user.getClients());
 				}
@@ -122,43 +118,45 @@ public class ServerApi {
 				Municipality municipality = AuthorizedServerHolder.getServer().getMunicipality();
 				if (municipality == null) {
 					log.warn("No municipality assigned to Server:" + server.getName());
-	
+
 					return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 				}
-	
+
 				Pseudonym pseudonymMapping = pseudonymDao.getByPseudonymAndCvr(pseudonym, municipality.getCvr());
 				if (pseudonymMapping != null) {
 					String encryptedAndEncodedSsn = pseudonymMapping.getSsn();
-	
+
 					addUsersClientsByEncryptedAndEncodedSsn(encryptedAndEncodedSsn, clients);
 				}
 			}
-	
+
 			if (deviceIds != null && deviceIds.length > 0) {
 				for (String deviceId : deviceIds) {
 					Client client = clientService.getByDeviceId(deviceId);
-	
+
 					if (client != null) {
 						clients.add(client);
 					}
 				}
 			}
-			
+
 			// filter out the disabled and locked clients
 			clients.removeIf(c -> c.isDisabled());
 			clients.removeIf(c -> c.isLocked());
-	
+
 			// inform Connector about pincode status for this client
 			for (Client client : clients) {
 				if (client.getPincode() != null && client.getPincode().length() > 0) {
 					client.setHasPincode(true);
 				}
 				else if (client.getType().equals(ClientType.YUBIKEY)) {
-					// for now the decision is that YubiKeys have a pincode build in due to its physical nature
+					// for now the decision is that YubiKeys have a pincode build in due to its
+					// physical nature
 					client.setHasPincode(true);
 				}
 				else if (client.getType().equals(ClientType.TOTP)) {
-					// not really pincode protected - but we will default to say it has, as TOTP clients can be
+					// not really pincode protected - but we will default to say it has, as TOTP
+					// clients can be
 					// rejected by the customer by type if they do not approve the use of these
 					client.setHasPincode(true);
 				}
@@ -171,7 +169,7 @@ public class ServerApi {
 
 		return new ResponseEntity<>(clients, HttpStatus.OK);
 	}
-	
+
 	@PutMapping("/api/server/client/{deviceId}/authenticate")
 	public ResponseEntity<Notification> authenticateClient(@PathVariable("deviceId") String deviceId, @RequestParam(value = "emitChallenge", defaultValue = "true", required = false) boolean emitChallenge) {
 		Client client = clientService.getByDeviceId(deviceId);
@@ -208,7 +206,8 @@ public class ServerApi {
 		subscriptionInfo.setServerId(server.getId());
 		subscriptionInfo.setChallenge((emitChallenge) ? idGenerator.generateChallenge() : "");
 
-		if (client.getType().equals(ClientType.EDGE)) {
+		// EDGE or CHROME manifest v3
+		if (client.getType().equals(ClientType.EDGE) || (client.getType().equals(ClientType.CHROME) && isJSONValid(client.getToken()))) {
 			String token = client.getToken();
 			if (token != null && token.length() > 0) {
 				try {
@@ -235,7 +234,7 @@ public class ServerApi {
 				if (status.equals(PushStatus.DISABLED)) {
 					client.setDisabled(true);
 					clientService.save(client);
-					
+
 					return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 				}
 			}
@@ -249,7 +248,7 @@ public class ServerApi {
 		}
 
 		subscriptionInfoDao.save(subscriptionInfo);
-		
+
 		Statistic statistic = new Statistic();
 		statistic.setClientType(client.getType().toString());
 		statistic.setClientVersion(client.getClientVersion());
@@ -258,13 +257,14 @@ public class ServerApi {
 		statistic.setServerId(server.getId());
 		statisticDao.save(statistic);
 
-		// not super important to take care of race-conditions here, as long as we have a rough count
+		// not super important to take care of race-conditions here, as long as we have
+		// a rough count
 		server.setUseCount(server.getUseCount() + 1);
 		serverDao.save(server);
 
 		return new ResponseEntity<>(subscriptionInfo, HttpStatus.OK);
 	}
-	
+
 	// query result for specific notification send previously to client
 	@GetMapping("/api/server/notification/{subscriptionKey}/status")
 	public ResponseEntity<Notification> getSubscriptionStatus(@PathVariable("subscriptionKey") String subscriptionKey) {
@@ -272,21 +272,22 @@ public class ServerApi {
 		if (subscriptionInfo == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
-		
+
 		return new ResponseEntity<>(subscriptionInfo, HttpStatus.OK);
 	}
 
-	// does not require authorization (bypasses SecurityFilter because of url-mapping)
+	// does not require authorization (bypasses SecurityFilter because of
+	// url-mapping)
 	@GetMapping("/api/notification/{pollingKey}/poll")
 	public ResponseEntity<PollingResponse> pollSubscription(@PathVariable("pollingKey") String pollingKey) {
 		PollingResponse response = new PollingResponse();
 		response.setStateChange(false);
-		
+
 		Notification subscription = subscriptionInfoDao.getByPollingKey(pollingKey);
 		if (subscription == null || subscription.isClientAuthenticated() || subscription.isClientRejected()) {
 			response.setStateChange(true);
 		}
-		
+
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
@@ -296,7 +297,7 @@ public class ServerApi {
 		if (user != null && user.getClients() != null && user.getClients().size() > 0) {
 			clients.addAll(user.getClients());
 		}
-		
+
 		List<LocalClient> localClients = localClientService.getByEncodedSsnAndCvr(encodedSsn, cvr);
 		if (localClients != null && localClients.size() > 0) {
 			for (LocalClient localClient : localClients) {
@@ -308,12 +309,28 @@ public class ServerApi {
 			}
 		}
 	}
-	
+
 	private void addUsersClientsByEncryptedAndEncodedSsn(String encryptedAndEncodedSsn, HashSet<Client> clients) {
 		User user = userService.getByEncryptedAndEncodedSsn(encryptedAndEncodedSsn);
 
 		if (user != null && user.getClients() != null && user.getClients().size() > 0) {
 			clients.addAll(user.getClients());
 		}
+	}
+
+	private boolean isJSONValid(String test) {
+		try {
+			new JSONObject(test);
+		}
+		catch (Exception ex) {
+			try {
+				new JSONArray(test);
+			}
+			catch (Exception ex1) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }

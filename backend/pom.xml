@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.6.6</version>
+		<version>2.6.11</version>
 	</parent>
 
 	<properties>
@@ -65,10 +65,10 @@
 
 	<modules>
 		<module>common</module>
-                <module>yubikey</module>
 		<module>backend</module>
 		<module>admin</module>
 		<module>client-frontend</module>
 		<module>websockets</module>
+		<module>driftstatus</module>
 	</modules>
 </project>

@@ -86,7 +86,7 @@ public class SocketHandler extends TextWebSocketHandler {
 							log.warn("Client with deviceId: " + client.getDeviceId() + " tried to accept a challenge while being locked out." );
 						
 							result.setStatus(PinResultStatus.LOCKED);
-							SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+							SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 							result.setLockedUntil(format.format(client.getLockedUntil()));
 							
 							sendIncorrectPinMessage(client, subscriptionKey, result);

@@ -225,12 +225,19 @@ public class RegistrationController extends BaseController {
         // remove any local registrations on client
         localClientService.deleteByDeviceId(client.getDeviceId());
 
-		return "redirect:/ui/successPage?status=true";
+        String nsisWarning = "";
+        if (NSISLevel.NONE.equals(client.getNsisLevel())) {
+        	nsisWarning = "&nsisWarning=true";
+        }
+
+		return "redirect:/ui/successPage?status=true" + nsisWarning;
 	}
 
 	// GET/POST, both are handled here
 	@RequestMapping("/ui/successPage")
-	public String successPage() {
+	public String successPage(Model model, @RequestParam(value = "nsisWarning", required = false, defaultValue = "false") String nsisWarning) {
+		model.addAttribute("nsisWarning", ("true".equals(nsisWarning)));
+
 		return "successPage";
 	}
 }
