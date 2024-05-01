@@ -5,6 +5,8 @@ import dk.digitalidentity.os2faktor.dao.model.enums.NSISLevel;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Date;
+
 @Getter
 @Setter
 public class NSISClientDTO {
@@ -15,4 +17,7 @@ public class NSISClientDTO {
 	private NSISLevel nsisLevel;
 	private boolean prime;
 	private boolean roaming;
+	private boolean locked;
+	private Date lockedUntil;
+	private String serialnumber;
 }

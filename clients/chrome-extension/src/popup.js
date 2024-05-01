@@ -28,23 +28,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function fetchSettings() {
 	if (roaming) {
-		chrome.storage.sync.get(["registrationId", "apiKey", "deviceId", "pinRegistered", "nemIdRegistered", "registered"], function (result) {
+		chrome.storage.sync.get(["registrationId", "apiKey", "deviceId", "pinRegistered", "nemIdRegistered", "registered", "installedTts"], function (result) {
 			var registrationId = result["registrationId"];
 			var apiKey = result["apiKey"];
 			var deviceId = result["deviceId"];
 			var pinRegistered = result["pinRegistered"];
 			var registered = result["registered"];
 			var nemIdRegistered = result["nemIdRegistered"];
+			var installedTts = result["installedTts"];
 
 			// if no deviceId is available, try to fetch all data from local and copy to roaming profile
 			if (deviceId == null) {
-				chrome.storage.local.get(["registrationId", "apiKey", "deviceId", "pinRegistered", "nemIdRegistered", "registered"], function (localResult) {
+				chrome.storage.local.get(["registrationId", "apiKey", "deviceId", "pinRegistered", "nemIdRegistered", "registered", "installedTts"], function (localResult) {
 					var localRegistrationId = localResult["registrationId"];
 					var localApiKey = localResult["apiKey"];
 					var localDeviceId = localResult["deviceId"];
 					var localPinRegistered = localResult["pinRegistered"];
 					var localRegistered = localResult["registered"];
 					var localNemIdRegistered = localResult["nemIdRegistered"];
+					var installedTts = localResult["installedTts"];
 
 					chrome.storage.sync.set({
 						registrationId: localRegistrationId,
@@ -54,30 +56,43 @@ function fetchSettings() {
 						registered: localRegistered,
 						nemIdRegistered: localNemIdRegistered,
 					}, function() {
-						initializeDropdown(localRegistrationId, localApiKey, localDeviceId, localPinRegistered, localRegistered, localNemIdRegistered);
+						initializeDropdown(localRegistrationId, localApiKey, localDeviceId, localPinRegistered, localRegistered, localNemIdRegistered, installedTts);
 					});
 				});
 			}
 			else {
-				initializeDropdown(registrationId, apiKey, deviceId, pinRegistered, registered, nemIdRegistered);
+				initializeDropdown(registrationId, apiKey, deviceId, pinRegistered, registered, nemIdRegistered, installedTts);
 			}
 		});
 	}
 	else {
-		chrome.storage.local.get(["registrationId", "apiKey", "deviceId", "pinRegistered", "nemIdRegistered", "registered"], function (result) {
+		chrome.storage.local.get(["registrationId", "apiKey", "deviceId", "pinRegistered", "nemIdRegistered", "registered", "installedTts"], function (result) {
 			var registrationId = result["registrationId"];
 			var apiKey = result["apiKey"];
 			var deviceId = result["deviceId"];
 			var pinRegistered = result["pinRegistered"];
 			var registered = result["registered"];
 			var nemIdRegistered = result["nemIdRegistered"];
+			var installedTts = result["installedTts"];
 
-			initializeDropdown(registrationId, apiKey, deviceId, pinRegistered, registered, nemIdRegistered);
+			initializeDropdown(registrationId, apiKey, deviceId, pinRegistered, registered, nemIdRegistered, installedTts);
 		});
 	}
 }
 
-function initializeDropdown(registrationId, apiKey, deviceId, pinRegistered, registered, nemIdRegistered) {
+function initializeDropdown(registrationId, apiKey, deviceId, pinRegistered, registered, nemIdRegistered, installedTts) {
+        if (!installedTts) {
+		var nowDate = new Date(); 
+		installedTts = "installeret " + nowDate.getFullYear() + '/' + (nowDate.getMonth() + 1) + '/' + nowDate.getDate();
+		
+		if (roaming) {
+			chrome.storage.sync.set({installedTts: installedTts});
+		}
+		else {
+			chrome.storage.local.set({installedTts: installedTts});
+		}
+        }
+        
 	if (apiKey) {
 		document.getElementById('register').style.display = 'none';
 	}
@@ -91,10 +106,11 @@ function initializeDropdown(registrationId, apiKey, deviceId, pinRegistered, reg
 
 	if (deviceId) {
 		$('#deviceIdItemValue').text(deviceId);
+		document.getElementById('deviceInfoItem').style.display = 'none';
 	}
 	else {
 		document.getElementById('deviceIdItem').style.display = 'none';
-		document.getElementById('deviceIdRuler').style.display = 'none';
+		$('#deviceInfoItemValue').text(installedTts);
 	}
 
 	if (nemIdRegistered) {
@@ -161,7 +177,7 @@ function register() {
 			applicationServerKey: urlB64ToUint8Array(applicationServerKey)
 		}).then(subscription => {
 			const json = JSON.stringify(subscription.toJSON(), null, 2);
-			console.log(json);
+
 			if (roaming) {
 				chrome.storage.sync.set({
 					registrationId: json

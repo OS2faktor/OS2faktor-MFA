@@ -28,6 +28,7 @@ import dk.digitalidentity.os2faktor.service.HashingService;
 import dk.digitalidentity.os2faktor.service.IdGenerator;
 import dk.digitalidentity.os2faktor.service.LocalClientService;
 import dk.digitalidentity.os2faktor.service.MFATokenManager;
+import dk.digitalidentity.os2faktor.service.MFATokenManager.OtpVerificationResult;
 import dk.digitalidentity.os2faktor.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -176,7 +177,8 @@ public class AuthenticatorAppRegisterController extends BaseController {
 		}
 		
 		String secret = partialClient.getChallenge();
-		if (!mfaTokenManager.verifyTotp(form.mfaCode, secret)) {
+		OtpVerificationResult otpVerificationResult = mfaTokenManager.verifyTotp(form.mfaCode, secret, 0);
+		if (!otpVerificationResult.success()) {
 			model.addAttribute("form", form);
 			model.addAttribute("invalidMfa", true);
 			return "authenticator_app/finishregistration";
@@ -226,7 +228,7 @@ public class AuthenticatorAppRegisterController extends BaseController {
 
 		String existingRedirectUrl = getExistingRedirectUrl(request);
 		if (existingRedirectUrl != null) {
-			return existingRedirectUrl;
+			return existingRedirectUrl + "?result=true&deviceId=" + client.getDeviceId() + "&name=" + client.getName();
 		}
 
 		return "authenticator_app/registration_success";
@@ -237,6 +239,7 @@ public class AuthenticatorAppRegisterController extends BaseController {
 		if (redirectUrl != null && redirectUrl instanceof String) {
 			request.getSession().removeAttribute(ClientSecurityFilter.SESSION_USER);
 			request.getSession().removeAttribute(ClientSecurityFilter.SESSION_REDIRECTURL);
+			request.getSession().removeAttribute(ClientSecurityFilter.SESSION_REDIRECTURL_TTS);
 			request.getSession().removeAttribute(ClientSecurityFilter.SESSION_CVR);
 
 			return "redirect:" + (String) redirectUrl;

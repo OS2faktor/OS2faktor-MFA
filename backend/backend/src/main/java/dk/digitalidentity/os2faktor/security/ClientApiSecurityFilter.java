@@ -46,7 +46,7 @@ public class ClientApiSecurityFilter implements Filter {
 		String deviceId = request.getHeader("deviceId");
 
 		if (apiKey != null && deviceId != null) {
-			Client client = clientDao.getByDeviceId(deviceId);
+			Client client = clientDao.findByDeviceId(deviceId);
 			if (client == null) {
 				log.debug("No client with deviceId: " + deviceId);
 				response.sendError(401, "No client with deviceId: " + deviceId);

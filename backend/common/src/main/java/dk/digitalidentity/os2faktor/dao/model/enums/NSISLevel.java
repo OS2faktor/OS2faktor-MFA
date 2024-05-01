@@ -7,5 +7,20 @@ public enum NSISLevel {
 	NONE,
 	LOW,
 	SUBSTANTIAL,
-	HIGH
+	HIGH;
+	
+	public String toClaimValue() {
+		switch (this) {
+			case HIGH:
+				return "High";
+			case LOW:
+				return "Low";
+			case SUBSTANTIAL:
+				return "Substantial";
+			case NONE:
+				return "Ingen";
+		}
+		
+		return null;
+	}
 }

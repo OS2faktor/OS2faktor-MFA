@@ -38,7 +38,7 @@
 									<th:block th:if="${redirectUrl != null}">
 										<p>
 											Tryk på "Login" knappen nedenfor. Dette vil åbne et nyt vindue, hvor du skal gennemføre
-											logon med din <span th:if="${yubikey}">hardwarenøgle</span><span th:if="${totp}">authenticator</span>.
+											logon med din <span th:if="${yubikey}">hardwarenøgle</span><span th:if="${totp}">authenticator</span><span th:if="${totph}">kodeviser</span>.
 											Herefter lukker du vinduet, og vender tilbage til dette skærmbillede for at se resultatet af dit login.
 										</p>
 

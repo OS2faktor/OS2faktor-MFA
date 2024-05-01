@@ -122,7 +122,7 @@ public class ServerApi {
 					return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 				}
 
-				Pseudonym pseudonymMapping = pseudonymDao.getByPseudonymAndCvr(pseudonym, municipality.getCvr());
+				Pseudonym pseudonymMapping = pseudonymDao.findByPseudonymAndCvr(pseudonym, municipality.getCvr());
 				if (pseudonymMapping != null) {
 					String encryptedAndEncodedSsn = pseudonymMapping.getSsn();
 
@@ -171,7 +171,7 @@ public class ServerApi {
 	}
 
 	@PutMapping("/api/server/client/{deviceId}/authenticate")
-	public ResponseEntity<Notification> authenticateClient(@PathVariable("deviceId") String deviceId, @RequestParam(value = "emitChallenge", defaultValue = "true", required = false) boolean emitChallenge) {
+	public ResponseEntity<?> authenticateClient(@PathVariable("deviceId") String deviceId, @RequestParam(value = "emitChallenge", defaultValue = "true", required = false) boolean emitChallenge) {
 		Client client = clientService.getByDeviceId(deviceId);
 		if (client == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -180,13 +180,13 @@ public class ServerApi {
 		if (client.isDisabled()) {
 			log.warn("Tried to challenge a disabled Client: " + client.getDeviceId());
 
-			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+			return new ResponseEntity<>(HttpStatus.GONE);
 		}
 
 		if (client.isLocked()) {
 			log.warn("Tried to challenge a locked Client: " + client.getDeviceId());
 
-			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+			return new ResponseEntity<>(client.getLockedUntil(), HttpStatus.FORBIDDEN);
 		}
 
 		Server server = AuthorizedServerHolder.getServer();
@@ -243,7 +243,7 @@ public class ServerApi {
 			subscriptionInfo.setRedirectUrl(frontendBaseUrl + "/mfalogin/yubikey/" + subscriptionInfo.getPollingKey());
 			subscriptionInfo.setChallenge(Base64.getEncoder().encodeToString(idGenerator.getRandomBytes(32)));
 		}
-		else if (client.getType().equals(ClientType.TOTP)) {
+		else if (client.getType().equals(ClientType.TOTP) || client.getType().equals(ClientType.TOTPH)) {
 			subscriptionInfo.setRedirectUrl(frontendBaseUrl + "/mfalogin/authenticator/" + subscriptionInfo.getPollingKey());
 		}
 
@@ -268,7 +268,7 @@ public class ServerApi {
 	// query result for specific notification send previously to client
 	@GetMapping("/api/server/notification/{subscriptionKey}/status")
 	public ResponseEntity<Notification> getSubscriptionStatus(@PathVariable("subscriptionKey") String subscriptionKey) {
-		Notification subscriptionInfo = subscriptionInfoDao.getBySubscriptionKey(subscriptionKey);
+		Notification subscriptionInfo = subscriptionInfoDao.findBySubscriptionKey(subscriptionKey);
 		if (subscriptionInfo == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
@@ -283,7 +283,7 @@ public class ServerApi {
 		PollingResponse response = new PollingResponse();
 		response.setStateChange(false);
 
-		Notification subscription = subscriptionInfoDao.getByPollingKey(pollingKey);
+		Notification subscription = subscriptionInfoDao.findByPollingKey(pollingKey);
 		if (subscription == null || subscription.isClientAuthenticated() || subscription.isClientRejected()) {
 			response.setStateChange(true);
 		}

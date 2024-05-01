@@ -38,5 +38,7 @@ public class GenerateStatisticsTask {
 			
 			statisticService.generateMonthly();
 	    }
+	    
+		log.info("Done running daily statistics job");
 	}
 }

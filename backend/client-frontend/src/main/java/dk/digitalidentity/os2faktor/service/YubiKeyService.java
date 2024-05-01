@@ -45,7 +45,7 @@ public class YubiKeyService {
 	public AssertionRequest startYubiKeyLogin(String deviceId) {
 		StartAssertionOptions options = StartAssertionOptions.builder()
 				.username(deviceId)
-				.userVerification(UserVerificationRequirement.DISCOURAGED)
+				.userVerification(UserVerificationRequirement.PREFERRED)
 				.build();
 		return relyingParty.startAssertion(options);
 	}
@@ -102,7 +102,7 @@ public class YubiKeyService {
 						.challenge(ByteArray.fromBase64(notification.getChallenge()))
 						.allowCredentials(defaultStartingOptions.getPublicKeyCredentialRequestOptions().getAllowCredentials())
 						.rpId(defaultStartingOptions.getPublicKeyCredentialRequestOptions().getRpId())
-						.userVerification(defaultStartingOptions.getPublicKeyCredentialRequestOptions().getUserVerification().orElse(UserVerificationRequirement.PREFERRED)) // Value set by us in start or default value
+						.userVerification(defaultStartingOptions.getPublicKeyCredentialRequestOptions().getUserVerification().orElse(UserVerificationRequirement.DISCOURAGED)) // Value set by us in start or default value
 						.extensions(defaultStartingOptions.getPublicKeyCredentialRequestOptions().getExtensions())
 						.build()
 				)

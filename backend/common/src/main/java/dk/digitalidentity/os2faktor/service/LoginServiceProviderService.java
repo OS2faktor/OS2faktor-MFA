@@ -13,6 +13,6 @@ public class LoginServiceProviderService {
 	private LoginServiceProviderDao loginServiceProviderDao;
 	
 	public LoginServiceProvider getByApiKey(String apiKey) {
-		return loginServiceProviderDao.getByApiKey(apiKey);
+		return loginServiceProviderDao.findByApiKey(apiKey);
 	}
 }

@@ -10,7 +10,7 @@ import dk.digitalidentity.os2faktor.dao.model.Statistic;
 import dk.digitalidentity.os2faktor.dao.model.StatisticResultDto;
 
 public interface StatisticDao extends JpaRepository<Statistic, Long> {
-	List<Statistic> getByCvr(String cvr);
+	List<Statistic> findByCvr(String cvr);
 	void deleteByCreatedBefore(Date timestamp);
 	
 	@Query(nativeQuery = true, value = "SELECT COUNT(*) AS logins, s.server_id AS serverId, s.cvr AS cvr, m.name AS municipalityName, serv.name AS serverName" + 

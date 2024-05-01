@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="dk.digitalidentity.os2faktor" version="1.8.3" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="dk.digitalidentity.os2faktor" version="2.2.3" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" 
+xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>OS2faktor</name>
     <description>
         OS2faktor er en kommunal 2-faktor login løsning, der anvende af kommunale medarbejdere.
@@ -12,24 +13,28 @@
     <icon height="120" src="res/icon.png" width="120" />
     <access origin="*://*.os2faktor.dk/*" />
     <platform name="android">
+        <preference name="AndroidXEnabled" value="true" />
         <resource-file src="google-services.json" target="app/google-services.json" />
-        <icon density="ldpi" src="res/icons/android/ldpi.png" />
-        <icon density="mdpi" src="res/icons/android/mdpi.png" />
-        <icon density="hdpi" src="res/icons/android/hdpi.png" />
-        <icon density="xhdpi" src="res/icons/android/xhdpi.png" />
-        <icon density="xxhdpi" src="res/icons/android/xxhdpi.png" />
-        <icon density="xxxhdpi" src="res/icons/android/xxxhdpi.png" />
+        <resource-file src="res/drawable-anydpi-v24/notification_icons.xml" target="app/src/main/res/drawable-anydpi-v24/notification_icons.xml" />
+        <resource-file src="res/drawable-hdpi/notification_icons.png" target="app/src/main/res/drawable-hdpi/notification_icons.png" />
+        <resource-file src="res/drawable-mdpi/notification_icons.png" target="app/src/main/res/drawable-mdpi/notification_icons.png" />
+        <resource-file src="res/drawable-xhdpi/notification_icons.png" target="app/src/main/res/drawable-xhdpi/notification_icons.png" />
+        <resource-file src="res/drawable-xxhdpi/notification_icons.png" target="app/src/main/res/drawable-xxhdpi/notification_icons.png" />
+        <icon background="res/drawable/icon_background.xml" density="mdpi" foreground="res/drawable/icon_foreground.xml" src="res/mipmap-mdpi/icon.webp" />
+        <icon background="res/drawable/icon_background.xml" density="hdpi" foreground="res/drawable/icon_foreground.xml" src="res/mipmap-hdpi/icon.webp" />
+        <icon background="res/drawable/icon_background.xml" density="xhdpi" foreground="res/drawable/icon_foreground.xml" src="res/mipmap-xhdpi/icon.webp" />
+        <icon background="res/drawable/icon_background.xml" density="xxhdpi" foreground="res/drawable/icon_foreground.xml" src="res/mipmap-xxhdpi/icon.webp" />
+        <icon background="res/drawable/icon_background.xml" density="xxxhdpi" foreground="res/drawable/icon_foreground.xml" src="res/mipmap-xxxhdpi/icon.webp" />
         <config-file parent="/manifest/application" target="AndroidManifest.xml">
             <meta-data android:name="google_analytics_adid_collection_enabled" android:value="false" />
             <meta-data android:name="firebase_crash_collection_enabled" android:value="false" />
+            <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/notification_icons" />
         </config-file>
-        <preference name="android-targetSdkVersion" value="31" />
-        <splash density="ldpi" src="res/android-splash/splash-port-ldpi.png" />
-        <splash density="mdpi" src="res/android-splash/splash-port-mdpi.png" />
-        <splash density="hdpi" src="res/android-splash/splash-port-hdpi.png" />
-        <splash density="xhdpi" src="res/android-splash/splash-port-xhdpi.png" />
-        <splash density="xxhdpi" src="res/android-splash/splash-port-xxhdpi.png" />
-        <splash density="xxxhdpi" src="res/android-splash/splash-port-xxxhdpi.png" />
+        <preference name="android-targetSdkVersion" value="33" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/os2faktor_logo_round.xml" />
+        <preference name="AndroidWindowSplashScreenBackground" value="#ffffff" />
+        <preference name="GradlePluginKotlinEnabled" value="true" />
+        <preference name="GradlePluginKotlinVersion" value="1.7.21" />
     </platform>
     <platform name="ios">
         <preference name="StatusBarOverlaysWebView" value="false" />
@@ -65,6 +70,5 @@
     <plugin name="cordova-plugin-network-information" spec="^2.0.1" />
     <plugin name="cordova-plugin-screen-orientation" spec="^3.0.1" />
     <plugin name="cordova-plugin-fingerprint-aio" spec="^4.0.2" />
-    <plugin name="cordova-plugin-androidx-adapter" spec="^1.0.0" />
-    <plugin name="@havesource/cordova-plugin-push" spec="3.0.0" />
+    <plugin name="@havesource/cordova-plugin-push" spec="^4.0.0" />
 </widget>

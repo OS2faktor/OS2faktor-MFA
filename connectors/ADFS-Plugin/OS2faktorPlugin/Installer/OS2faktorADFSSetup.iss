@@ -4,7 +4,7 @@
 #define AppId "{{99fc06ec-8285-4bd1-a018-58c74fca4987}"
 #define AppSourceDir "Z:\projects\os2faktor\connectors\ADFS-Plugin\OS2faktorPlugin\OS2faktorPlugin\bin\Release"
 #define AppName "OS2faktor"
-#define AppVersion "2.3.0"
+#define AppVersion "2.4.0"
 #define AppPublisher "Digital Identity"
 #define AppURL "http://digital-identity.dk/"
 #define AppExeName "OS2faktorADFSSetup.exe"

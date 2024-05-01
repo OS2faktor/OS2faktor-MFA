@@ -11,8 +11,9 @@ namespace OS2faktorPlugin
         private bool setLocalStorageNull;
         private bool showRememberDevice;
         private bool useiFrame;
+        private bool delayedLogin;
 
-        public OS2faktorLoginForm(string challenge, string redirectUrl, string pollingUrl, string chromeClient, bool setLocalStorageNull, bool showRememberDevice, bool useiFrame)
+        public OS2faktorLoginForm(string challenge, string redirectUrl, string pollingUrl, string chromeClient, bool setLocalStorageNull, bool showRememberDevice, bool useiFrame, bool delayedLogin)
         {
             this.chromeClient = chromeClient;
             this.challenge = challenge;
@@ -21,6 +22,7 @@ namespace OS2faktorPlugin
             this.setLocalStorageNull = setLocalStorageNull;
             this.showRememberDevice = showRememberDevice;
             this.useiFrame = useiFrame;
+            this.delayedLogin = delayedLogin;
         }
 
         /// Returns the HTML Form fragment that contains the adapter user interface. This data will be included in the web page that is presented
@@ -35,6 +37,7 @@ namespace OS2faktorPlugin
             htmlTemplate = htmlTemplate.Replace("@@REDIRECTURL@@", this.redirectUrl);
             htmlTemplate = htmlTemplate.Replace("@@SETLOCALSTORAGENULL@@", this.setLocalStorageNull ? "true" : "false");
             htmlTemplate = htmlTemplate.Replace("@@SHOWREMEMBERDEVICE@@", this.showRememberDevice ? "true" : "false");
+            htmlTemplate = htmlTemplate.Replace("@@DELAYEDLOGIN@@", this.delayedLogin ? "true" : "false");
             return htmlTemplate.Replace("@@POLLINGURL@@", this.pollingUrl);
         }
 

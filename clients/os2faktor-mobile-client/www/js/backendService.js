@@ -11,7 +11,7 @@ function BackendService() {
       'locked': false,
       'lockedUntil': ''
     };
-    
+
     if (apiKey == null || deviceId == null) {
       logService.logg('2-faktor enhed er ikke registreret endnu, så pinkode valideringen fejlede');
       handler(result);
@@ -30,7 +30,7 @@ function BackendService() {
       success: function (data) {
         if ("OK" == data.status) {
           result.valid = true;
-          
+
           // save a copy of the pin the DB for local validation
           dbService.setValue('pin', pin);
         }
@@ -42,7 +42,7 @@ function BackendService() {
             result.lockedUntil = data.lockedUntil;
           }
         }
-        
+
         handler(result);
       },
       error: function (jqXHR, textStatus, errorThrown) {
@@ -51,7 +51,7 @@ function BackendService() {
       }
     });
   }
-  
+
   // used to set pin value (for already registered clients)
   this.registerPin = function(pin, handler) {
     var oldPin = dbService.getValue('pin');
@@ -89,7 +89,7 @@ function BackendService() {
           result.success = false;
           result.invalidPin = false;
         }
-        
+
         handler(result);
       },
       error: function (jqXHR, textStatus, errorThrown) {
@@ -98,12 +98,13 @@ function BackendService() {
       }
     });
   }
-  
+
   // used to perform a full register of client (name + pin)
   this.register = function(pin, handler) {
     var name = dbService.getValue('name');
     var token = dbService.getValue('regId');
     var clientType = getDeviceType();
+    var uniqueClientId = device.uuid;
 
     var result = {
       'success': false,
@@ -121,14 +122,15 @@ function BackendService() {
         'name': name,
         'pincode': pin,
         'type': clientType,
-        'token': token
+        'token': token,
+        'uniqueClientId': uniqueClientId
       }),
       success: function(data) {
         result.success = data.success;
         result.invalidPin = data.invalidPin;
         result.deviceId = data.deviceId;
         result.apiKey = data.apiKey;
-        
+
         handler(result);
       },
       error: function (jqXHR, textStatus, errorThrown) {
@@ -137,7 +139,7 @@ function BackendService() {
       }
     });
   }
-  
+
   this.reset = function() {
     var apiKey = dbService.getValue('apiKey');
     var deviceId = dbService.getValue('deviceId');
@@ -147,7 +149,7 @@ function BackendService() {
     dbService.deleteAll();
 
     uiService.update();
-    
+
     if (apiKey == null || deviceId == null) {
       return;
     }
@@ -166,11 +168,14 @@ function BackendService() {
   this.status = function(handler) {
     var apiKey = dbService.getValue('apiKey');
     var deviceId = dbService.getValue('deviceId');
+    var uniqueClientId = device.uuid;
+
     var result = {
       'exists': false,
       'lookupFailed': false,
       'pinProtected': false,
-      'nemIdRegistered': false
+      'nemIdRegistered': false,
+      'blocked' : false
     };
 
     if (apiKey == null || deviceId == null) {
@@ -179,10 +184,13 @@ function BackendService() {
       return;
     }
 
+    logService.logg("uniqueClientId: " + uniqueClientId);
+
     $.ajax({
       headers: {
         'ApiKey': apiKey,
         'deviceId': deviceId,
+        'uniqueClientId' : uniqueClientId
       },
       url: backendUrl + "/api/client/v2/status",
       type: 'GET',
@@ -190,6 +198,7 @@ function BackendService() {
         result.exists = !data.disabled;
         result.pinProtected = data.pinProtected;
         result.nemIdRegistered = data.nemIdRegistered;
+        result.blocked = data.blocked;
 
         handler(result);
       },
@@ -225,7 +234,7 @@ function BackendService() {
         logService.logg("acceptChallengeError: " + JSON.stringify(jqXHR));
       }
     });
-    
+
     uiService.update();
   }
 
@@ -247,10 +256,10 @@ function BackendService() {
         logService.logg("rejectChallengeError: " + JSON.stringify(jqXHR));
       }
     });
-    
+
     uiService.update();
   }
-  
+
    this.updateRegId = function(newRegId, deviceId) {
 	var apiKey = dbService.getValue('apiKey');
 

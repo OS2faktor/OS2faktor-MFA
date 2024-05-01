@@ -20,17 +20,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import dk.digitalidentity.os2faktor.controller.BaseController;
 import dk.digitalidentity.os2faktor.dao.NotificationDao;
 import dk.digitalidentity.os2faktor.dao.model.Client;
+import dk.digitalidentity.os2faktor.dao.model.HardwareToken;
 import dk.digitalidentity.os2faktor.dao.model.Notification;
 import dk.digitalidentity.os2faktor.dao.model.enums.ClientType;
-import dk.digitalidentity.os2faktor.service.ClientService;
+import dk.digitalidentity.os2faktor.security.ClientSecurityFilter;
+import dk.digitalidentity.os2faktor.service.HardwareTokenService;
 import dk.digitalidentity.os2faktor.service.MFATokenManager;
+import dk.digitalidentity.os2faktor.service.MFATokenManager.OtpVerificationResult;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Controller
 public class AuthenticatorAppLoginController extends BaseController {
-	private static final String SESSION_REDIRECT_URL = "SESSION_REDIRECT_URL";
-	private static final String SESSION_REDIRECT_URL_TTS = "SESSION_REDIRECT_URL_TTS";
 
 	@Autowired
 	private NotificationDao notificationDao;
@@ -39,21 +40,24 @@ public class AuthenticatorAppLoginController extends BaseController {
 	private MFATokenManager mfaTokenManager;
 	
 	@Autowired
-	private ClientService clientService;
+	private HardwareTokenService hardwareTokenService;
 
 	public record AuthenticatorForm (String mfaCode, boolean reject) { }
 
+	// This handles both TOTPH and TOTP logic (the registration flows differ, but not login flows)
+	
 	@GetMapping("/mfalogin/authenticator/{pollingKey}")
 	public String initLogin(Model model, @PathVariable("pollingKey") String pollingKey, @RequestParam(required = false, defaultValue = "", name = "redirectUrl") String redirectUrl, HttpServletRequest request) {
-		Notification notification = notificationDao.getByPollingKey(pollingKey);
+		Notification notification = notificationDao.findByPollingKey(pollingKey);
 		if (notification == null) {
-			log.warn("Called TOTP login with unknown pollingKey: " + pollingKey);
+			log.warn("Called TOTP or TOTPH login with unknown pollingKey: " + pollingKey);
 			return "authenticator_app/loginfailed";
 		}
 
 		Client client = notification.getClient();
-		if (!client.getType().equals(ClientType.TOTP)) {
-			log.warn("Called TOTP login with non-TOTP client: " + client.getDeviceId());
+		model.addAttribute("clientType", client.getType().toString());
+		if (!client.getType().equals(ClientType.TOTP) && !client.getType().equals(ClientType.TOTPH)) {
+			log.warn("Called TOTP or TOTPH login with non-TOTP client: " + client.getDeviceId());
 			return "authenticator_app/loginfailed";
 		}
 		
@@ -83,8 +87,8 @@ public class AuthenticatorAppLoginController extends BaseController {
 		}
 
 		if (StringUtils.hasLength(redirectUrl)) {
-			request.getSession().setAttribute(SESSION_REDIRECT_URL, redirectUrl);
-			request.getSession().setAttribute(SESSION_REDIRECT_URL_TTS, LocalDateTime.now());
+			request.getSession().setAttribute(ClientSecurityFilter.SESSION_REDIRECTURL, redirectUrl);
+			request.getSession().setAttribute(ClientSecurityFilter.SESSION_REDIRECTURL_TTS, LocalDateTime.now());
 		}
 		
 		model.addAttribute("form", new AuthenticatorForm("", false));
@@ -94,15 +98,16 @@ public class AuthenticatorAppLoginController extends BaseController {
 
 	@PostMapping("/mfalogin/authenticator/{pollingKey}")
 	public String endLogin(Model model, @PathVariable("pollingKey") String pollingKey, @ModelAttribute("form") AuthenticatorForm form, BindingResult bindingResult, HttpServletRequest request) throws Exception {
-		Notification notification = notificationDao.getByPollingKey(pollingKey);
+		Notification notification = notificationDao.findByPollingKey(pollingKey);
 		if (notification == null) {
-			log.warn("Called TOTP login with unknown pollingKey: " + pollingKey);
+			log.warn("Called TOTP or TOTPH login with unknown pollingKey: " + pollingKey);
 			return "authenticator_app/loginfailed";
 		}
 
 		Client client = notification.getClient();
-		if (!client.getType().equals(ClientType.TOTP)) {
-			log.warn("Called TOTP login with non-TOTP client: " + client.getDeviceId());
+		model.addAttribute("clientType", client.getType().toString());
+		if (!client.getType().equals(ClientType.TOTP) && !client.getType().equals(ClientType.TOTPH)) {
+			log.warn("Called TOTP or TOTPH login with non-TOTP client: " + client.getDeviceId());
 			return "authenticator_app/loginfailed";
 		}
 		
@@ -119,7 +124,7 @@ public class AuthenticatorAppLoginController extends BaseController {
 			notification.setClientResponseTimestamp(new Date());
 			notificationDao.save(notification);
 			
-			String redirectUrl = (String) request.getSession().getAttribute(SESSION_REDIRECT_URL);
+			String redirectUrl = (String) request.getSession().getAttribute(ClientSecurityFilter.SESSION_REDIRECTURL);
 			if (StringUtils.hasLength(redirectUrl)) {
 				return "redirect:" + redirectUrl;
 			}
@@ -150,13 +155,35 @@ public class AuthenticatorAppLoginController extends BaseController {
 			return "authenticator_app/login";
 		}
 		
-		if (!mfaTokenManager.verifyTotp(form.mfaCode, client.getSecret())) {
+		// set initialOffset parameter if TOTPH
+		int offset = 0;
+		HardwareToken token = null;
+		if (client.getType().equals(ClientType.TOTPH)) {
+			token = hardwareTokenService.getByClient(client.getDeviceId());
+			if (token != null) {
+				offset = (int) token.getOffset();
+			}
+		}
+
+		OtpVerificationResult otpVerificationResult = mfaTokenManager.verifyTotp(form.mfaCode, client.getSecret(), offset);
+		if (!otpVerificationResult.success()) {
 			client.setFailedPinAttempts(client.getFailedPinAttempts() + 1);
 			clientService.save(client);
 			
 			model.addAttribute("invalidMfa", true);
 			model.addAttribute("form", form);
+			
 			return "authenticator_app/login";
+		}
+
+		// success - so update offset on client (if TOTPH)
+		if (token != null) {
+			int offsetResult = otpVerificationResult.offsetResult();
+			if (offsetResult != offset) {
+				token.setOffset(offsetResult);
+
+				hardwareTokenService.save(token);
+			}
 		}
 
 		client.setFailedPinAttempts(0);
@@ -167,11 +194,13 @@ public class AuthenticatorAppLoginController extends BaseController {
 		notification.setClientResponseTimestamp(new Date());
 		notificationDao.save(notification);
 
-		String redirectUrl = (String) request.getSession().getAttribute(SESSION_REDIRECT_URL);
-		LocalDateTime redirectUrlTts = (LocalDateTime) request.getSession().getAttribute(SESSION_REDIRECT_URL_TTS);
-		request.getSession().removeAttribute(SESSION_REDIRECT_URL);
-		request.getSession().removeAttribute(SESSION_REDIRECT_URL_TTS);
-		if (StringUtils.hasLength(redirectUrl) && redirectUrlTts.plusMinutes(10).isAfter(LocalDateTime.now())) {
+		String redirectUrl = (String) request.getSession().getAttribute(ClientSecurityFilter.SESSION_REDIRECTURL);
+		LocalDateTime redirectUrlTts = (LocalDateTime) request.getSession().getAttribute(ClientSecurityFilter.SESSION_REDIRECTURL_TTS);
+		request.getSession().removeAttribute(ClientSecurityFilter.SESSION_REDIRECTURL);
+		request.getSession().removeAttribute(ClientSecurityFilter.SESSION_REDIRECTURL_TTS);
+		
+		// TODO: how can redirectUrlTts be null if redirectUrl has length? - do we ever save one but not the other?
+		if (StringUtils.hasLength(redirectUrl) && (redirectUrlTts == null || redirectUrlTts.plusMinutes(10).isAfter(LocalDateTime.now()))) {
 			return "redirect:" + redirectUrl;
 		}
 		

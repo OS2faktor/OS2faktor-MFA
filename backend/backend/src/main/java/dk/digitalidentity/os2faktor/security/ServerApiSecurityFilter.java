@@ -36,7 +36,7 @@ public class ServerApiSecurityFilter implements Filter {
 
 			Server server = null;
 			try {
-				server = serverDao.getByApiKey(apiKey);
+				server = serverDao.findByApiKey(apiKey);
 			}
 			catch (Exception ex) {
 				throw new ServletException(ex);

@@ -19,7 +19,6 @@ import dk.digitalidentity.os2faktor.controller.ControllerUtil.PageTarget;
 import dk.digitalidentity.os2faktor.controller.model.ErrorType;
 import dk.digitalidentity.os2faktor.controller.model.FailedFlow;
 import dk.digitalidentity.os2faktor.dao.model.Client;
-import dk.digitalidentity.os2faktor.dao.model.enums.ClientType;
 import dk.digitalidentity.os2faktor.service.AccessControlService;
 import dk.digitalidentity.os2faktor.service.model.ClientOrUser;
 
@@ -138,10 +137,6 @@ public class SelfServiceController extends BaseController {
 			return ControllerUtil.handleError(model, FailedFlow.SELF_SERVICE, ErrorType.UNKNOWN_CLIENT, msg.toString(), PageTarget.APP);
 		}
 
-		if (client.getType() == ClientType.YUBIKEY) {
-			return ControllerUtil.handleError(model, FailedFlow.SELF_SERVICE, ErrorType.UNKNOWN_CLIENT, "Client of type " + ClientType.YUBIKEY + " cannot be selected as prime.", PageTarget.APP);
-		}
-
 		if (client.getUser() != null) {
 			for (Client c : client.getUser().getClients()) {
 				c.setPrime(Objects.equals(c.getDeviceId(), client.getDeviceId()));
@@ -178,10 +173,6 @@ public class SelfServiceController extends BaseController {
 			msg.append("authenticated deviceId=" + client.getDeviceId());
 
 			return ControllerUtil.handleError(model, FailedFlow.SELF_SERVICE, ErrorType.UNKNOWN_CLIENT, msg.toString(), PageTarget.APP);
-		}
-
-		if (client.getType() == ClientType.YUBIKEY) {
-			return ControllerUtil.handleError(model, FailedFlow.SELF_SERVICE, ErrorType.UNKNOWN_CLIENT, "Client of type " + ClientType.YUBIKEY + " cannot be selected as prime.", PageTarget.APP);
 		}
 
 		client.setPrime(false);

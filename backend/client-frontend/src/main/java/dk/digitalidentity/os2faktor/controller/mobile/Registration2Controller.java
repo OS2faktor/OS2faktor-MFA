@@ -225,6 +225,10 @@ public class Registration2Controller extends BaseController {
 		String cpr = securityUtil.getCpr();
 		String pid = securityUtil.getTokenUser().getUsername();
 
+		if (!StringUtils.hasLength(cpr)) {
+			return ControllerUtil.handleError(model, FailedFlow.MIT_ID, ErrorType.BAD_REQUEST, "No cpr on session!", PageTarget.APP);
+		}
+		
 		// If the user does not exist, create the user
 		user = userService.getByPlainTextSsn(cpr);
 		if (user == null) {

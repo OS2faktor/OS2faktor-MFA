@@ -9,4 +9,5 @@ public class ClientStatus {
 	private boolean disabled;
 	private boolean pinProtected;
 	private boolean nemIdRegistered;
+	private boolean blocked;
 }

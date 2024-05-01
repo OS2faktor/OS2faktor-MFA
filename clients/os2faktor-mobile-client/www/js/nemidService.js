@@ -14,6 +14,7 @@ function NemIDService() {
     // https://cordova.apache.org/docs/en/latest/reference/cordova-plugin-inappbrowser/
     browserWindow = cordova.InAppBrowser.open(browserUrl, '_system', 'clearsessioncache=yes,clearcache=yes,location=yes,toolbar=no,disallowoverscroll=yes,zoom=no,useWideViewPort=no,footer=no');
 
+/* this stuff does not work with system browser
     browserWindow.addEventListener('loadstop', function() {
       if (getDeviceType() != "IOS") {
         navigator.notification.activityStop();
@@ -53,6 +54,7 @@ function NemIDService() {
         handler(false);
       }
     });
+   */
   }
 }
 

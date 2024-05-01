@@ -53,11 +53,11 @@
 									<div class="hr-line-dashed"></div>
 	
 									<div class="form-group row">
-										<div class="col-sm-12" style="margin-bottom: 20px;" th:if="${client.prime == false && client.type.name() != 'YUBIKEY' && client.type.name() != 'TOTP'}">
+										<div class="col-sm-12" style="margin-bottom: 20px;" th:if="${client.prime == false}">
 											<button class="btn btn-lg btn-primary btn-block" onclick="setPrime(this.getAttribute('data-device-id'));"  th:data-device-id="${client.deviceId}" type="button">Vælg som primær enhed</button>
 										</div>
 				
-										<div class="col-sm-12" style="margin-bottom: 20px;" th:if="${client.prime == true && client.type.name() != 'YUBIKEY' && client.type.name() != 'TOTP'}">
+										<div class="col-sm-12" style="margin-bottom: 20px;" th:if="${client.prime == true}">
 											<button class="btn btn-lg btn-warning btn-block" onclick="unsetPrime(this.getAttribute('data-device-id'));" th:data-device-id="${client.deviceId}" type="button">Fravælg som primær enhed</button>
 										</div>
 				

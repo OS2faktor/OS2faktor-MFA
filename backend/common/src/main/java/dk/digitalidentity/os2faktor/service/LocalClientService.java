@@ -31,15 +31,15 @@ public class LocalClientService {
 			return null;
 		}
 		
-		return localClientDao.getBySsnAndCvr(encryptedSsn, cvr);
+		return localClientDao.findBySsnAndCvr(encryptedSsn, cvr);
 	}
 	
 	public List<LocalClient> getByCvr(String cvr) {
-		return localClientDao.getByCvr(cvr);
+		return localClientDao.findByCvr(cvr);
 	}
 	
 	public LocalClient getByDeviceIdAndCvr(String deviceId, String cvr) {
-		return localClientDao.getByDeviceIdAndCvr(deviceId, cvr);
+		return localClientDao.findByDeviceIdAndCvr(deviceId, cvr);
 	}
 	
 	public LocalClient save(LocalClient localClient) {

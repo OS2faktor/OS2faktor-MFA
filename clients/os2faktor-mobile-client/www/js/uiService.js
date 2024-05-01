@@ -89,13 +89,22 @@ function UIService() {
     var enrolled = dbService.isSet('isNemIdRegistered');
     var pincodeSet = dbService.isSet('isPinCodeRegistered');
     var biometrics = dbService.getValue('biometrics');
+    var blocked = dbService.isSet("isBlocked") == true && dbService.getValue("isBlocked") === 'true';
 
-    // hide the two main pages on index.html (end of function will show one of them)
+    // hide the three main pages on index.html (end of function will show one of them)
     $('#loader').show();
     $('#main').hide();
     $('#pinlogin').hide();
+    $('#deviceBlocked').hide();
 
-    if (pincodeSet && !loggedIn) {
+    if (blocked) {
+      elemToShow = $('#deviceBlocked');
+
+      $("#footerPin").text("2-faktor ID: " + deviceId);
+ 
+      scannerService.pause();
+    }
+    else if (pincodeSet && !loggedIn) {
       elemToShow = $('#pinlogin');
 
       $("#footerPin").text("2-faktor ID: " + deviceId);
@@ -104,8 +113,12 @@ function UIService() {
         showBiometricsLogin = true;
       }
   
-	  $("box-forgot-pin").hide();
-	  $("#enterPin").show();
+      // preload data for entering pincode
+      var rootElement = document.getElementById('enterPin');
+      pinboxes = rootElement.getElementsByClassName("pinfill");
+
+      $("box-forgot-pin").hide();
+      $("#enterPin").show();
 	  
       scannerService.pause();
     }
@@ -214,6 +227,11 @@ function UIService() {
     }
     
     uiService.hideBoxes();
+    
+    // preload data for entering pincode
+    var rootElement = document.getElementById('box-register-pin');
+    pinboxes = rootElement.getElementsByClassName("pinfill");
+    
     $('#box-register-pin').show();
     
     $('#navbar').collapse('hide');

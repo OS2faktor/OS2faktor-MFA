@@ -222,7 +222,7 @@ public class YubiKeyRegisterController extends BaseController {
 
 		String existingRedirectUrl = getExistingRedirectUrl(request);
 		if (existingRedirectUrl != null) {
-			return existingRedirectUrl;
+			return existingRedirectUrl + "?result=true&deviceId=" + client.getDeviceId() + "&name=" + client.getName();
 		}
 
 		// TODO: redirect to an interim success page
@@ -234,6 +234,7 @@ public class YubiKeyRegisterController extends BaseController {
 		if (redirectUrl != null && redirectUrl instanceof String) {
 			request.getSession().removeAttribute(ClientSecurityFilter.SESSION_USER);
 			request.getSession().removeAttribute(ClientSecurityFilter.SESSION_REDIRECTURL);
+			request.getSession().removeAttribute(ClientSecurityFilter.SESSION_REDIRECTURL_TTS);
 			request.getSession().removeAttribute(ClientSecurityFilter.SESSION_CVR);
 
 			return "redirect:" + (String) redirectUrl;

@@ -7,9 +7,9 @@ import org.springframework.data.jpa.repository.Query;
 import dk.digitalidentity.os2faktor.dao.model.User;
 
 public interface UserDao extends JpaRepository<User, Long> {
-	User getBySsn(String ssn);
+	User findBySsn(String ssn);
 
-	User getByPid(String pid);
+	User findByPid(String pid);
 
 	@Modifying
 	@Query(nativeQuery = true, value = "DELETE u FROM os2faktor.users u LEFT JOIN clients c ON c.user_id = u.id WHERE c.device_id IS NULL")

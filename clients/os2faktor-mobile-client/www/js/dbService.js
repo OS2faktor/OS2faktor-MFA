@@ -16,7 +16,7 @@
 function DBService() {
   var memDB = new Object();
   var sqlDB;
-  
+
   this.init = function(handler) {
     if (browserOnly) {
       handler(true);
@@ -44,7 +44,7 @@ function DBService() {
       });
     }, function(error) {
       logService.logg("Database initialisering fejlede: " + error);
-      
+
       handler(false);
     }, function() {
       logService.logg("Database initialisering afsluttet");
@@ -52,18 +52,18 @@ function DBService() {
       handler(true);
     });
   }
-  
+
   this.isSet = function(key) {
     return (memDB[key] != null);
   }
 
   this.setValue = function(key, value) {
-    memDB[key] = value;
-    
+    memDB[key] = String(value);
+
     if (browserOnly) {
       return;
     }
-    
+
     sqlDB.transaction(function(tx) {
       tx.executeSql('SELECT count(*) AS antal FROM settings WHERE key = ?', [key], function(tx, rs) {
         if (rs.rows.item(0).antal > 0) {
@@ -103,7 +103,7 @@ function DBService() {
       logService.logg("Kunne ikke slette " + key + " fra databasen");
     });
   }
-  
+
   this.deleteAll = function() {
     dbService.deleteValue('name');
     dbService.deleteValue('apiKey');
@@ -112,6 +112,7 @@ function DBService() {
     dbService.deleteValue('isPinCodeRegistered');
     dbService.deleteValue('pin');
     dbService.deleteValue('biometrics');
+    dbService.deleteValue('isBlocked');
   }
 }
 

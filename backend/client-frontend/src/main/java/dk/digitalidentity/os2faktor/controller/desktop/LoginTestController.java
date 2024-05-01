@@ -71,12 +71,13 @@ public class LoginTestController extends BaseController {
 		// store the whole challenge object on the session for later verification
 		request.getSession().setAttribute(ClientSecurityFilter.SESSION_TEST_LOGIN, info);
 
-		if (client.getType().equals(ClientType.YUBIKEY) || client.getType().equals(ClientType.TOTP)) {
+		if (client.getType().equals(ClientType.YUBIKEY) || client.getType().equals(ClientType.TOTP) || client.getType().equals(ClientType.TOTPH)) {
 			model.addAttribute("pollingKey", info.getPollingKey());
 			model.addAttribute("redirectUrl", info.getRedirectUrl());
 			model.addAttribute("baseUrl", baseUrl);
 			model.addAttribute("yubikey", client.getType().equals(ClientType.YUBIKEY));
 			model.addAttribute("totp", client.getType().equals(ClientType.TOTP));
+			model.addAttribute("totph", client.getType().equals(ClientType.TOTPH));
 		}
 		else {	
 			model.addAttribute("pollingKey", info.getPollingKey());

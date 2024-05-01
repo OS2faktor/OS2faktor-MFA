@@ -8,8 +8,7 @@
 
 			<div class="wrapper wrapper-content">
 				<div class="row">
-					<th:block th:if="${session.SESSION_REDIRECT_URL == null}"><div class="col-lg-9"></th:block>
-					<th:block th:if="${session.SESSION_REDIRECT_URL != null}"><div class="col-lg-12"></th:block>
+					<div th:class="'col-lg-' + ${session.SESSION_REDIRECT_URL != NULL ? '12' : '9'}">
 						<div class="ibox">
 							<div class="ibox-title">
 								<h5><em class="fa fa-mobile"></em> &nbsp; Tilknyt hardwarenøgle</span></h5>
@@ -40,7 +39,9 @@
 						</div>
 					</div>
 								
-					<div th:if="${session.SESSION_REDIRECT_URL == null}" th:replace="fragments/rightbar :: rightbar"></div>
+					<th:block th:if="${session.SESSION_REDIRECT_URL == null}">
+						<div th:replace="fragments/rightbar :: rightbar"></div>
+					</th:block>
 				</div>
 			</div>
 
@@ -54,8 +55,10 @@
 		/*<![CDATA[*/
 
 		/*[+
-			var creationOptions = [[${creationOptions}]];
+			var creationOptionsAsString = [[${creationOptions}]];
 		+]*/
+		
+		var creationOptionsAsJson;
 
 		function strToBin(str) {
 			var str = str.replace(/-/g, '+').replace(/_/g, '/');
@@ -80,25 +83,16 @@
 		
 		function logg(str) {
 			try {
-				const urlParams = new URLSearchParams(window.location.search);
-
-				if (urlParams.get('debug') != null) {
-					$('#debugger').show();
-					$('#debugger').append(str);
-					$('#debugger').append('\n');
-				}
+				console.log(str);
 			}
 			catch (err) {
 				; // ignore
 			}
 		}
 
-		function register(creationOptions) {
+		function register() {
 			try {
-				creationOptions.publicKey.user.id = strToBin(creationOptions.publicKey.user.id).buffer;
-				creationOptions.publicKey.challenge = strToBin(creationOptions.publicKey.challenge).buffer;
-
-				navigator.credentials.create(creationOptions).then(function(attestation) {
+				navigator.credentials.create(creationOptionsAsJson).then(function(attestation) {
 					var payloadObject = {
 						id: attestation.id,
 						rawId: binToStr(attestation.rawId),
@@ -130,8 +124,11 @@
 		}
 		
 		$(document).ready(function() {
-			creationOptions = JSON.parse(creationOptions);
-			register(creationOptions);
+			creationOptionsAsJson = JSON.parse(creationOptionsAsString);
+			creationOptionsAsJson.publicKey.user.id = strToBin(creationOptionsAsJson.publicKey.user.id).buffer;
+			creationOptionsAsJson.publicKey.challenge = strToBin(creationOptionsAsJson.publicKey.challenge).buffer;
+
+			register();
 		});
 		
 		/*]]>*/

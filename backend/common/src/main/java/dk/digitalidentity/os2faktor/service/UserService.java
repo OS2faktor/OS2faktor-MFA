@@ -29,7 +29,7 @@ public class UserService {
 			return null;
 		}
 		
-		return userDao.getBySsn(encryptedSsn);
+		return userDao.findBySsn(encryptedSsn);
 	}
 	
 	public User getByEncodedSsn(String encodedSsn) {
@@ -43,16 +43,16 @@ public class UserService {
 			return null;
 		}
 		
-		return userDao.getBySsn(encryptedSsn);
+		return userDao.findBySsn(encryptedSsn);
 	}
 	
 	public User getByEncryptedAndEncodedSsn(String encryptedAndEncodedSsn) {
-		return userDao.getBySsn(encryptedAndEncodedSsn);
+		return userDao.findBySsn(encryptedAndEncodedSsn);
 	}
 
 	// not all users have a PID, so only use this as a last resort
 	public User getByPid(String pid) {
-		return userDao.getByPid(pid);
+		return userDao.findByPid(pid);
 	}
 	
 	public User save(User user) throws Exception {

@@ -10,11 +10,11 @@ import dk.digitalidentity.os2faktor.dao.model.Notification;
 import dk.digitalidentity.os2faktor.dao.model.enums.ClientType;
 
 public interface NotificationDao extends JpaRepository<Notification, String> {
-	Notification getBySubscriptionKey(String subscriptionKey);
-	Notification getByPollingKey(String subscriptionKey);
+	Notification findBySubscriptionKey(String subscriptionKey);
+	Notification findByPollingKey(String subscriptionKey);
 	
-	List<Notification> getByClientAndClientRejectedFalseAndClientAuthenticatedFalseAndClientLockedFalse(Client client);
-	List<Notification> getByClientNotifiedFalseAndClientType(ClientType clientType);
-	List<Notification> getByClientNotifiedTrueAndClientRejectedFalseAndClientAuthenticatedFalse();
-	List<Notification> getByCreatedBefore(Date timestamp);
+	List<Notification> findByClientAndClientRejectedFalseAndClientAuthenticatedFalseAndClientLockedFalse(Client client);
+	List<Notification> findByClientNotifiedFalseAndClientType(ClientType clientType);
+	List<Notification> findByCreatedBefore(Date timestamp);
+	List<Notification> findByCreatedAfterAndClientType(Date timestamp, ClientType clientType);
 }

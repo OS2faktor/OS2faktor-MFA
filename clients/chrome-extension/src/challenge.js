@@ -1,6 +1,6 @@
 var backendUrl;
 var roaming;
-var clientVersion = "2.1.1";
+var clientVersion = "2.2.1";
 
 const swalWithBootstrapButtons = swal.mixin({
     confirmButtonClass: 'btn',
@@ -153,7 +153,7 @@ const swalWithBootstrapButtons = swal.mixin({
 		}
 		else {
 			backendUrl = "https://backend.os2faktor.dk";
-	        }
+		}
 
 		if (policy.Roaming) {
 			roaming = policy.Roaming;
@@ -167,7 +167,7 @@ const swalWithBootstrapButtons = swal.mixin({
 			headers: { 'clientVersion': clientVersion }
 		});
 
-		// turn of any residual pause flags
+		// turn off any residual pause flags
 		chrome.storage.local.set({ isPaused: false });
 
 		if (roaming) {

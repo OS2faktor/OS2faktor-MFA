@@ -6,14 +6,12 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import dk.digitalidentity.os2faktor.dao.ClientDao;
-
 @Component
 public class IdGenerator {
 	private static SecureRandom random = new SecureRandom();
 
 	@Autowired
-	private ClientDao clientDao;
+	private ClientService clientService;
 
 	public String generateUuid() {
 		return UUID.randomUUID().toString();
@@ -45,7 +43,7 @@ public class IdGenerator {
 		while (true) {
 			deviceId = generateRandomDeviceId();
 	
-			if (clientDao.getByDeviceId(deviceId) == null) {
+			if (clientService.getByDeviceId(deviceId) == null) {
 				break;
 			}
 		}

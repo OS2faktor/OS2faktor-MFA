@@ -14,7 +14,7 @@ function ScannerService() {
         var deviceId = dbService.getValue('deviceId');
 
         if (apiKey != null && deviceId != null) {
-          var isPinCodeRegistered = dbService.getValue('isPinCodeRegistered');
+          var isPinCodeRegistered = dbService.getValue('isPinCodeRegistered') === 'true';
 
           if (!isPinCodeRegistered) {
             scannerService.pollChallenge(apiKey, deviceId, false);

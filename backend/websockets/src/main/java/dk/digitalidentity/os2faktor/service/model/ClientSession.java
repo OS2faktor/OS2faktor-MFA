@@ -11,13 +11,15 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ClientSession {
-	private Client client;
+	private String clientDeviceId;
+	private String clientVersion;
 	private WebSocketSession session;
 	private Date cleanupTimestamp;
 
 	public ClientSession(Client client, WebSocketSession session) {
 		this.session = session;
-		this.client = client;
+		this.clientDeviceId = client.getDeviceId();
+		this.clientVersion = client.getClientVersion();
 		this.cleanupTimestamp = null;
 	}
 }

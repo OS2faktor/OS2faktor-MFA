@@ -47,7 +47,7 @@ public class YubiKeyLoginController extends BaseController {
 
 	@GetMapping("/mfalogin/yubikey/{pollingKey}")
 	public String initLogin(Model model, @PathVariable("pollingKey") String pollingKey, @RequestParam(required = false, defaultValue = "", name = "redirectUrl") String redirectUrl, HttpServletRequest request, HttpServletResponse response) {
-		Notification notification = notificationDao.getByPollingKey(pollingKey);
+		Notification notification = notificationDao.findByPollingKey(pollingKey);
 		if (notification == null) {
 			log.warn("Called YubiKey login with unknown pollingKey: " + pollingKey);
 			return "yubikey/loginfailed";
@@ -86,7 +86,7 @@ public class YubiKeyLoginController extends BaseController {
 
 	@PostMapping("/mfalogin/yubikey/{pollingKey}")
 	public String endLogin(Model model, @PathVariable("pollingKey") String pollingKey, @ModelAttribute("form") LoginPayloadForm form, HttpServletRequest request) throws Exception {
-		Notification notification = notificationDao.getByPollingKey(pollingKey);
+		Notification notification = notificationDao.findByPollingKey(pollingKey);
 		if (notification == null) {
 			log.warn("Called YubiKey login with unknown pollingKey: " + pollingKey);
 			return "yubikey/loginfailed";

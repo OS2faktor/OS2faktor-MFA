@@ -34,7 +34,7 @@ public class StatisticService {
 		SimpleDateFormat formatter = new SimpleDateFormat("MMM yyyy");
 		List<StatisticResultDTO> result = new ArrayList<>();
 		
-		List<StatisticResult> statistics = statisticResultDao.getAllByCvr(cvr);
+		List<StatisticResult> statistics = statisticResultDao.findAllByCvr(cvr);
 		for (StatisticResult sr : statistics) {
 			StatisticResultDTO srDTO = new StatisticResultDTO();
 			srDTO.setLogins(sr.getLogins());
@@ -67,7 +67,7 @@ public class StatisticService {
 		List<StatisticResultDto> entries = statisticDao.generateStatisticsResult(firstOfMonth);
 		
 		for (StatisticResultDto entry : entries) {
-			StatisticResultCurrent current = statisticResultCurrentDao.getByCvr(entry.getCvr());
+			StatisticResultCurrent current = statisticResultCurrentDao.findByCvr(entry.getCvr());
 			if (current == null) {
 				current = new StatisticResultCurrent();
 				current.setCvr(entry.getCvr());

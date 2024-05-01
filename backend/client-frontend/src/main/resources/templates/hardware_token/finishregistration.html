@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head th:replace="fragments/header :: header" />
+<body class="top-navigation">
+	<div id="wrapper">
+		<div id="page-wrapper" class="gray-bg">
+			<div th:replace="fragments/topbar :: topbar"></div>
+
+			<div class="wrapper wrapper-content">
+				<div class="row">
+					<div th:class="'col-lg-' + ${session.SESSION_REDIRECT_URL != NULL ? '12' : '9'}">
+						<div class="ibox">
+							<div class="ibox-title">
+								<h5><em class="fa fa-mobile"></em> &nbsp; Tilknyt kodeviser</h5>
+							</div>
+
+							<div class="ibox-content">
+								<form id="registerForm" method="post" th:object="${form}" th:action="@{/totph/register}">
+									<input th:field="*{name}" hidden>
+									<input th:field="*{serial}" hidden>
+								
+									<p>Indtast den 6 cifrede kode, der vises på kodeviseren</p>
+									
+									<div class="form-group" style="margin-top: 10px;">
+										<strong th:text="#{html.registration.code}"></strong>
+										<input class="form-control" th:field="*{code}" required="required" autofocus="autofocus" />
+										<p th:if="${wrongCodeLength}" style="color:red;">Der skal angives 6 cifre</p>
+										<p th:if="${wrongCodeOther}" style="color:red;">Der opstod en teknisk fejl - luk browseren og prøv forfra</p>
+										<p th:if="${wrongCode}" style="color:red;">Forkert kode - prøv igen</p>
+									</div>
+
+									<div class="row">
+										<div class="col-sm-6">
+											<a style="text-decoration: none;" th:href="@{/desktop/selfservice}"><button class="btn btn-lg btn-secondary btn-block" type="button" th:text="#{html.navigate.back}"></button></a>
+										</div>
+										<div class="col-sm-6">
+											<button class="btn btn-primary btn-lg btn-block" type="submit">Videre</button>
+										</div>
+									</div>
+								</form>
+							</div>
+						</div>
+				</div>
+
+				<th:block th:if="${session.SESSION_REDIRECT_URL == null}">
+					<div th:replace="fragments/rightbar :: rightbar"></div>
+				</th:block>
+			</div>
+
+			<div th:replace="fragments/footer :: footer"></div>
+		</div>
+	</div>
+
+	<div th:replace="fragments/footer :: scripts"></div>
+
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+
+		/*[+
+		+]*/
+
+		$(document).ready(function() {
+			$('#serial').focus();
+		});
+		
+		/*]]>*/
+	</script>
+</body>
+</html>

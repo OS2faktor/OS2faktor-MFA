@@ -59,7 +59,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 
 	//Comes from "shortcut" to open challenge window
 	if (request.os2faktorEvent) {
-		showChallengeWindow();
+		handleChallenge();
 	}
 
 	return true;
@@ -81,7 +81,7 @@ chrome.runtime.onMessageExternal.addListener(function(request, sender, sendRespo
 // listener for events from GCM - for indirect integration
 chrome.gcm.onMessage.addListener(function(message) {
 	console.log("Got push message from GCM");
-	showChallengeWindow();
+	handleChallenge();
 });
 
 chrome.gcm.onSendError.addListener(function (err) {
@@ -91,10 +91,43 @@ chrome.gcm.onSendError.addListener(function (err) {
 // listener for events from FCM
 self.addEventListener('push', event => {
 	console.log("Got push message from FCM");
-	showChallengeWindow();
+	handleChallenge();
 });
 
-function showChallengeWindow() {
+function handleChallenge() {
+	// read global settings and do a precheck
+	chrome.storage.managed.get(["Roaming"], function (policy) {
+		if (policy.Roaming) {
+			roaming = policy.Roaming;
+		}
+		else {
+			roaming = false;
+		}
+
+		if (roaming) {
+			chrome.storage.sync.get(["apiKey", "deviceId"], function (result) {
+				if (typeof result.apiKey === 'undefined' || typeof result.deviceId === 'undefined') {
+					// do nothing
+				} else {
+					openChallengeWindow();
+				}
+			});
+		} else {
+			chrome.storage.local.get(["apiKey", "deviceId"], function (result) {
+				if (typeof result.apiKey === 'undefined' || typeof result.deviceId === 'undefined') {
+					// do nothing
+				} else {
+					openChallengeWindow();
+				}
+			});
+		}
+	});
+}
+
+function openChallengeWindow() {
+	var now = new Date().getTime();
+	var in20sec = new Date().getTime() + (1000 * 20);
+
 	try {
 		chrome.system.display.getInfo(function(displayInfo) {
 			var w = 600;
@@ -102,9 +135,15 @@ function showChallengeWindow() {
 			var left = Math.round(displayInfo[0].bounds.width/2) - Math.round(w/2);
 			var top = Math.round(displayInfo[0].bounds.height/2) - Math.round(h/2);
 
-			chrome.storage.local.get(["challengePopupId"], function (result) {
+			chrome.storage.local.get(["challengePopupTts"], function (result) {
+				// did we open a popup within the last 20 seconds?
+				var allowPopup = true;
+				if (result.challengePopupTts && result.challengePopupTts > now) {
+					allowPopup = false;
+				}
+
 				//check if there are no other challenge windows
-				if (!result.challengePopupId) {
+				if (allowPopup) {
 					chrome.windows.create({
 						url: "challenge.html",
 						type: "popup",
@@ -115,8 +154,11 @@ function showChallengeWindow() {
 						top: top,
 						left: left
 					}, function (win) {
-						chrome.storage.local.set({ challengePopupId: win.id });
+						chrome.storage.local.set({ challengePopupTts: in20sec });
 					});
+				}
+				else {
+					console.log("Supressing popup because one was shown within the last 20 seconds, and it is still open");
 				}
 			});
 
@@ -130,9 +172,15 @@ function showChallengeWindow() {
 		var left = 340; // 1280 x 720 assumption
 		var top = 160;
 
-		chrome.storage.local.get(["challengePopupId"], function (result) {
+		chrome.storage.local.get(["challengePopupTts"], function (result) {
+			// did we open a popup within the last 20 seconds?
+			var allowPopup = true;
+			if (result.challengePopupTts && result.challengePopupTts > now) {
+				allowPopup = false;
+			}
+
 			//check if there are no other challenge windows
-			if (!result.challengePopupId) {
+			if (allowPopup) {
 				chrome.windows.create({
 					url: "challenge.html",
 					type: "popup",
@@ -143,8 +191,11 @@ function showChallengeWindow() {
 					top: top,
 					left: left
 				}, function (win) {
-					chrome.storage.local.set({ challengePopupId: win.id });
+					chrome.storage.local.set({ challengePopupTts: in20sec });
 				});
+			}
+			else {
+				console.log("Supressing popup because one was shown within the last 20 seconds, and it is still open");
 			}
 		});
 	}
@@ -321,7 +372,7 @@ chrome.windows.onRemoved.addListener(function (windowId) {
 			chrome.storage.local.set({ isPaused: false });
 		}
 
-		if (challengePopupId != null && windowId == challengePopupId) {
+		if (challengePopupId != null) {
 			chrome.storage.local.set({ challengePopupId: null });
 		}
 	});

@@ -1,29 +1,42 @@
 package dk.digitalidentity.os2faktor.dao;
 
-import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 
 import dk.digitalidentity.os2faktor.dao.model.Client;
 
 public interface ClientDao extends JpaRepository<Client, String> {
-	Client getByDeviceId(String deviceId);
+	Client findByDeviceId(String deviceId);
 
 	// use getByDeviceId instead - and then compare apiKey manually
 	// we do not have an index on this field, so lookup will be slow if we use this
 	@Deprecated
-	Client getByApiKey(String apiKey);
+	Client findByApiKey(String apiKey);
 
-	Client getByYubikeyUid(String uid);
+	Client findByYubikeyUid(String uid);
 	
-	List<Client> getByNotificationKey(String notificationKey);
+	List<Client> findByNotificationKey(String notificationKey);
 
-	List<Client> getByLockedTrue();
+	List<Client> findByLockedTrue();
 
-	void deleteByDisabledTrueAndLastUsedIsNullOrLastUsedBefore(Date timestamp);
+	// delete 3 months after being disabled
+	@Modifying
+	@Query(nativeQuery = true, value = "DELETE FROM clients WHERE disabled = 1 AND (last_used IS NULL OR last_used < NOW() - INTERVAL 3 MONTH)")
+	int deleteOldDisabledClients();
+
+	// note - none of the two cleanup jobs below runs for TOTPH devices on purpose, as they represent a physical device, and we should not
+	// remove them just because they are not being used
 	
-	void deleteByLastUsedIsNullAndCreatedBefore(Date timestamp);
-	
-	void deleteByLastUsedIsNotNullAndLastUsedBefore(Date timestamp);
+	// delete clients that has never been used 6 months after creation
+	@Modifying
+	@Query(nativeQuery = true, value = "DELETE FROM clients WHERE client_type != 'TOTPH' AND use_count = 0 AND created < NOW() - INTERVAL 6 MONTH")
+	int deleteOldUnusedClients();
+
+	// delete any client that has not been used for 12 months
+	@Modifying
+	@Query(nativeQuery = true, value = "DELETE FROM clients WHERE client_type != 'TOTPH' AND last_used < NOW() - INTERVAL 12 MONTH")
+	int deleteClientsNotUsedIn12Months();
 }

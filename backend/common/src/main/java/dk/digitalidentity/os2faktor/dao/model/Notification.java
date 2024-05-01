@@ -4,6 +4,7 @@ import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -12,6 +13,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -79,7 +81,8 @@ public class Notification {
 	private long serverId;
 	
 	@JsonIgnore
-	@ManyToOne
+	@BatchSize(size = 50)
+    @ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "client_device_id")
 	private Client client;
 }

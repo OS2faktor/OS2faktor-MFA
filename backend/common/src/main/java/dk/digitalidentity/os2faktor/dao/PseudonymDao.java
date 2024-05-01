@@ -8,8 +8,8 @@ import dk.digitalidentity.os2faktor.dao.model.Pseudonym;
 
 public interface PseudonymDao extends JpaRepository<Pseudonym, Long> {
 
-	List<Pseudonym> getByCvr(String municipalityCVR);
+	List<Pseudonym> findByCvr(String municipalityCVR);
 
-	Pseudonym getByPseudonymAndCvr(String pseudonym, String cvr);
+	Pseudonym findByPseudonymAndCvr(String pseudonym, String cvr);
 
 }

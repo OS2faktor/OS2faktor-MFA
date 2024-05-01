@@ -7,7 +7,8 @@ public enum ClientType {
 	CHROME("html.enum.clienttype.chrome"),
 	EDGE("html.enum.clienttype.edge"),
 	YUBIKEY("html.enum.clienttype.yubikey"),
-	TOTP("html.enum.clienttype.totp");
+	TOTP("html.enum.clienttype.totp"),
+	TOTPH("html.enum.clienttype.totph");
 	
 	private String message;
 	

@@ -31,7 +31,7 @@ public class NotificationService {
 		
 		Date timestamp = calendar.getTime();
 
-		List<Notification> expiredNotifications = notificationDao.getByCreatedBefore(timestamp);
+		List<Notification> expiredNotifications = notificationDao.findByCreatedBefore(timestamp);
 		List<NotificationHistory> toBeInserted = convertToHistoryObjects(expiredNotifications);
 		notificationHistoryDao.saveAll(toBeInserted);
 		notificationDao.deleteAll(expiredNotifications);

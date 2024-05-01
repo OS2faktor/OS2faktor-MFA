@@ -26,6 +26,7 @@ public class ClientSecurityFilter implements Filter {
 	public static final String SESSION_TOKEN = "SESSION_TOKEN";
 	public static final String SESSION_TEST_LOGIN = "SESSION_TEST_LOGIN";
 	public static final String SESSION_REDIRECTURL = "SESSION_REDIRECT_URL";
+	public static final String SESSION_REDIRECTURL_TTS = "SESSION_REDIRECT_URL_TTS";
 	public static final String SESSION_CVR = "SESSION_CVR";
 	public static final String SESSION_NSIS_LEVEL = "SESSION_NSIS_LEVEL";
 
@@ -50,7 +51,7 @@ public class ClientSecurityFilter implements Filter {
 			String deviceId = request.getParameter("deviceId");
 
 			if (apiKey != null && deviceId != null) {
-				Client client = clientDao.getByDeviceId(deviceId);
+				Client client = clientDao.findByDeviceId(deviceId);
 
 				if (client == null) {
 					request.getSession().setAttribute(SESSION_ERROR, ErrorType.UNKNOWN_CLIENT);

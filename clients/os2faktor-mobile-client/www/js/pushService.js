@@ -47,4 +47,36 @@ function PushService() {
     }
   }
 }
+/*
+function PushService() {
+  var push;
 
+  this.init = function() {
+    try {
+      window.pushNotification.registration((data) => {
+        logService.logg("modtog push token");
+
+        var regId = dbService.getValue('regId');
+
+        if (regId == null || regId != data) {
+          dbService.setValue('regId', data);
+
+          var deviceId = dbService.getValue('deviceId');
+
+          if (deviceId != null && deviceId != "") {
+            backendService.updateRegId(data, deviceId);
+          }
+        }
+      });
+
+      window.pushNotification.tapped((payload) => {
+          logService.logg('modtog push notifikation');
+      });
+    }
+    catch(err)
+    {
+      logService.logg('push fejl: ' + err);  
+    }
+  }
+}
+*/

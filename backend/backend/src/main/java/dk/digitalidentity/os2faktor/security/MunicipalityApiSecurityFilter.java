@@ -32,7 +32,7 @@ public class MunicipalityApiSecurityFilter implements Filter {
 		// the Authorization header is already handled by Spring Security
 		String apiKey = request.getHeader("ApiKey");
 		if (apiKey != null) {
-			Municipality municipality = municipalityDao.getByApiKey(apiKey);
+			Municipality municipality = municipalityDao.findByApiKey(apiKey);
 			if (municipality == null) {
 				log.info("Invalid ApiKey Header");
 				response.sendError(401, "Invalid ApiKey Header");

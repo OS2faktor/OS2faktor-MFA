@@ -8,6 +8,7 @@ import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 import dk.digitalidentity.os2faktor.dao.model.Client;
@@ -52,7 +53,7 @@ public class SecurityUtil {
 		// update/create user context on session
 		String cpr = getCpr(tokenUser);
 		if (cpr == null) {
-			// TODO: throw some sort of error
+			throw new UsernameNotFoundException("Login biletten indeholdte ikke en personlig identitet");
 		}
 
 		// if the user does not exist, create the user

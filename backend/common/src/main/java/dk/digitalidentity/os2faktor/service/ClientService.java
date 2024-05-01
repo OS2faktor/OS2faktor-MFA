@@ -1,6 +1,5 @@
 package dk.digitalidentity.os2faktor.service;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -10,7 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import dk.digitalidentity.os2faktor.dao.ClientDao;
 import dk.digitalidentity.os2faktor.dao.model.Client;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 public class ClientService {
 
@@ -18,11 +19,11 @@ public class ClientService {
 	private ClientDao clientDao;
 
 	public Client getByDeviceId(String deviceId) {
-		return clientDao.getByDeviceId(deviceId);
+		return clientDao.findByDeviceId(deviceId);
 	}
 
 	public Client getByYubikeyUid(String uid) {
-		return clientDao.getByYubikeyUid(uid);
+		return clientDao.findByYubikeyUid(uid);
 	}
 	
 	public Client save(Client client) {
@@ -35,24 +36,23 @@ public class ClientService {
 
 	@Transactional
 	public void deleteAncientClients() {
-		Calendar calendar = Calendar.getInstance();
-		calendar.add(Calendar.MONTH, -6);
 
-		Date timestamp = calendar.getTime();
-
-		// disabled 6 months ago, delete now
-		clientDao.deleteByDisabledTrueAndLastUsedIsNullOrLastUsedBefore(timestamp);
+		// disabled 3 months ago, delete now
+		int deleted = clientDao.deleteOldDisabledClients();
+		log.info("Deleted " + deleted + " old disabled clients");
 		
-		// last used 9 months ago, no activity, delete now
-		calendar.add(Calendar.MONTH, -3);
-		clientDao.deleteByLastUsedIsNullAndCreatedBefore(calendar.getTime());
-		clientDao.deleteByLastUsedIsNotNullAndLastUsedBefore(calendar.getTime());
+		// never used, registered 6 months ago, delete it
+		deleted = clientDao.deleteOldUnusedClients();
+		log.info("Deleted " + deleted + " never registered clients");
+		
+		// not used in 12 months, delete it
+		deleted = clientDao.deleteClientsNotUsedIn12Months();
+		log.info("Deleted " + deleted + " old clients not used the last 12 months");
 	}
 
-	
 	@Transactional
 	public void unlockClients() {
-		List<Client> clients = clientDao.getByLockedTrue();
+		List<Client> clients = clientDao.findByLockedTrue();
 		Date now = new Date();
 
 		for (Client client : clients) {
@@ -66,6 +66,6 @@ public class ClientService {
 	}
 
 	public List<Client> getByNotificationKey(String notificationKey) {
-		return clientDao.getByNotificationKey(notificationKey);
+		return clientDao.findByNotificationKey(notificationKey);
 	}
 }

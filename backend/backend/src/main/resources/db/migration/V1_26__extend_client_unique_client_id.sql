@@ -1,0 +1,1 @@
+ALTER TABLE clients ADD COLUMN unique_client_id VARCHAR(255) NULL;

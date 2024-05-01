@@ -50,7 +50,7 @@ public class ClientSecurityFilter implements Filter {
 			String deviceId = request.getParameter("deviceId");
 
 			if (apiKey != null && deviceId != null) {
-				Client client = clientDao.getByDeviceId(deviceId);
+				Client client = clientDao.findByDeviceId(deviceId);
 
 				if (client == null) {
 					request.getSession().setAttribute(SESSION_ERROR, ErrorType.UNKNOWN_CLIENT);

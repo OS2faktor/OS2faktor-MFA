@@ -42,6 +42,7 @@ namespace OS2faktorPlugin
         private const string REGKEY_ALLOWED_RELYING_PARTIES = "RememberDeviceRelyingParties";
         private const string REGKEY_OS2FAKTOR_LOGIN_BASEURL = "OS2faktorLoginBaseUrl";
         private const string REGKEY_DISALLOW_TOTP = "DisallowTotp";
+        private const string REGKEY_DELAYED_LOGIN = "DelayedLogin";
 
         private const string REGKEY_IDENTIFY_SERVICE_URL = "IdentifyServiceUrl";
         private const string REGKEY_IDENTIFY_STS_URL = "IdentifyStsUrl";
@@ -64,6 +65,7 @@ namespace OS2faktorPlugin
         private string hmacKey;
         private bool rememberDeviceAllowed;
         private bool useIframe;
+        private bool delayedLogin;
         private string rememberDeviceDays;
         private List<string> allowedRelyingParties;
         private ServiceStub serviceStub;
@@ -124,7 +126,7 @@ namespace OS2faktorPlugin
                     chromeClient = "true";
                 }
 
-                return new OS2faktorLoginForm(challenge, redirectUrl, pollingUrl, chromeClient, false, (rememberDeviceAllowed && hasValidatedRelyingParties), useIframe);
+                return new OS2faktorLoginForm(challenge, redirectUrl, pollingUrl, chromeClient, false, (rememberDeviceAllowed && hasValidatedRelyingParties), useIframe, delayedLogin);
             }
 
             return new OS2faktorPickDeviceForm(clients, sortByActive, false);
@@ -182,6 +184,9 @@ namespace OS2faktorPlugin
             allowedRelyingParties = new List<string>(registryValue as string[]);
             string disallowTotpString = (string)key.GetValue(REGKEY_DISALLOW_TOTP, "false");
             bool disallowTotp = "true".Equals(disallowTotpString);
+
+            string delayedLoginStr = (string)key.GetValue(REGKEY_DELAYED_LOGIN, "false");
+            delayedLogin = "true".Equals(delayedLoginStr);
 
             string adUrl = (string)key.GetValue(REGKEY_ADURL, "");
             string adUsername = (string)key.GetValue(REGKEY_ADUSERNAME, "");
@@ -307,7 +312,7 @@ namespace OS2faktorPlugin
                                 chromeClient = "true";
                             }
 
-                            return new OS2faktorLoginForm(challenge, redirectUrl, pollingUrl, chromeClient, true, relyingPartyAllowsRememberMe, useIframe);
+                            return new OS2faktorLoginForm(challenge, redirectUrl, pollingUrl, chromeClient, true, relyingPartyAllowsRememberMe, useIframe, delayedLogin);
                         }
 
                         return new OS2faktorPickDeviceForm(clients, sortByActive, true);
@@ -406,7 +411,7 @@ namespace OS2faktorPlugin
                     chromeClient = "true";
                 }
 
-                return new OS2faktorLoginForm(challenge, redirectUrl, pollingUrl, chromeClient, false, relyingPartyAllowsRememberMe, useIframe);
+                return new OS2faktorLoginForm(challenge, redirectUrl, pollingUrl, chromeClient, false, relyingPartyAllowsRememberMe, useIframe, delayedLogin);
             }
 
             // otherwise validate

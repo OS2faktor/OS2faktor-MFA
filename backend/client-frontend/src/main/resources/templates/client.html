@@ -64,8 +64,8 @@
 			
 			<center>
 				<button class="btn btn-block btn-lg btn-danger" onclick="deleteClient(this.getAttribute('data-device-id'));" th:data-device-id="${client.deviceId}" type="button" th:text="#{html.client.delete}"></button>
-				<button class="btn btn-block btn-lg btn-primary" onclick="setPrime(this.getAttribute('data-device-id'));" th:data-device-id="${client.deviceId}" type="button" th:text="#{html.client.setprime}" th:if="${client.prime == false && client.type.name() != 'YUBIKEY'}"></button>
-				<button class="btn btn-block btn-lg btn-warning" onclick="unsetPrime(this.getAttribute('data-device-id'));" th:data-device-id="${client.deviceId}" type="button" th:text="#{html.client.unsetprime}" th:if="${client.prime == true && client.type.name() != 'YUBIKEY'}"></button>
+				<button class="btn btn-block btn-lg btn-primary" onclick="setPrime(this.getAttribute('data-device-id'));" th:data-device-id="${client.deviceId}" type="button" th:text="#{html.client.setprime}" th:if="${client.prime == false}"></button>
+				<button class="btn btn-block btn-lg btn-warning" onclick="unsetPrime(this.getAttribute('data-device-id'));" th:data-device-id="${client.deviceId}" type="button" th:text="#{html.client.unsetprime}" th:if="${client.prime == true}"></button>
 			</center>
 		</form>
 	</div>

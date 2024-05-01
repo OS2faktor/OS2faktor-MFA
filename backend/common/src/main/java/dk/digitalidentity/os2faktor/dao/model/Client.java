@@ -75,6 +75,11 @@ public class Client {
 	@Column
 	private String token;
 
+	// unique id generated per device/app used to prevent duplicating/cloning clients
+	@JsonIgnore
+	@Column
+	private String uniqueClientId;
+
 	@ManyToOne
 	@JoinColumn(name = "user_id")
 	@JsonIgnore

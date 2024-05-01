@@ -1,3 +1,27 @@
+## Cordova Instalation guide
+**==🔴❗Use java 11==**
+
+``` bash
+sudo apt install npm
+sudo npm install -g cordova@11.0.0
+mkdir -p sdk/cmdline-tools
+
+unzip commandlinetools-linux-8512546_latest.zip -d sdk/cmdline-tools
+cd sdk
+sdkmanager "build-tools;30.0.3" "platform-tools" "platforms;android-31"
+
+```
+
+10.  Accept Android Licenses:
+``` bash
+sdkmanager --licenses
+```
+11.  Update Android Packages when necessary:
+``` bash
+sdkmanager --update
+```
+
+
 ## Running on android device
 ``` bash
 cordova run android

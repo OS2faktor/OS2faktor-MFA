@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
-import dk.digitalidentity.os2faktor.api.dto.NSISDetailsDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -18,15 +17,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import dk.digitalidentity.os2faktor.api.dto.NSISClientDTO;
-import dk.digitalidentity.os2faktor.dao.ClientDao;
+import dk.digitalidentity.os2faktor.api.dto.NSISDetailsDTO;
 import dk.digitalidentity.os2faktor.dao.ServerDao;
 import dk.digitalidentity.os2faktor.dao.model.Client;
+import dk.digitalidentity.os2faktor.dao.model.HardwareToken;
 import dk.digitalidentity.os2faktor.dao.model.LocalClient;
 import dk.digitalidentity.os2faktor.dao.model.Server;
 import dk.digitalidentity.os2faktor.dao.model.User;
 import dk.digitalidentity.os2faktor.dao.model.enums.ClientType;
 import dk.digitalidentity.os2faktor.dao.model.enums.NSISLevel;
 import dk.digitalidentity.os2faktor.security.AuthorizedServerHolder;
+import dk.digitalidentity.os2faktor.service.ClientService;
+import dk.digitalidentity.os2faktor.service.HardwareTokenService;
 import dk.digitalidentity.os2faktor.service.LocalClientService;
 import dk.digitalidentity.os2faktor.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 public class NSISServerApi {
 	
 	@Autowired
-	private ClientDao clientDao;
+	private ClientService clientService;
 	
 	@Autowired
 	private ServerDao serverDao;
@@ -47,6 +49,9 @@ public class NSISServerApi {
 
 	@Autowired
 	private UserService userService;
+	
+	@Autowired
+	private HardwareTokenService hardwareTokenService;
 	
 	@Value("${os2faktor.frontend.baseurl}")
 	private String frontendBaseUrl;
@@ -93,7 +98,7 @@ public class NSISServerApi {
 
 	@PostMapping("/api/server/nsis/{deviceId}/details")
 	public ResponseEntity<?> details(@PathVariable("deviceId") String deviceId) {
-		Client client = clientDao.getByDeviceId(deviceId);
+		Client client = clientService.getByDeviceId(deviceId);
 		if (client == null) {
 			return ResponseEntity.badRequest().body("Incorrect deviceId");
 		}
@@ -118,6 +123,8 @@ public class NSISServerApi {
 				clientDTO.setNsisLevel(client.getNsisLevel());
 				clientDTO.setPrime(client.isPrime());
 				clientDTO.setRoaming(client.isRoaming());
+				clientDTO.setLocked(client.isLocked());
+				clientDTO.setLockedUntil(client.getLockedUntil());
 				
 				if (client.getPincode() != null && client.getPincode().length() > 0) {
 					clientDTO.setHasPincode(true);
@@ -130,6 +137,12 @@ public class NSISServerApi {
 					// for now the decision is that YubiKeys have a pincode build in due to its physical nature
 					clientDTO.setHasPincode(true);
 				}
+				else if (client.getType().equals(ClientType.TOTPH)) {
+					HardwareToken hardwareToken = hardwareTokenService.getByClient(client.getDeviceId());
+					if (hardwareToken != null) {
+						clientDTO.setSerialnumber(hardwareToken.getSerialnumber());
+					}
+				}
 				
 				clients.add(clientDTO);
 			}
@@ -138,7 +151,7 @@ public class NSISServerApi {
 		List<LocalClient> localClients = localClientService.getByEncodedSsnAndCvr(encodedSsn, cvr);
 		if (localClients != null && localClients.size() > 0) {
 			for (LocalClient localClient : localClients) {
-				Client client = clientDao.getByDeviceId(localClient.getDeviceId());
+				Client client = clientService.getByDeviceId(localClient.getDeviceId());
 				if (client != null) {
 					if (client.isDisabled() || client.isLocked()) {
 						continue;
@@ -153,6 +166,12 @@ public class NSISServerApi {
 					clientDTO.setDeviceId(client.getDeviceId());
 					clientDTO.setName(client.getName());
 					clientDTO.setType(client.getType());
+					clientDTO.setLocked(client.isLocked());
+
+					if (clientDTO.isLocked()) {
+						clientDTO.setLockedUntil(client.getLockedUntil());
+					}
+
 					if (localClient.getNsisLevel() != null) {
 						clientDTO.setNsisLevel(NSISLevel.valueOf(localClient.getNsisLevel()));
 					}
@@ -171,7 +190,12 @@ public class NSISServerApi {
 						// for now the decision is that YubiKeys have a pincode build in due to its physical nature
 						clientDTO.setHasPincode(true);
 					}
-
+					else if (client.getType().equals(ClientType.TOTPH)) {
+						HardwareToken hardwareToken = hardwareTokenService.getByClient(client.getDeviceId());
+						if (hardwareToken != null) {
+							clientDTO.setSerialnumber(hardwareToken.getSerialnumber());
+						}
+					}
 
 					clients.add(clientDTO);
 				}
@@ -185,7 +209,7 @@ public class NSISServerApi {
 			return;
 		}
 
-		Client client = clientDao.getByDeviceId(deviceId);
+		Client client = clientService.getByDeviceId(deviceId);
 		if (client != null) {
 			NSISClientDTO clientDTO = new NSISClientDTO();
 			clientDTO.setDeviceId(client.getDeviceId());
@@ -195,6 +219,11 @@ public class NSISServerApi {
 			clientDTO.setNsisLevel(client.getNsisLevel());
 			clientDTO.setPrime(client.isPrime());
 			clientDTO.setRoaming(client.isRoaming());
+			clientDTO.setLocked(client.isLocked());
+			
+			if (clientDTO.isLocked()) {
+				clientDTO.setLockedUntil(client.getLockedUntil());
+			}
 
 			if (client.getPincode() != null && client.getPincode().length() > 0) {
 				clientDTO.setHasPincode(true);
@@ -206,6 +235,12 @@ public class NSISServerApi {
 			else if (client.getType().equals(ClientType.TOTP)) {
 				// for now the decision is that YubiKeys have a pincode build in due to its physical nature
 				clientDTO.setHasPincode(true);
+			}
+			else if (client.getType().equals(ClientType.TOTPH)) {
+				HardwareToken hardwareToken = hardwareTokenService.getByClient(client.getDeviceId());
+				if (hardwareToken != null) {
+					clientDTO.setSerialnumber(hardwareToken.getSerialnumber());
+				}
 			}
 
 			clients.add(clientDTO);

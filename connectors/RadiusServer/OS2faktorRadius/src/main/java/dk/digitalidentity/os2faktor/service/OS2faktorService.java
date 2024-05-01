@@ -8,6 +8,10 @@ import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -15,6 +19,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -27,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class OS2faktorService {
 	private enum LoginStatus { ACCEPTED, REJETED, NONE };
-	private RestTemplate restTemplate = new RestTemplate();
+	private RestTemplate restTemplate;
 
 	@Autowired
 	private LdapService ldapService;
@@ -53,6 +58,17 @@ public class OS2faktorService {
 	@Value("${login.connector.preferPrimeClient:false}")
 	private boolean preferPrimeClient;
 
+	public OS2faktorService() {
+		CloseableHttpClient client = HttpClients.custom()
+			.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build())
+			.build();
+
+		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+		requestFactory.setHttpClient(client);
+
+		restTemplate = new RestTemplate(requestFactory);
+	}
+	
 	public boolean verifyPassword(String username, String password) {
 
 		try {
@@ -162,13 +178,16 @@ public class OS2faktorService {
 		headers.add("connectorVersion", connectorVersion);
 		HttpEntity<String> entity = new HttpEntity<>(headers);
 
-		try {
-			
+		try {			
 			String uriString = baseUrl + "/api/server/nsis/clients";
 			uriString = addParameter(uriString, "ssn", encodeSsn(clientParams.getSsn()));
 			uriString = addParameter(uriString, "deviceId", clientParams.getDeviceId());
 			
+			log.debug("Performing network call to '" + uriString + "'");
+			
 			ResponseEntity<List<Client>> response = restTemplate.exchange(URI.create(uriString), HttpMethod.GET, entity, new ParameterizedTypeReference<List<Client>>(){});
+
+			log.debug("call completed with code " + response.getStatusCodeValue());
 			
 			return response.getBody();
 		}
@@ -207,7 +226,7 @@ public class OS2faktorService {
 		HttpEntity<String> entity = new HttpEntity<>(headers);
 
 		try {
-			ResponseEntity<SubscriptionInfo> response = restTemplate.exchange(baseUrl + "/api/server/client/" + deviceId + "/authenticate?emitChallenge=false", HttpMethod.PUT, entity, SubscriptionInfo.class);
+			ResponseEntity<SubscriptionInfo> response = restTemplate.exchange(baseUrl + "/api/server/client/" + deviceId + "/authenticate", HttpMethod.PUT, entity, SubscriptionInfo.class);
 
 			return response.getBody();
 		}

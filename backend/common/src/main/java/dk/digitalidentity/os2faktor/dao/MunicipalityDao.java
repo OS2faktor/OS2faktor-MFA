@@ -6,7 +6,7 @@ import dk.digitalidentity.os2faktor.dao.model.Municipality;
 
 public interface MunicipalityDao extends JpaRepository<Municipality, Long> {
 
-	Municipality getByApiKey(String apiKey);
-	Municipality getByCvr(String cvr);
+	Municipality findByApiKey(String apiKey);
+	Municipality findByCvr(String cvr);
 
 }

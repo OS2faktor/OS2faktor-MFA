@@ -317,8 +317,8 @@ namespace OS2faktor
             registerMenu.Click += new EventHandler(registerMenu_Click);
 
             System.Windows.Forms.MenuItem registerNemIDMenu = new System.Windows.Forms.MenuItem();
-            registerNemIDMenu.Tag = "NemID";
-            registerNemIDMenu.Text = "Udfør aktivering med NemID/MitID";
+            registerNemIDMenu.Tag = "MitID";
+            registerNemIDMenu.Text = "Udfør aktivering med MitID";
             registerNemIDMenu.Click += new EventHandler(registerNemIDMenu_Click);
 
             System.Windows.Forms.MenuItem registerPinMenu = new System.Windows.Forms.MenuItem();
@@ -328,7 +328,7 @@ namespace OS2faktor
 
             System.Windows.Forms.MenuItem deviceIdMenu = new System.Windows.Forms.MenuItem();
             deviceIdMenu.Tag = "DeviceId";
-            deviceIdMenu.Text = "Ikke registreret endnu";
+            deviceIdMenu.Text = "Ikke aktiveret endnu";
             deviceIdMenu.Click += new EventHandler(deviceIdMenu_Click);
 
             System.Windows.Forms.MenuItem appVersionMenu = new System.Windows.Forms.MenuItem();
@@ -438,11 +438,11 @@ namespace OS2faktor
                 FindMenuItemByTag("DeviceId").Enabled = true;
                 FindMenuItemByTag("SelfService").Enabled = true;
                 FindMenuItemByTag("Pin").Enabled = true;
-                FindMenuItemByTag("NemID").Enabled = true;
+                FindMenuItemByTag("MitID").Enabled = true;
 
                 if (OS2faktor.Properties.Settings.Default.IsNemIDRegistered)
                 {
-                    FindMenuItemByTag("NemID").Enabled = false;
+                    FindMenuItemByTag("MitID").Enabled = false;
                 }
 
                 if (OS2faktor.Properties.Settings.Default.IsPinRegistered)
@@ -452,13 +452,13 @@ namespace OS2faktor
             }
             else
             {
-                FindMenuItemByTag("DeviceId").Text = "Ikke registreret endnu";
+                FindMenuItemByTag("DeviceId").Text = "Ikke aktiveret endnu";
 
                 FindMenuItemByTag("Reset").Enabled = false;
                 FindMenuItemByTag("Register").Enabled = true;
                 FindMenuItemByTag("DeviceId").Enabled = false;
                 FindMenuItemByTag("SelfService").Enabled = false;
-                FindMenuItemByTag("NemID").Enabled = false;
+                FindMenuItemByTag("MitID").Enabled = false;
                 FindMenuItemByTag("Pin").Enabled = false;
             }
         }

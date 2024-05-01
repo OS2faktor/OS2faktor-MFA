@@ -1,5 +1,5 @@
 var devMode = false;
-var clientVersion = "1.8.3";
+var clientVersion = "2.2.1";
 var frontendUrl = "https://frontend.os2faktor.dk";
 var backendUrl = "https://backend.os2faktor.dk";
 
@@ -20,7 +20,7 @@ function closeInAppWindow(window) {
     if (getDeviceType() != "IOS") {
       navigator.notification.activityStop();
     }
-    
+
     window.close();
   }
 }
@@ -29,7 +29,7 @@ function getDeviceType() {
   if (browserOnly) {
     return "WINDOWS";
   }
-  
+
   return device.platform.toUpperCase();
 }
 
@@ -63,7 +63,7 @@ function onDeviceReady() {
     }
 
     uiService.update();
-	
+
     // initialize biometric service
     biometricService.init();
 
@@ -73,25 +73,32 @@ function onDeviceReady() {
     // start listening for challenges
     scannerService.init();
 
-    // calling backend to get latest status on client and updating local state  
+    // calling backend to get latest status on client and updating local state
     if (dbService.isSet('deviceId')) {
       window.setTimeout(function() {
         backendService.status(function(result) {
           if (result.exists) {
-            var dbPinRegistered = dbService.getValue('isPinCodeRegistered');
-            var dbNemIdRegistered = dbService.getValue('isNemIdRegistered');
+            // convert string to boolean
+            var dbPinRegistered = dbService.getValue('isPinCodeRegistered') === 'true';
+            var dbNemIdRegistered = dbService.getValue('isNemIdRegistered') === 'true';
+            var dbBlocked = dbService.getValue('isBlocked') === 'true';
             var changes = false;
 
             if (result.pinProtected && !dbPinRegistered) {
               changes = true;
               dbService.setValue('isPinCodeRegistered', result.pinProtected)
             }
-        
+
             if (result.nemIdRegistered && !dbNemIdRegistered) {
               changes = true;
               dbService.setValue('isNemIdRegistered', result.nemIdRegistered);
             }
-        
+
+            if (result.blocked != dbBlocked) {
+              changes = true;
+              dbService.setValue('isBlocked', result.blocked);
+            }
+
             if (changes) {
               logService.logg('Centrale opdateringer tilgængelig til enheden - opdaterer');
               uiService.update();

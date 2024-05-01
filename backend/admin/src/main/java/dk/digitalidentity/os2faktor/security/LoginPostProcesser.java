@@ -29,7 +29,7 @@ public class LoginPostProcesser implements SamlLoginPostProcessor {
 		String name = (String) tokenUser.getAttributes().get(TokenUser.ATTRIBUTE_NAME);
 		String cvr = tokenUser.getCvr();
 
-		Municipality municipality = municipalityDao.getByCvr(cvr);
+		Municipality municipality = municipalityDao.findByCvr(cvr);
 		
 		if (municipality == null) {
 			log.warn("Rejected access to user: " + name + "/" + uuid + "/" + cvr + " because not signed up");

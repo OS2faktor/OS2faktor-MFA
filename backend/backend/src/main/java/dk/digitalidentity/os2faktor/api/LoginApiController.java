@@ -19,11 +19,13 @@ import org.springframework.web.bind.annotation.RestController;
 import dk.digitalidentity.os2faktor.api.dto.AuthenticateUserRequestBody;
 import dk.digitalidentity.os2faktor.dao.model.Client;
 import dk.digitalidentity.os2faktor.dao.model.ExternalLoginSession;
+import dk.digitalidentity.os2faktor.dao.model.HardwareToken;
 import dk.digitalidentity.os2faktor.dao.model.LoginServiceProvider;
 import dk.digitalidentity.os2faktor.dao.model.enums.ClientType;
 import dk.digitalidentity.os2faktor.security.AuthorizedLoginServiceProviderHolder;
 import dk.digitalidentity.os2faktor.service.ClientService;
 import dk.digitalidentity.os2faktor.service.ExternalLoginSessionService;
+import dk.digitalidentity.os2faktor.service.HardwareTokenService;
 import dk.digitalidentity.os2faktor.service.SsnService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,6 +42,9 @@ public class LoginApiController {
 
 	@Autowired
 	private ExternalLoginSessionService externalLoginSessionService;
+	
+	@Autowired
+	private HardwareTokenService hardwareTokenService;
 
 	@Value("${os2faktor.frontend.baseurl}")
 	private String frontendBaseUrl;
@@ -52,7 +57,7 @@ public class LoginApiController {
 			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 		}
 		
-		if (!"yubikey".equals(type) && !"authenticator".equals(type)) {
+		if (!"yubikey".equals(type) && !"authenticator".equals(type) && !"kodeviser".equals(type)) {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 
@@ -75,6 +80,33 @@ public class LoginApiController {
 		
 		return ResponseEntity.ok(frontendBaseUrl + "/external/" + type + "Handoff/" + sessionKey);
 	}
+	
+	record RenameClientRequest(String deviceId, String name) { };
+	
+	@PostMapping("/api/login/renameClient")
+	public ResponseEntity<?> renameClient(@RequestBody RenameClientRequest request) {
+		// should not happen, but better safe than NullPointer ;)
+		LoginServiceProvider loginServiceProvider = AuthorizedLoginServiceProviderHolder.getLoginServiceProvider();
+		if (loginServiceProvider == null) {
+			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+		}
+		
+		if (request.name == null || request.name.length() == 0 || request.name.length() > 255) {
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);			
+		}
+
+		Client client = clientService.getByDeviceId(request.deviceId);
+		if (client == null) {
+			return ResponseEntity.badRequest().build();
+		}
+
+		client.setName(request.name);
+		clientService.save(client);
+		
+		log.info("LoginServiceProvider " + loginServiceProvider.getName() + " / " + loginServiceProvider.getCvr() + " has renamed client with deviceId " + request.deviceId + " to " + request.name);
+
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
 
 	@PostMapping("/api/login/disableClient/{deviceId}")
 	public ResponseEntity<?> disableClient(@PathVariable("deviceId") String deviceId) {
@@ -91,6 +123,18 @@ public class LoginApiController {
 
 		client.setDisabled(true);
 		clientService.save(client);
+		
+		if (client.getType().equals(ClientType.TOTPH)) {
+			HardwareToken token = hardwareTokenService.getByClient(deviceId);
+			if (token != null && Objects.equals(token.getRegisteredToCvr(), loginServiceProvider.getCvr())) {
+				token.setRegistered(false);
+				token.setRegisteredToCpr(null);
+				token.setRegisteredToCvr(null);
+				token.setClientDeviceId(null);
+				
+				hardwareTokenService.save(token);
+			}
+		}
 
 		log.info("LoginServiceProvider " + loginServiceProvider.getName() + " / " + loginServiceProvider.getCvr() + " has disabled client with deviceId " + deviceId);
 
@@ -109,11 +153,7 @@ public class LoginApiController {
 		if (client == null) {
 			return ResponseEntity.badRequest().build();
 		}
-		
-		if (client.getType() == ClientType.YUBIKEY) {
-			return new ResponseEntity<>("Client of type " + ClientType.YUBIKEY + " cannot be selected as prime.", HttpStatus.BAD_REQUEST);
-		}
-		
+
 		if (setPrime) {
 			if (client.getUser() != null) {
 				for (Client c : client.getUser().getClients()) {

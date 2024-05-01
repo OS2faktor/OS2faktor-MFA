@@ -48,7 +48,7 @@ public class ClientApi {
 			return ResponseEntity.badRequest().build();
 		}
 
-		List<Notification> challenges = notificationDao.getByClientAndClientRejectedFalseAndClientAuthenticatedFalseAndClientLockedFalse(client);
+		List<Notification> challenges = notificationDao.findByClientAndClientRejectedFalseAndClientAuthenticatedFalseAndClientLockedFalse(client);
 
 		if (challenges.size() == 0) {
 			return ResponseEntity.notFound().build();
@@ -73,10 +73,10 @@ public class ClientApi {
 
 	@PutMapping("/api/client/{uuid}/accept")
 	public ResponseEntity<?> accept(@PathVariable("uuid") String uuid, @RequestHeader("deviceId") String deviceId, @RequestHeader("clientVersion") String clientVersion, @RequestHeader(name = "pinCode", required = false) String pinCode, @RequestHeader(name = "roaming", required = false) boolean roaming) {
-		Notification challenge = notificationDao.getBySubscriptionKey(uuid);
+		Notification challenge = notificationDao.findBySubscriptionKey(uuid);
 		if (challenge != null) {
 			if (!challenge.getClient().getDeviceId().equals(deviceId)) {
-				log.error("Failed to accept challenge. Client with deviceId " + deviceId + " does not own challenge with subscriptionKey " + challenge.getSubscriptionKey());
+				log.warn("Failed to accept challenge. Client with deviceId " + deviceId + " does not own challenge with subscriptionKey " + challenge.getSubscriptionKey());
 				return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 			}
 
@@ -160,7 +160,7 @@ public class ClientApi {
 
 	@PutMapping("/api/client/{uuid}/reject")
 	public ResponseEntity<Challenge> reject(@PathVariable("uuid") String uuid, @RequestHeader("deviceId") String deviceId, @RequestHeader("clientVersion") String clientVersion) {
-		Notification challenge = notificationDao.getBySubscriptionKey(uuid);
+		Notification challenge = notificationDao.findBySubscriptionKey(uuid);
 		if (challenge != null) {
 			if (!challenge.getClient().getDeviceId().equals(deviceId)) {
 				log.error("Failed to reject challenge. Client with deviceId " + deviceId + " does not own challlenge with subscriptionKey " + challenge.getSubscriptionKey());

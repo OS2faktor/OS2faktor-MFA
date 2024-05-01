@@ -22,11 +22,11 @@
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="35"/>
         </Grid.ColumnDefinitions>
-        <TextBlock HorizontalAlignment="Stretch" Margin="0,0,0,0" VerticalAlignment="Stretch" Grid.Column="1" Grid.Row="1" TextWrapping="WrapWithOverflow" FontSize="18" Text="Din 2-faktor enhed er ikke registreret endnu. For at gennemføre en registrering, skal du gennemføre følgende punkter"/>
+        <TextBlock HorizontalAlignment="Stretch" Margin="0,0,0,0" VerticalAlignment="Stretch" Grid.Column="1" Grid.Row="1" TextWrapping="WrapWithOverflow" FontSize="18" Text="Din 2-faktor enhed er ikke aktiveret endnu. For at gennemføre en registrering, skal du gennemføre følgende punkter"/>
         <TextBlock HorizontalAlignment="Stretch" Margin="40,0,0,0" VerticalAlignment="Stretch" Grid.Column="1" Grid.Row="2" TextWrapping="WrapWithOverflow" FontSize="18">
                 1. Giv enheden et navn<LineBreak/>
                 2. Vælg en pinkode til enheden<LineBreak/>
-                3. Aktiver enheden med NemID
+                3. Aktiver enheden med MitID
         </TextBlock>
         <Grid Grid.Column="1" Grid.Row="3">
             <TextBox x:Name="tbDeviceName" HorizontalAlignment="Stretch" Margin="0,0,0,0"  VerticalAlignment="Center" Height="36" TextAlignment="Left"  FontSize="18" KeyUp="tbDeviceName_KeyUp">

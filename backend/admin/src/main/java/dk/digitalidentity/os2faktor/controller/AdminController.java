@@ -106,7 +106,7 @@ public class AdminController {
 		model.addAttribute("os2faktorId", os2faktorId);
 
 		if (os2faktorId.length() > 0) {
-			Client client = clientDao.getByDeviceId(os2faktorId);
+			Client client = clientDao.findByDeviceId(os2faktorId);
 			if (client == null) {
 				model.addAttribute("error", "html.admin.noresult");
 			}
@@ -139,7 +139,7 @@ public class AdminController {
 		String os2faktorId = normalizeOS2FaktorId(ssnAssignmentForm.getOs2faktorId());
 		model.addAttribute("os2faktorId", os2faktorId);
 
-		Client client = clientDao.getByDeviceId(os2faktorId);
+		Client client = clientDao.findByDeviceId(os2faktorId);
 		if (client == null) {
 			model.addAttribute("error", "html.admin.noresult");
 		}

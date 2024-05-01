@@ -7,7 +7,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import dk.digitalidentity.os2faktor.service.ExternalLoginSessionService;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 @EnableScheduling
 public class RemoveExternalLoginSessionsTask {
@@ -24,6 +26,10 @@ public class RemoveExternalLoginSessionsTask {
 			return;
 		}
 
+		log.info("Deleting all external logins");
+		
 		externalLoginSessionService.deleteAll();
+		
+		log.info("Done deleting all external logins");
 	}
 }

@@ -30,6 +30,13 @@
             <input type="checkbox" id="rememberDevice" name="rememberDevice" checked="checked" />
 
             <div id="iFrameTarget" style="margin-top: 20px;"></div>
+
+            <div id="finishLoginBlock" style="display: none;">
+                <p>
+                    Login er gennemført - tryk på knappen nedenfor for at gå videre
+                </p>
+                <span onclick="finishLoginFlow(); return false;" type="button" class="submit">Videre</span>
+            </div>
         </div>
     </form>
 
@@ -41,6 +48,7 @@
         var setLocalStorageNull = @@SETLOCALSTORAGENULL@@;
         var showRememberDevice = @@SHOWREMEMBERDEVICE@@;
         var iFrameYubiKey = @@USEIFRAME@@;
+        var delayedLogin = @@DELAYEDLOGIN@@;
 
         if (!showRememberDevice) {
             var rememberDeviceLabelElem = document.getElementById('rememberDeviceLabel');
@@ -105,6 +113,11 @@
             outsideBrowserElem.style.cssText = 'display: block;';
         }
 
+        function finishLoginFlow() {
+            var loginFormElem = document.getElementById('loginForm');
+            loginFormElem.submit();
+        }
+
         var tries = 0;
         var loopFunction = setInterval(function () {
 
@@ -121,8 +134,19 @@
                     var data = JSON.parse(xhr.responseText);
 
                     if (data && data.stateChange == true) {
-                        var loginFormElem = document.getElementById('loginForm');
-                        loginFormElem.submit();
+                        if (delayedLogin) {
+                            var insideBrowserElem = document.getElementById('finishLoginBlock');
+                            insideBrowserElem.style.cssText = 'display: block;';
+
+                            var insideBrowserElem = document.getElementById('inside-browser');
+                            insideBrowserElem.style.cssText = 'display: none;';
+
+                            var outsideBrowserElem = document.getElementById('outside-browser');
+                            outsideBrowserElem.style.cssText = 'display: none;';
+                        }
+                        else {
+                            finishLoginFlow();
+                        }
                     }
                 }
             };

@@ -12,6 +12,7 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
+import dk.digitalidentity.os2faktor.service.model.IncrementalClock;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -53,14 +54,37 @@ public class MFATokenManager {
 		return String.format("data:%s;base64,%s", "image/png", encodedData);
 	}
 
-	public boolean verifyTotp(String code, String secret) {
+	public record OtpVerificationResult (boolean success, int offsetResult) { }
+	public OtpVerificationResult verifyTotp(String code, String secret, int initialOffset) {
 		code = code.replace(" ", "");
-		Totp totp = new Totp(secret);
-		if (isValidLong(code)) {
-			return totp.verify(code);
+		if (!isValidLong(code)) {
+			return new OtpVerificationResult(false, 0);
+		}
+		
+		// validate with +/- 90 seconds
+		IncrementalClock[] clocks = getClocks(initialOffset, 7);
+		for (int i = 0; i < clocks.length; i++) {
+			Totp totp = new Totp(secret, clocks[i]);
+			boolean valid = totp.verify(code);
+
+			if (valid) {
+				return new OtpVerificationResult(true, clocks[i].getOffset());
+			}
 		}
 
-		return false;
+		return new OtpVerificationResult(false, 0);
+	}
+
+	// size MUST be odd
+	private IncrementalClock[] getClocks(int initialOffset, int size) {
+		IncrementalClock[] clocks = new IncrementalClock[size];
+		
+		int cut = (size - 1) / 2;
+		for (int i = (cut * - 1), j = 0; j < size; i++, j++) {
+			clocks[j] = new IncrementalClock(initialOffset + i * 30);
+		}
+		
+		return clocks;
 	}
 
 	private boolean isValidLong(String code) {

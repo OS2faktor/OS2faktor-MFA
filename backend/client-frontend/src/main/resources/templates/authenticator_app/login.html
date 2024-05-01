@@ -11,12 +11,12 @@
 					<div class="col-lg-6 offset-lg-3">
 						<div class="ibox">
 							<div class="ibox-title">
-								<h5><em class="fa fa-mobile"></em> &nbsp; Anvend authenticator</span></h5>
+								<h5><em class="fa fa-mobile"></em> &nbsp; Anvend <span th:if="${clientType == null || clientType == 'TOTP'}">Authenticator</span><span th:if="${clientType == 'TOTPH'}">Kodeviser</span></h5>
 							</div>
 
 							<div class="ibox-content">
 								<form id="loginForm" method="post" th:object="${form}">
-									<p>Du skal nu åbne din Authenticator og indtaste den 6-cifrede kode der vises i enheden</p>
+									<p>Du skal nu <span th:if="${clientType == null || clientType == 'TOTP'}">åbne din Authenticator</span><span th:if="${clientType == 'TOTPH'}">finde din kodeviser</span> og indtaste den 6-cifrede kode der vises i enheden</p>
 						
 									<br/>
 									

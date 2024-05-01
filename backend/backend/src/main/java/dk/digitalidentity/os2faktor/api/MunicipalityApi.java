@@ -32,7 +32,7 @@ public class MunicipalityApi {
 	public ResponseEntity<?> loadPseudonyms(@RequestBody List<PseudonymDTO> body) throws Exception {
 		Municipality municipality = AuthorizedMunicipalityHolder.getMunicipality();
 		List<Pseudonym> newPseudonyms = new ArrayList<>();
-		List<Pseudonym> oldPseudonyms = pseudonymDao.getByCvr(municipality.getCvr());
+		List<Pseudonym> oldPseudonyms = pseudonymDao.findByCvr(municipality.getCvr());
 
 		for (PseudonymDTO pseudonym : body) {
 			String encodedSsn = pseudonym.getSsn();

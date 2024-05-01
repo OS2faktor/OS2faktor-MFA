@@ -11,13 +11,13 @@
 					<div class="col-lg-6 offset-lg-3">
 						<div class="ibox">
 							<div class="ibox-title">
-								<h5><em class="fa fa-mobile"></em> &nbsp; Authenticator login fejlet</span></h5>
+								<h5><em class="fa fa-mobile"></em> &nbsp; <span th:if="${clientType == null || clientType == 'TOTP'}">Authenticator</span><span th:if="${clientType == 'TOTPH'}">Kodeviser</span> login fejlet</span></h5>
 							</div>
 
 							<div class="ibox-content">
 								<form method="post" th:object="${form}">
 									<p th:unless="${lockedOut}">
-										Login med Authenticator blev afbrudt med en fejl. Luk dette vindue og forsøg igen.
+										Login med <span th:if="${clientType == null || clientType == 'TOTP'}">Authenticator</span><span th:if="${clientType == 'TOTPH'}">Kodeviser</span> blev afbrudt med en fejl. Luk dette vindue og forsøg igen.
 									</p>
 									
 									<p th:if="${lockedOut}">

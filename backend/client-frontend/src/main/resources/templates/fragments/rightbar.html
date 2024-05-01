@@ -13,6 +13,7 @@
 						<li><a th:href="@{/}">Mine enheder</a></li>
 						<li><a th:href="@{/authenticator}">Tilknyt authenticator</a></li>
 						<li><a th:href="@{/yubikey}">Tilknyt hardwarenøgle</a></li>
+						<li sec:authorize="hasRole('ROLE_EXTERNAL')"><a th:href="@{/totph}">Tilknyt kodeviser</a>
 					</ul>
 				</div>
 			</div>

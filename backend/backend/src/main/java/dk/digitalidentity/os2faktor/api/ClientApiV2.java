@@ -4,10 +4,12 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
@@ -52,20 +54,54 @@ public class ClientApiV2 {
 	@Autowired
 	private PushNotificationSenderService snsService;
 
-	@GetMapping("/api/client/v2/status")
-	public ResponseEntity<ClientStatus> getStatus(@RequestHeader("deviceId") String deviceId) {
-		ClientStatus response = new ClientStatus();
+	@Value("${os2faktor.backend.feature.blocked.clients.enable:false}")
+	private boolean blockedClientFeatureEnabled;
 
+	@GetMapping("/api/client/v2/status")
+	public ResponseEntity<ClientStatus> getStatus(@RequestHeader("deviceId") String deviceId, @RequestHeader(name = "uniqueClientId", required = false, defaultValue = "") String uniqueClientId) {
+		ClientStatus response = new ClientStatus();
+		boolean modified = false;
+		
 		Client client = clientService.getByDeviceId(deviceId);
 		if (client != null) {
 			response.setDisabled(client.isDisabled());
 			response.setPinProtected(StringUtils.hasLength(client.getPincode()));
 			response.setNemIdRegistered(client.getUser() != null);
 			
+			// if no value to compare against was supplied, we are talking about older software, and we will not perform the check
+			if (StringUtils.hasLength(uniqueClientId)) {
+
+				// if a value is stored already, compare against it, otherwise store the incoming value
+				if (blockedClientFeatureEnabled) {
+					if (StringUtils.hasLength(client.getUniqueClientId())) {
+						response.setBlocked(!Objects.equals(client.getUniqueClientId(), uniqueClientId));
+					}
+					else {
+						client.setUniqueClientId(uniqueClientId);
+						modified = true;
+					}
+				}
+				else {
+					// when not enabled, we allow continued updating of clientID
+					if (!Objects.equals(client.getUniqueClientId(), uniqueClientId)) {
+						client.setUniqueClientId(uniqueClientId);
+						modified = true;
+					}
+				}
+			}
+			
 			if (!client.isDisabled()) {
 				client.setLastUsed(new Date());
-				clientService.save(client);
+				modified = true;
 			}
+		}
+
+		if (modified) {
+			clientService.save(client);
+		}
+		
+		if (response.isBlocked()) {
+			log.warn("Returned BLOCKED status for deviceId = " + client.getDeviceId());
 		}
 
 		return new ResponseEntity<>(response, HttpStatus.OK);
@@ -315,7 +351,36 @@ public class ClientApiV2 {
 			client.setClientVersion(clientVersion);
 		}
 		
-		client.setNotificationKey(token.getToken());
+		if (StringUtils.hasLength(token.getToken()) && !Objects.equals(token.getToken(), client.getToken())) {
+			client.setToken(token.getToken());
+	
+			if (client.getType().equals(ClientType.EDGE) || (client.getType().equals(ClientType.CHROME) && isJSONValid(token.getToken()))) {
+				;
+			}
+			else {
+				try {
+					String notificationKey = snsService.createEndpoint(token.getToken(), client.getDeviceId(), client.getType());
+					if (StringUtils.hasLength(notificationKey)) {
+						client.setNotificationKey(notificationKey);
+						
+						// see if there are any existing clients with this notification key, and disable them
+						// as they are old clients installed on the same device (and now overwritten by the new client)
+						List<Client> existingClients = clientService.getByNotificationKey(notificationKey);
+						for (Client existingClient : existingClients) {
+							if (!existingClient.isDisabled()) {
+								existingClient.setDisabled(true);
+								clientService.save(existingClient);
+							}
+						}
+					}
+				}
+				catch (Exception ex) {
+					log.error("Failed to register token at AWS SNS", ex);
+					
+					return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+			}
+		}
 
 		clientService.save(client);
 		
