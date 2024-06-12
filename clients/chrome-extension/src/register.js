@@ -1,6 +1,6 @@
 var backendUrl;
 var roaming;
-var clientVersion = "2.2.1";
+var clientVersion = "2.3.0";
 
 $(document).ready(function() {
 

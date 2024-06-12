@@ -22,7 +22,7 @@
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="35"/>
         </Grid.ColumnDefinitions>
-        <TextBlock HorizontalAlignment="Stretch" Margin="0,0,0,0" VerticalAlignment="Stretch" Grid.Column="1" Grid.Row="1" TextWrapping="WrapWithOverflow" FontSize="18" Text="Vælg en pinkode"/>
+        <TextBlock HorizontalAlignment="Stretch" Margin="0,0,0,0" VerticalAlignment="Stretch" Grid.Column="1" Grid.Row="1" TextWrapping="WrapWithOverflow" FontSize="18" Text="Vælg en pinkode bestående kun af tal"/>
         <TextBlock HorizontalAlignment="Stretch" Margin="0,0,0,0" VerticalAlignment="Stretch" Grid.Column="1" Grid.Row="2" TextWrapping="WrapWithOverflow" FontSize="18">
                 Bemærk: Simple pinkoder er ikke lovlige, fx. 0000, 1111, 1234
         </TextBlock>

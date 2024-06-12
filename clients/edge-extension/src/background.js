@@ -197,9 +197,39 @@ chrome.windows.onRemoved.addListener(function (windowId) {
 navigator.serviceWorker.addEventListener('message', event => {
 	// event is a MessageEvent object
 	if (event.data) {
-		showChallengeWindow();
+		handleChallenge(); // Checks extension state to determine if window should pop up
 	}
 });
+
+function handleChallenge() {
+	// read global settings and do a precheck
+	chrome.storage.managed.get(["Roaming"], function (policy) {
+		if (policy.Roaming) {
+			roaming = policy.Roaming;
+		}
+		else {
+			roaming = false;
+		}
+
+		if (roaming) {
+			chrome.storage.sync.get(["apiKey", "deviceId"], function (result) {
+				if (typeof result.apiKey === 'undefined' || typeof result.deviceId === 'undefined') {
+					// do nothing
+				} else {
+					showChallengeWindow();
+				}
+			});
+		} else {
+			chrome.storage.local.get(["apiKey", "deviceId"], function (result) {
+				if (typeof result.apiKey === 'undefined' || typeof result.deviceId === 'undefined') {
+					// do nothing
+				} else {
+					showChallengeWindow();
+				}
+			});
+		}
+	});
+}
 
 // poll service worker for challenges
 window.setInterval(function() {

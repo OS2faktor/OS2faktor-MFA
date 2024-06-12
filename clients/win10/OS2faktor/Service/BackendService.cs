@@ -75,5 +75,35 @@ namespace OS2faktor.Service
                 return registrationResult;
             }
         }
+
+
+        public async Task<DeletionResult> Delete(string deviceId)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                var deletionResult = new DeletionResult();
+                client.DefaultRequestHeaders.Add("ApiKey", Properties.Settings.Default.apiKey);
+                client.DefaultRequestHeaders.Add("DeviceId", Properties.Settings.Default.deviceId);
+
+                try
+                {
+                    HttpResponseMessage response = await client.DeleteAsync($"{backendUrl}/api/client/");
+                    if (response.IsSuccessStatusCode) 
+                    {
+                        deletionResult = await response.Content.ReadAsAsync<DeletionResult>();
+                    }
+                    else
+                    {
+                        deletionResult.Success = false;
+                    }
+                }
+                catch(HttpRequestException e)
+                {
+                    log.Warn($"Error occured while trying to connect to the Backend:{backendUrl}: ", e);
+                    deletionResult.Success = false;
+                }
+                return deletionResult;
+            }   
+        }
     }
 }

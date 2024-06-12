@@ -118,6 +118,11 @@ public class ClientApiV2 {
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
 		
+		if (request.getName() == null || request.getName().length() < 2 || request.getName().length() > 255) {
+			log.warn("Invalid name '" + request.getName() + "'");
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		}
+
 		Client client = new Client();
 		client.setUseCount(0);
 		client.setDeviceId(idGenerator.generateDeviceId());

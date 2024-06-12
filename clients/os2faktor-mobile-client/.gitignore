@@ -1,0 +1,22 @@
+# Add any directories, files, or patterns you don't want to be tracked by version control
+# Mac
+.DS_Store
+
+# Node
+npm-debug.log
+
+# Cordova
+/platforms/**
+/plugins/**
+
+# res
+resources/signing
+
+# google-services.json
+#google-services.json
+
+node_modules/
+plugins/
+!www/inspinia/2.9.3/js/plugins
+.gradle
+package-lock.json

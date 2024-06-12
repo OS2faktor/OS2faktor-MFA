@@ -410,6 +410,9 @@ namespace OS2faktor
             {
                 WSCommunication.Disconnect();
 
+                _ = backendService.Delete(OS2faktor.Properties.Settings.Default.deviceId);
+                
+
                 OS2faktor.Properties.Settings.Default.apiKey = null;
                 OS2faktor.Properties.Settings.Default.deviceId = null;
                 OS2faktor.Properties.Settings.Default.IsNemIDRegistered = false;
