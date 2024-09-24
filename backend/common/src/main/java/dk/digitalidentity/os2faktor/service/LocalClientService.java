@@ -27,7 +27,7 @@ public class LocalClientService {
 			encryptedSsn = ssnService.encryptAndEncodeEncodedSsn(encodedSsn);
 		}
 		catch (Exception ex) {
-			log.error("Failed to encrypt ssn for cvr: " + cvr, ex);
+			log.warn("Failed to encrypt ssn for cvr: " + cvr, ex);
 			return null;
 		}
 		

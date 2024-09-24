@@ -38,12 +38,10 @@ import dk.digitalidentity.os2faktor.service.ClientService;
 import dk.digitalidentity.os2faktor.service.IdGenerator;
 import dk.digitalidentity.os2faktor.service.LocalClientService;
 import dk.digitalidentity.os2faktor.service.PushNotificationSenderService;
+import dk.digitalidentity.os2faktor.service.PushServiceWrapper;
 import dk.digitalidentity.os2faktor.service.UserService;
 import dk.digitalidentity.os2faktor.service.model.PushStatus;
 import lombok.extern.slf4j.Slf4j;
-import nl.martijndwars.webpush.PushService;
-import nl.martijndwars.webpush.Subscription;
-import nl.martijndwars.webpush.Subscription.Keys;
 
 @Slf4j
 @CrossOrigin
@@ -78,10 +76,13 @@ public class ServerApi {
 	private StatisticDao statisticDao;
 
 	@Autowired
-	private PushService pushService;
+	private PushServiceWrapper pushService;
 
 	@Value("${os2faktor.frontend.baseurl}")
 	private String frontendBaseUrl;
+
+	@Value("${os2faktor.edge.disabled:false}")
+	private boolean edgeDisabled;
 
 	@GetMapping("/api/server/clients")
 	public ResponseEntity<?> getClients(@RequestParam(required = false, value = "ssn") String encodedSsn, @RequestParam(required = false, value = "pid") String pid, @RequestParam(required = false, value = "pseudonym") String pseudonym, @RequestParam(required = false, value = "deviceId") String[] deviceIds, @RequestHeader("connectorVersion") String connectorVersion) {
@@ -207,22 +208,24 @@ public class ServerApi {
 		subscriptionInfo.setChallenge((emitChallenge) ? idGenerator.generateChallenge() : "");
 
 		// EDGE or CHROME manifest v3
-		if (client.getType().equals(ClientType.EDGE) || (client.getType().equals(ClientType.CHROME) && isJSONValid(client.getToken()))) {
-			String token = client.getToken();
-			if (token != null && token.length() > 0) {
-				try {
+		if ((client.getType().equals(ClientType.EDGE) || (client.getType().equals(ClientType.CHROME)) && isJSONValid(client.getToken()))) {
+			if (edgeDisabled && client.getType().equals(ClientType.EDGE)) {
+				log.warn("Edge push disabled");
+			}
+			else {
+				String token = client.getToken();
+				if (token != null && token.length() > 0) {
 					JSONObject obj = new JSONObject(token);
 					String endpoint = obj.getString("endpoint");
 					String key = obj.getJSONObject("keys").getString("p256dh");
 					String auth = obj.getJSONObject("keys").getString("auth");
 					String json = "{\"title\": \"OS2faktor\", \"body\": \"Login forsøg\"}";
 
-					pushService.send(new nl.martijndwars.webpush.Notification(new Subscription(endpoint, new Keys(key, auth)), json));
+					// method call is Async, so will not block if Edge Push Server WNS is down (again)
+					pushService.push(endpoint, key, auth, json, client.getDeviceId());
+
 					subscriptionInfo.setClientNotified(true);
 					subscriptionInfo.setSentTimestamp(new Date());
-				}
-				catch (Exception ex) {
-					log.error("Failed to send push notification to edge client: " + client.getDeviceId(), ex);
 				}
 			}
 		}

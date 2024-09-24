@@ -6,9 +6,11 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import nl.martijndwars.webpush.PushService;
 
+@EnableAsync
 @Configuration
 public class PushServiceConfiguration {
 

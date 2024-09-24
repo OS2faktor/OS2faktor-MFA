@@ -15,12 +15,18 @@ public class ClientSearchParamsService {
 	@Autowired
 	private IdentifyService identifyService;
 	
+	@Autowired
+	private OS2faktorCprLookupService os2faktorService;
+	
 	@Value("${cpr.source:LDAP}")
 	private String cprSource;
 	
 	public ClientSearchParams getUserDetails(String sAMAccountName) throws Exception {
 		if ("IDENTIFY".equals(cprSource)) {
 			return identifyService.getUserDetails(sAMAccountName);
+		}
+		else if ("OS2FAKTOR".equals(cprSource)) {
+			return os2faktorService.getUserDetails(sAMAccountName);
 		}
 		else {
 			return ldapService.getUserDetails(sAMAccountName);

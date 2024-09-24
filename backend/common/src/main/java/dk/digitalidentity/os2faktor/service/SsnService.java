@@ -68,7 +68,12 @@ public class SsnService {
 				return encryptAndEncodeEncodedSsn(ssn, false);
 			}
 			else {
-				log.error("Malformed encoded ssn: " + ssn);
+				if (ssn != null && ssn.length() > 0 && ssn.endsWith("d")) {
+					log.warn("Malformed encoded ssn: " + ssn);
+				}
+				else {
+					log.error("Malformed encoded ssn: " + ssn);
+				}
 			}
 
 			throw ex;

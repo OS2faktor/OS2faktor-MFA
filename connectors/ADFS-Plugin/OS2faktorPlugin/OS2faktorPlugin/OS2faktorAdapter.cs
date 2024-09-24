@@ -26,7 +26,6 @@ namespace OS2faktorPlugin
         private const string REGKEY_TRUSTALL = "TrustAllSSLCerts";
         private const string REGKEY_GETDEVICEURL = "GetDeviceUrl";
         private const string REGKEY_ALLOWSELFREG = "AllowSelfRegistration";
-        private const string REGKEY_CONNECTORVERSION = "ConnectorVersion";
         private const string REGKEY_REQUIREPIN = "RequirePin";
         private const string REGKEY_ADURL = "ADUrl";
         private const string REGKEY_ADUSERNAME = "ADUsername";
@@ -51,6 +50,10 @@ namespace OS2faktorPlugin
         private const string REGKEY_IDENTIFY_USERNAME = "IdentifyUsername";
         private const string REGKEY_IDENTIFY_PASSWORD = "IdentifyPassword";
 
+        private const string REGKEY_OS2FAKTOR_SERVICE_URL = "OS2faktorServiceUrl";
+        private const string REGKEY_OS2FAKTOR_SERVICE_DOMAIN = "OS2faktorServiceDomain";
+        private const string REGKEY_OS2FAKTOR_SERVICE_APIKEY = "OS2faktorServiceApiKey";
+
         private string url;
         private string getDeviceUrl;
         private string deviceIdField;
@@ -74,6 +77,9 @@ namespace OS2faktorPlugin
 
         // settings for Identify lookup
         private string identifyServiceUrl, identifyStsUrl, identifyClientId, identifyClientSecret, identifyUsername, identifyPassword;
+
+        // settings for OS2faktorService Lookup
+        private string os2faktorServiceUrl, os2faktorServiceDomain, os2faktorServiceApiKey;
 
         public IAuthenticationAdapterMetadata Metadata
         {
@@ -156,6 +162,7 @@ namespace OS2faktorPlugin
 
             log.Info("Initializing OS2faktor");
 
+            string connectorVersion = "2.5.0";
 
             string apiKey = (string)key.GetValue(REGKEY_APIKEY, "NOT_SET");
             url = (string)key.GetValue(REGKEY_URL, "https://backend.os2faktor.dk");
@@ -170,7 +177,6 @@ namespace OS2faktorPlugin
             sortByActive = "true".Equals(sortByActiveStr);
             string useIframeStr = (string)key.GetValue(REGKEY_USE_IFRAME, "false");
             useIframe = "true".Equals(useIframeStr);
-            string connectorVersion = (string)key.GetValue(REGKEY_CONNECTORVERSION);
             string requirePinString = (string)key.GetValue(REGKEY_REQUIREPIN, "false");
             bool requirePin = "true".Equals(requirePinString);
             cprWebserviceUrl = (string)key.GetValue(REGKEY_CPR_WEBSERVICE, "");
@@ -214,6 +220,11 @@ namespace OS2faktorPlugin
             identifyClientSecret = (string)key.GetValue(REGKEY_IDENTIFY_CLIENT_SECRET, "");
             identifyUsername = (string)key.GetValue(REGKEY_IDENTIFY_USERNAME, "");
             identifyPassword = (string)key.GetValue(REGKEY_IDENTIFY_PASSWORD, "");
+
+            // OS2faktor service settings
+            os2faktorServiceUrl = (string)key.GetValue(REGKEY_OS2FAKTOR_SERVICE_URL, "");
+            os2faktorServiceDomain = (string)key.GetValue(REGKEY_OS2FAKTOR_SERVICE_DOMAIN, "");
+            os2faktorServiceApiKey = (string)key.GetValue(REGKEY_OS2FAKTOR_SERVICE_APIKEY, "");
 
             log.Info("pidField: " + pidField + ", pseudonymField: " + pseudonymField + ", deviceIdField: " + deviceIdField + ", cprField: " + cprField + ", url: " + url + ", allowSelfRegistration: " + allowSelfRegistration + ", requirePin: " + requirePin + " disallowTotp: " + disallowTotp + " usingSQL: " + ((string.IsNullOrEmpty(connectionString) ? "false" : "true")));
         }
@@ -739,6 +750,12 @@ namespace OS2faktorPlugin
             {
                 log.Debug("Reading from IdentifyService");
                 user = IdentifyService.GetUser(identifyServiceUrl, upn, identifyStsUrl, identifyClientId, identifyClientSecret, identifyUsername, identifyPassword);
+            }
+
+            if (user == null && !string.IsNullOrEmpty(os2faktorServiceUrl))
+            {
+                log.Debug("Reading from OS2faktor Coredata");
+                user = OS2faktorService.GetUser(os2faktorServiceUrl, upn, os2faktorServiceDomain, os2faktorServiceApiKey);
             }
 
             if (user == null)

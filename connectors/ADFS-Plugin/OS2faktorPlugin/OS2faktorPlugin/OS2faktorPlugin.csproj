@@ -46,8 +46,9 @@
     <Reference Include="log4net, Version=2.0.12.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <HintPath>..\packages\log4net.2.0.12\lib\net45\log4net.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.IdentityServer.Web">
-      <HintPath>..\..\adfs-libs\adfs30\Microsoft.IdentityServer.Web.dll</HintPath>
+    <Reference Include="Microsoft.IdentityServer.Web, Version=10.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>\\VBOXSVR\brian\projects\os2faktor\connectors\ADFS-Plugin\adfs-libs\adfs40\Microsoft.IdentityServer.Web.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -87,6 +88,8 @@
     <Compile Include="Logging\Initializer.cs" />
     <Compile Include="OS2faktorAdapter.cs" />
     <Compile Include="OS2faktorCheckRememberDeviceForm.cs" />
+    <Compile Include="OS2faktorLoginService\OS2faktorResponse.cs" />
+    <Compile Include="OS2faktorLoginService\OS2faktorService.cs" />
     <Compile Include="OS2faktorRememberDeviceForm.cs" />
     <Compile Include="OS2faktorRejectedForm.cs" />
     <Compile Include="OS2faktorPickDeviceForm.cs" />
