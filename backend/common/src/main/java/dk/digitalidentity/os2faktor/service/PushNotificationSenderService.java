@@ -9,26 +9,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.amazonaws.services.sns.AmazonSNS;
-import com.amazonaws.services.sns.model.CreatePlatformEndpointRequest;
-import com.amazonaws.services.sns.model.CreatePlatformEndpointResult;
-import com.amazonaws.services.sns.model.EndpointDisabledException;
-import com.amazonaws.services.sns.model.InvalidParameterException;
-import com.amazonaws.services.sns.model.PublishRequest;
-import com.amazonaws.services.sns.model.SetEndpointAttributesRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import dk.digitalidentity.os2faktor.dao.model.enums.ClientType;
 import dk.digitalidentity.os2faktor.service.model.NotificationMessage;
 import dk.digitalidentity.os2faktor.service.model.PushStatus;
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.CreatePlatformEndpointRequest;
+import software.amazon.awssdk.services.sns.model.CreatePlatformEndpointResponse;
+import software.amazon.awssdk.services.sns.model.EndpointDisabledException;
+import software.amazon.awssdk.services.sns.model.InvalidParameterException;
+import software.amazon.awssdk.services.sns.model.PublishRequest;
+import software.amazon.awssdk.services.sns.model.SetEndpointAttributesRequest;
 
 @Slf4j
 @Service
 public class PushNotificationSenderService {
 
 	@Autowired
-	private AmazonSNS snsClient;
+	private SnsClient snsClient;
 
 	@Value("${aws.sns.applicationArnGCM}")
 	private String applicationArnGCM;
@@ -43,9 +43,6 @@ public class PushNotificationSenderService {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 
-			PublishRequest publishRequest = new PublishRequest();
-			publishRequest.setTargetArn(endpointArn);
-
 			NotificationMessage nm = new NotificationMessage();			
 			nm.set_default(message);
 			nm.setADM(mapper.writeValueAsString(nm.createADM(nm.createData(message))));
@@ -54,9 +51,12 @@ public class PushNotificationSenderService {
 
 			String msg = mapper.writeValueAsString(nm);
 
-			publishRequest.setMessage(msg);
-			publishRequest.setMessageStructure("json");
-			
+			PublishRequest publishRequest = PublishRequest.builder()
+				.targetArn(endpointArn)
+				.message(msg)
+				.messageStructure("json")
+				.build();
+
 			snsClient.publish(publishRequest);
 		}
 		catch (Exception ex) {
@@ -92,20 +92,30 @@ public class PushNotificationSenderService {
 					return null;
 			}
 
-			CreatePlatformEndpointRequest cpeReq = new CreatePlatformEndpointRequest().withPlatformApplicationArn(appArn).withToken(token).withCustomUserData(uuid);
-			CreatePlatformEndpointResult cpeRes = snsClient.createPlatformEndpoint(cpeReq);
-			endpointArn = cpeRes.getEndpointArn();
+			CreatePlatformEndpointRequest cpeReq = CreatePlatformEndpointRequest.builder()
+					.token(token)
+					.customUserData(uuid)
+					.platformApplicationArn(appArn)
+					.build();
+
+			CreatePlatformEndpointResponse cpeRes = snsClient.createPlatformEndpoint(cpeReq);
+			endpointArn = cpeRes.endpointArn();
 
 			Map<String, String> attribs = new HashMap<String, String>();
 			attribs.put("Enabled", "true");
-			SetEndpointAttributesRequest saeReq = new SetEndpointAttributesRequest().withEndpointArn(endpointArn).withAttributes(attribs);
+
+			SetEndpointAttributesRequest saeReq = SetEndpointAttributesRequest.builder()
+					.endpointArn(endpointArn)
+					.attributes(attribs)
+					.build();
+
 			snsClient.setEndpointAttributes(saeReq);
 		}
 		catch (Exception ex) {
 			if (ex instanceof InvalidParameterException) {
 				InvalidParameterException ipe = (InvalidParameterException) ex;
 
-				String message = ipe.getErrorMessage();
+				String message = ipe.awsErrorDetails().errorMessage();
 	
 				Pattern p = Pattern.compile(".*Endpoint (arn:aws:sns[^ ]+) already exists with the same Token.*");
 				Matcher m = p.matcher(message);

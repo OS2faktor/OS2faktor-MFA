@@ -278,7 +278,7 @@ namespace OS2faktor
             // create trigger
             ITrigger trigger = TriggerBuilder.Create()
                 .WithIdentity("trigger1", "group1")
-                .WithSimpleSchedule(x => x.WithIntervalInSeconds(30).RepeatForever())
+                .WithSimpleSchedule(x => x.WithIntervalInSeconds(20).RepeatForever())
                 .Build();
 
             // Schedule the job using the job and trigger 
@@ -316,6 +316,11 @@ namespace OS2faktor
             registerMenu.Text = "Aktiver enhed";
             registerMenu.Click += new EventHandler(registerMenu_Click);
 
+            System.Windows.Forms.MenuItem reconnectMenu = new System.Windows.Forms.MenuItem();
+            reconnectMenu.Tag = "Reconnect";
+            reconnectMenu.Text = "Re-etabler forbindelse";
+            reconnectMenu.Click += new EventHandler(reconnectMenu_Click);
+
             System.Windows.Forms.MenuItem registerNemIDMenu = new System.Windows.Forms.MenuItem();
             registerNemIDMenu.Tag = "MitID";
             registerNemIDMenu.Text = "Udfør aktivering med MitID";
@@ -344,6 +349,7 @@ namespace OS2faktor
             // Initialize contextMenu1
             contextMenu1.MenuItems.Add(resetMenu);
             contextMenu1.MenuItems.Add(registerMenu);
+            contextMenu1.MenuItems.Add(reconnectMenu);
             contextMenu1.MenuItems.Add(registerNemIDMenu);
             contextMenu1.MenuItems.Add(registerPinMenu);
             contextMenu1.MenuItems.Add(selfServiceMenu);
@@ -378,6 +384,12 @@ namespace OS2faktor
                 var registration = new RegistrationWindow();
                 registration.Show();
             }));
+        }
+
+        private void reconnectMenu_Click(object sender, EventArgs e)
+        {
+            // TODO: alert af en eller anden slags
+            WSCommunication.Reconnect();
         }
 
         private void registerPinMenu_Click(object sender, EventArgs e)
@@ -437,6 +449,7 @@ namespace OS2faktor
                 FindMenuItemByTag("DeviceId").Text = "OS2faktor ID: " + OS2faktor.Properties.Settings.Default.deviceId;
 
                 FindMenuItemByTag("Reset").Enabled = true;
+                FindMenuItemByTag("Reconnect").Enabled = true;
                 FindMenuItemByTag("Register").Enabled = false;
                 FindMenuItemByTag("DeviceId").Enabled = true;
                 FindMenuItemByTag("SelfService").Enabled = true;
@@ -458,6 +471,7 @@ namespace OS2faktor
                 FindMenuItemByTag("DeviceId").Text = "Ikke aktiveret endnu";
 
                 FindMenuItemByTag("Reset").Enabled = false;
+                FindMenuItemByTag("Reconnect").Enabled = false;
                 FindMenuItemByTag("Register").Enabled = true;
                 FindMenuItemByTag("DeviceId").Enabled = false;
                 FindMenuItemByTag("SelfService").Enabled = false;

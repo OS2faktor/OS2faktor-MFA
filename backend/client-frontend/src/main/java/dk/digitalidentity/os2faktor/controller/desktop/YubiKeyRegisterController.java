@@ -2,8 +2,6 @@ package dk.digitalidentity.os2faktor.controller.desktop;
 
 import java.util.Date;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -32,6 +30,7 @@ import dk.digitalidentity.os2faktor.service.IdGenerator;
 import dk.digitalidentity.os2faktor.service.LocalClientService;
 import dk.digitalidentity.os2faktor.service.UserService;
 import dk.digitalidentity.os2faktor.service.YubiKeyService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

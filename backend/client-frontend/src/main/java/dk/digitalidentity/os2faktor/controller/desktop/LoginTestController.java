@@ -1,7 +1,5 @@
 package dk.digitalidentity.os2faktor.controller.desktop;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -23,6 +21,7 @@ import dk.digitalidentity.os2faktor.security.ClientSecurityFilter;
 import dk.digitalidentity.os2faktor.service.AccessControlService;
 import dk.digitalidentity.os2faktor.service.OS2faktorService;
 import dk.digitalidentity.os2faktor.service.model.ClientOrUser;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

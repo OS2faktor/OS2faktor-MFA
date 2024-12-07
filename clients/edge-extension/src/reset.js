@@ -1,9 +1,10 @@
 const swalWithBootstrapButtons = swal.mixin({
-    confirmButtonClass: 'btn',
-    cancelButtonClass: 'btn btn-danger',
-    buttonsStyling: false,
+    customClass: {
+      confirmButton: "btn",
+      cancelButton: "btn btn-danger"
+    }
 });
-var roaming;
+
 var backendUrl;
 showReset();
 
@@ -19,38 +20,14 @@ const getObjectFromLocalStorage = async function(key) {
 	});
 };
 
-const getObjectFromSyncStorage = async function(key) {
-	return new Promise((resolve, reject) => {
-		try {
-			chrome.storage.sync.get(key, function(value) {
-				resolve(value[key]);
-			});
-		} catch (ex) {
-			reject(ex);
-		}
-	});
-};
-
 function showReset() {
+	var backendUrl = "https://backend.os2faktor.dk";
 
-	chrome.storage.managed.get(["Roaming", "BackendUrl"], function(policy) {
-		if (policy.Roaming) {
-			roaming = policy.Roaming;
-		}
-		else {
-		      roaming = false;
-		}
-		if (policy.BackendUrl) {
-			backendUrl = policy.BackendUrl;
-		}
-		else {
-			backendUrl = "https://backend.os2faktor.dk";
-		}
-	});
-	
-	swalWithBootstrapButtons({
+	var swalText = 'Er du sikker på at du vil nulstille din klient?';
+
+        swalWithBootstrapButtons.fire({
 		title: 'Nulstil klient',
-		text: 'Er du sikker på at du vil nulstille din klient?',
+		text: swalText,
 		type: 'warning',
 		showCancelButton: true,
 		reverseButtons: true,
@@ -64,17 +41,11 @@ function showReset() {
 		if (result.value) {
 			let apiKey;
 			let deviceId;
-			if (roaming) {
-				apiKey = await getObjectFromSyncStorage("apiKey");
-				deviceId = await getObjectFromSyncStorage("deviceId");
-				chrome.storage.sync.remove(["apiKey", "deviceId", "nemIdRegistered", "pinRegistered"]);
-			} else {
-				apiKey = await getObjectFromLocalStorage("apiKey");
-				deviceId = await getObjectFromLocalStorage("deviceId");
-				chrome.storage.local.remove(["apiKey", "deviceId", "nemIdRegistered", "pinRegistered"]);
-			}
+			apiKey = await getObjectFromLocalStorage("apiKey");
+			deviceId = await getObjectFromLocalStorage("deviceId");
+			chrome.storage.local.remove(["apiKey", "deviceId", "nemIdRegistered", "pinRegistered"]);
 
-			if (apiKey != null && deviceId != null) {
+			if (deviceId != null && apiKey != null) {
 				await $.ajax({
 					headers: {
 						'ApiKey': apiKey,
@@ -84,10 +55,6 @@ function showReset() {
 					type: 'DELETE'
 				});
 			}
-
-			await chrome.runtime.getBackgroundPage(function(backgroundPage) {
-				backgroundPage.closePopup();
-			});
 		}
 		window.close();
 	});

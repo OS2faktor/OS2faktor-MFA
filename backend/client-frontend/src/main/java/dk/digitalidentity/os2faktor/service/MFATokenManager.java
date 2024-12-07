@@ -55,14 +55,14 @@ public class MFATokenManager {
 	}
 
 	public record OtpVerificationResult (boolean success, int offsetResult) { }
-	public OtpVerificationResult verifyTotp(String code, String secret, int initialOffset) {
+	public OtpVerificationResult verifyTotp(String code, String secret, int initialOffset, int span) {
 		code = code.replace(" ", "");
 		if (!isValidLong(code)) {
 			return new OtpVerificationResult(false, 0);
 		}
 		
 		// validate with +/- 90 seconds
-		IncrementalClock[] clocks = getClocks(initialOffset, 7);
+		IncrementalClock[] clocks = getClocks(initialOffset, span);
 		for (int i = 0; i < clocks.length; i++) {
 			Totp totp = new Totp(secret, clocks[i]);
 			boolean valid = totp.verify(code);

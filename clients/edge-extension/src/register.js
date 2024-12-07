@@ -1,32 +1,8 @@
-var backendUrl;
-var roaming;
-var clientVersion = "2.3.0";
+var backendUrl = "https://backend.os2faktor.dk";
+var frontendUrl = "https://frontend.os2faktor.dk";
+var clientVersion = "2.4.0";
 
 $(document).ready(function() {
-
-    // read global settings and perform initialization
-    chrome.storage.managed.get(["BackendUrl", "FrontendUrl", "Roaming"], function(policy) {
-        if (policy.BackendUrl) {
-            backendUrl = policy.BackendUrl;
-        }
-        else {
-            backendUrl = "https://backend.os2faktor.dk";
-        }
-
-        if (policy.FrontendUrl) {
-            frontendUrl = policy.FrontendUrl;
-        }
-        else {
-            frontendUrl = "https://frontend.os2faktor.dk";
-        }
-
-        if (policy.Roaming) {
-            roaming = policy.Roaming;
-        }
-        else {
-            roaming = false;
-        }
-    });
 
     // Setup ajax so that all our calls will contain clientVersion
     $.ajaxSetup({
@@ -83,15 +59,9 @@ $(document).ready(function() {
     $('#registerPinBtn').on('click', function () {
         tryToRegister(function (result) {
             if (result.success == true ) {
-                if (roaming) {
-                    chrome.storage.sync.set({ apiKey: result.apiKey });
-                    chrome.storage.sync.set({ deviceId: result.deviceId });
-                    chrome.storage.sync.set({ pinRegistered: true });
-                } else {
-                    chrome.storage.local.set({ apiKey: result.apiKey });
-                    chrome.storage.local.set({ deviceId: result.deviceId });
-                    chrome.storage.local.set({ pinRegistered: true });
-                }
+                chrome.storage.local.set({ apiKey: result.apiKey });
+                chrome.storage.local.set({ deviceId: result.deviceId });
+                chrome.storage.local.set({ pinRegistered: true });
 
                 $('#registerPinErrorMsg').text('');
                 $('#registerPinErrorMsg').hide();
@@ -112,14 +82,14 @@ $(document).ready(function() {
         })
     });
 
-    // focus on input field    
+    // focus on input field
     $('#inputName').click().focus();
 });
 
 
 function moveToPinRegistration() {
     $('a[data-toggle="tab"][href="#pinRegisterStep"]').click();
-    
+
     window.setTimeout(function() {
       $('#inputPin').click().focus();
     }, 250);
@@ -182,26 +152,19 @@ function performNemIdRegisterPopup(result) {
             width: 800,
             height: 1000
         }, function (win) {
-            window.close();
 
-            chrome.runtime.getBackgroundPage(function(backgroundPage) {
-                backgroundPage.runNemIdRegistrationMonitorTask(win.id);
-                backgroundPage.closePopup();
-            });
+            chrome.runtime.sendMessage({
+                runNemIdRegistrationMonitorTask : win.id
+			}, function(response) {
+                window.close();
+			});
         });
     }
 }
 
 function nemIdRegisterPopup() {
-    if (roaming) {
-        chrome.storage.sync.get(["apiKey", "deviceId"], function (result) {
-            performNemIdRegisterPopup(result);
-        });
-    }
-    else {
-        chrome.storage.local.get(["apiKey", "deviceId"], function (result) {
-            performNemIdRegisterPopup(result);
-        });
-    }
+    chrome.storage.local.get(["apiKey", "deviceId"], function (result) {
+	performNemIdRegisterPopup(result);
+    });
 }
 

@@ -3,9 +3,6 @@ package dk.digitalidentity.os2faktor.controller.desktop;
 import java.time.LocalDateTime;
 import java.util.Date;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,6 +25,8 @@ import dk.digitalidentity.os2faktor.dao.model.Client;
 import dk.digitalidentity.os2faktor.dao.model.Notification;
 import dk.digitalidentity.os2faktor.dao.model.enums.ClientType;
 import dk.digitalidentity.os2faktor.service.YubiKeyService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

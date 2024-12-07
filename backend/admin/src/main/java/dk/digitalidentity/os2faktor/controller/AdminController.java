@@ -3,8 +3,6 @@ package dk.digitalidentity.os2faktor.controller;
 import java.util.Date;
 import java.util.stream.Collectors;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,6 +23,7 @@ import dk.digitalidentity.os2faktor.service.ClientService;
 import dk.digitalidentity.os2faktor.service.LocalClientService;
 import dk.digitalidentity.os2faktor.service.SsnService;
 import dk.digitalidentity.os2faktor.service.StatisticService;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
 public class AdminController {
@@ -51,7 +50,7 @@ public class AdminController {
 			return "redirect:/ui/desktop/selfservice";
 		}
 
-		return "redirect:/login";
+		return "redirect:/admin";
 	}
 	
 	@GetMapping("/login")

@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,6 +22,7 @@ import dk.digitalidentity.os2faktor.security.SecurityUtil;
 import dk.digitalidentity.os2faktor.service.AccessControlService;
 import dk.digitalidentity.os2faktor.service.UserService;
 import dk.digitalidentity.os2faktor.service.model.ClientOrUser;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

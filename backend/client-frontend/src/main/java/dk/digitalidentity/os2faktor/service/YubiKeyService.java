@@ -1,5 +1,12 @@
 package dk.digitalidentity.os2faktor.service;
 
+import java.io.IOException;
+import java.util.Base64;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.yubico.webauthn.AssertionRequest;
 import com.yubico.webauthn.AssertionResult;
 import com.yubico.webauthn.FinishAssertionOptions;
@@ -9,7 +16,6 @@ import com.yubico.webauthn.RelyingParty;
 import com.yubico.webauthn.StartAssertionOptions;
 import com.yubico.webauthn.StartRegistrationOptions;
 import com.yubico.webauthn.data.AuthenticatorAssertionResponse;
-import com.yubico.webauthn.data.AuthenticatorAttachment;
 import com.yubico.webauthn.data.AuthenticatorAttestationResponse;
 import com.yubico.webauthn.data.AuthenticatorSelectionCriteria;
 import com.yubico.webauthn.data.ByteArray;
@@ -23,14 +29,9 @@ import com.yubico.webauthn.data.UserIdentity;
 import com.yubico.webauthn.data.UserVerificationRequirement;
 import com.yubico.webauthn.exception.AssertionFailedException;
 import com.yubico.webauthn.exception.RegistrationFailedException;
+
 import dk.digitalidentity.os2faktor.dao.model.Notification;
 import dk.digitalidentity.os2faktor.dao.model.PartialClient;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.util.Base64;
-import java.util.List;
 
 @Service
 public class YubiKeyService {
@@ -121,7 +122,8 @@ public class YubiKeyService {
 	private AuthenticatorSelectionCriteria getAuthenticatorSelectionCriteria() {
 		return AuthenticatorSelectionCriteria.builder()
 				.userVerification(UserVerificationRequirement.DISCOURAGED)
-				.authenticatorAttachment(AuthenticatorAttachment.CROSS_PLATFORM)
+				// allow both
+				//.authenticatorAttachment(AuthenticatorAttachment.CROSS_PLATFORM)
 				.build();
 	}
 

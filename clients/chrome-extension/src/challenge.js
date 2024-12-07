@@ -1,6 +1,6 @@
 var backendUrl;
 var roaming;
-var clientVersion = "2.3.0";
+var clientVersion = "2.4.0";
 
 const swalWithBootstrapButtons = swal.mixin({
     confirmButtonClass: 'btn',

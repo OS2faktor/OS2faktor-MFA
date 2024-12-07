@@ -11,6 +11,7 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,8 +26,8 @@ public class LoginPostProcesser implements SamlLoginPostProcessor {
 	@Override
 	@Transactional
 	public void process(TokenUser tokenUser) {
-		String uuid = (String) tokenUser.getAttributes().get(TokenUser.ATTRIBUTE_UUID);
-		String name = (String) tokenUser.getAttributes().get(TokenUser.ATTRIBUTE_NAME);
+		String uuid = getX509NameIdValue("Serial", tokenUser.getUsername());
+		String name = getX509NameIdValue("CN", tokenUser.getUsername());
 		String cvr = tokenUser.getCvr();
 
 		Municipality municipality = municipalityDao.findByCvr(cvr);
@@ -52,4 +53,26 @@ public class LoginPostProcesser implements SamlLoginPostProcessor {
 		newAuthorities.add(new SamlGrantedAuthority(AuthenticatedUser.ROLE_ADMIN));
 		tokenUser.setAuthorities(newAuthorities);
 	}
+	
+	private static String getX509NameIdValue(String field, String nameIdVal) {
+		if (!StringUtils.hasLength(nameIdVal)) {
+			return null;
+		}
+
+		StringBuilder builder = new StringBuilder();
+
+		int idx = nameIdVal.indexOf(field + "=");
+		if (idx >= 0) {
+			for (int i = idx + field.length() + 1; i < nameIdVal.length(); i++) {
+				if (nameIdVal.charAt(i) == ',') {
+					break;
+				}
+
+				builder.append(nameIdVal.charAt(i));
+			}
+		}
+
+		return builder.toString();
+	}
+
 }

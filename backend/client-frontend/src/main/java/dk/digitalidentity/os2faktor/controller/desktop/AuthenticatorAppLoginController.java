@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.Date;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -27,6 +25,7 @@ import dk.digitalidentity.os2faktor.security.ClientSecurityFilter;
 import dk.digitalidentity.os2faktor.service.HardwareTokenService;
 import dk.digitalidentity.os2faktor.service.MFATokenManager;
 import dk.digitalidentity.os2faktor.service.MFATokenManager.OtpVerificationResult;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -165,7 +164,8 @@ public class AuthenticatorAppLoginController extends BaseController {
 			}
 		}
 
-		OtpVerificationResult otpVerificationResult = mfaTokenManager.verifyTotp(form.mfaCode, client.getSecret(), offset);
+		// last argument is a span of 7 codes (-90, -60, -30, 0, 30, 60, 90 seconds from current offset)
+		OtpVerificationResult otpVerificationResult = mfaTokenManager.verifyTotp(form.mfaCode, client.getSecret(), offset, 7);
 		if (!otpVerificationResult.success()) {
 			client.setFailedPinAttempts(client.getFailedPinAttempts() + 1);
 			clientService.save(client);

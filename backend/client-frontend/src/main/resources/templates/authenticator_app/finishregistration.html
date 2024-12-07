@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
-<head th:replace="fragments/header :: header" />
+<head th:replace="~{fragments/header :: header}" />
 <body class="top-navigation">
 	<div id="wrapper">
 		<div id="page-wrapper" class="gray-bg">
-			<div th:replace="fragments/topbar :: topbar"></div>
+			<div th:replace="~{fragments/topbar :: topbar}"></div>
 
 			<div class="wrapper wrapper-content">
 				<div class="row">
@@ -20,7 +20,7 @@
 									<input th:field="*{qrCodeKey}" hidden>
 									<input th:field="*{partialClientId}" hidden>
 								
-									<h4 th:text="#{html.yubikey.title}"></h4>
+									<h4>Tilknyt authenticator</h4>
 									<p>Du skal nu scanne QR koden med din Authenticator. Når registreringen er gennemført i app'en, skal du indtaste koden, som appen genererer og herefter trykke videre. Hvis koden er korrekt bliver din enhed registreret.</p>
 									<img class="offset-sm-3 col-sm-6" th:src="*{qrCode}" />
 									<p class="offset-sm-3 col-sm-8" th:text="'Konfigurationsnøgle: ' + *{qrCodeKey}"></p>
@@ -52,12 +52,12 @@
 					</div>
 
 					<th:block th:if="${session.SESSION_REDIRECT_URL == null}">
-						<div th:replace="fragments/rightbar :: rightbar"></div>
+						<div th:replace="~{fragments/rightbar :: rightbar}"></div>
 					</th:block>
 				</div>
 			</div>
 
-			<div th:replace="fragments/footer :: footer"></div>
+			<div th:replace="~{fragments/footer :: footer}"></div>
 		</div>
 	</div>
 
@@ -76,7 +76,7 @@
 		}
 	</style>
 
-	<div th:replace="fragments/footer :: scripts"></div>
+	<div th:replace="~{fragments/footer :: scripts}"></div>
 
 	<script th:inline="javascript">
 		/*<![CDATA[*/

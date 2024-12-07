@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
-<head th:replace="fragments/header :: header" />
+<head th:replace="~{fragments/header :: header}" />
 <body class="top-navigation">
 	<div id="wrapper">
 		<div id="page-wrapper" class="gray-bg">
-			<div th:replace="fragments/topbar :: topbar"></div>
+			<div th:replace="~{fragments/topbar :: topbar}"></div>
 
 			<div class="wrapper wrapper-content">
 				<div class="row">
@@ -26,18 +26,18 @@
 									<li>Teste at dine enheder stadig virker</li>
 								</ul>
 
-								<a th:href="@{/saml/login}" class="btn btn-block btn-lg btn-primary col-sm-12">Login</a>
+								<a th:href="@{/desktop/selfservice}" class="btn btn-block btn-lg btn-primary col-sm-12">Login</a>
 							</div>
 						</div>
 					</div>
 				</div>
 	        </div>
 
-			<div th:replace="fragments/footer :: footer"></div>
+			<div th:replace="~{fragments/footer :: footer}"></div>
 		</div>
 	</div>
 
-	<div th:replace="fragments/footer :: scripts"></div>
+	<div th:replace="~{fragments/footer :: scripts}"></div>
 
 	<script th:inline="javascript">
 		/*<![CDATA[*/

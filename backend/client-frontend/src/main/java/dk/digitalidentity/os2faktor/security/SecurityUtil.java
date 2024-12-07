@@ -3,9 +3,6 @@ package dk.digitalidentity.os2faktor.security;
 import java.util.ArrayList;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -16,6 +13,8 @@ import dk.digitalidentity.os2faktor.dao.model.User;
 import dk.digitalidentity.os2faktor.dao.model.enums.NSISLevel;
 import dk.digitalidentity.os2faktor.service.UserService;
 import dk.digitalidentity.samlmodule.model.TokenUser;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 

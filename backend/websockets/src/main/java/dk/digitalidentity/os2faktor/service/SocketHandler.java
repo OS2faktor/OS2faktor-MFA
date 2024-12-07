@@ -15,6 +15,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
 import org.springframework.web.socket.CloseStatus;
@@ -122,6 +123,7 @@ public class SocketHandler extends TextWebSocketHandler {
 		}
 	}
 	
+	@Transactional
 	@RateLimiter(name = "processNewConnections")
 	public void processNewConnection(WebSocketSession session) throws Exception {
 		Client client = null;
@@ -148,6 +150,9 @@ public class SocketHandler extends TextWebSocketHandler {
 			if (traceConnections) {
 				log.info("Established connection from " + client.getDeviceId());
 			}
+			
+			// resend any pending notifications for this client
+			notificationDao.resetNotificationsForClient(client.getDeviceId());
 			
 			sessions.add(new ClientSession(client, session));
 		}

@@ -1,12 +1,11 @@
 package dk.digitalidentity.os2faktor.service;
 
-import javax.transaction.Transactional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import dk.digitalidentity.os2faktor.dao.ExternalLoginSessionDao;
 import dk.digitalidentity.os2faktor.dao.model.ExternalLoginSession;
+import jakarta.transaction.Transactional;
 
 @Service
 public class ExternalLoginSessionService {

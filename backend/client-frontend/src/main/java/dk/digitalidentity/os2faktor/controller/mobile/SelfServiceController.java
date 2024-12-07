@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,6 +19,7 @@ import dk.digitalidentity.os2faktor.controller.model.FailedFlow;
 import dk.digitalidentity.os2faktor.dao.model.Client;
 import dk.digitalidentity.os2faktor.service.AccessControlService;
 import dk.digitalidentity.os2faktor.service.model.ClientOrUser;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
 public class SelfServiceController extends BaseController {

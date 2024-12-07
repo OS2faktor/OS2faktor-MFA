@@ -24,19 +24,31 @@ namespace OS2faktor
                 return;
             }
 
+            log.Debug("Attempting to connect");
+
             WebSocket.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12;
             WebSocket.SetCredentials(Properties.Settings.Default.deviceId, Properties.Settings.Default.apiKey, true);
             WebSocket.Connect();
         }
 
+        internal static void Reconnect()
+        {
+            Disconnect();
+
+            WebSocket = new WebSocket(OS2faktor.Properties.Settings.Default.websocketUrl);
+
+            Init();
+            Connect();
+        }
+
         internal static void Init()
         {
-            log.Debug("Initializing WebSocket.");
+            log.Debug("Initializing WebSocket");
 
             // This event occurs when the WebSocket connection has been established.
             WebSocket.OnOpen += (sender, e) =>
             {
-                log.Debug("WebSocket connection opened.");
+                log.Debug("WebSocket connection opened");
             };
 
             // This event occurs when the WebSocket receives a message.
@@ -45,14 +57,13 @@ namespace OS2faktor
             // e.RawData property returns a byte[], so it is mainly used to get the binary message data.
             WebSocket.OnMessage += (sender, e) =>
             {
-                log.Debug("WebSocket: Message received.");
+                log.Debug("WebSocket: Message received");
 
                 if (e.IsText)
                 {
                     // Do something with e.Data.
                     log.Debug("Message: " + e.Data);
 
-                    // TODO: error handling
                     dynamic message = JsonConvert.DeserializeObject(e.Data);
                     dynamic dataObject = JsonConvert.DeserializeObject(message.data.Value);
 

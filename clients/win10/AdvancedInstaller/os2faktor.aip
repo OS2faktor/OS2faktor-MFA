@@ -14,10 +14,10 @@
     <ROW Property="ARPNOREPAIR" Value="1"/>
     <ROW Property="LIMITUI" Value="1"/>
     <ROW Property="Manufacturer" Value="OS2"/>
-    <ROW Property="ProductCode" Value="1030:{4323F517-B1F2-4836-A844-DB862DAE8FF1} " Type="16"/>
+    <ROW Property="ProductCode" Value="1030:{E12282B3-7F29-4B1E-8E4E-F89E5FAF57BD} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1030"/>
     <ROW Property="ProductName" Value="OS2faktor"/>
-    <ROW Property="ProductVersion" Value="2.5.1" Type="32"/>
+    <ROW Property="ProductVersion" Value="2.6.1" Type="32"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND"/>
     <ROW Property="UpgradeCode" Value="{FF8A1A78-F9E8-4581-B1C6-B1EEE7771F20}"/>
     <ROW Property="WindowsType9X" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
@@ -60,9 +60,9 @@
     <ROW Component="ProductInformation" ComponentId="{A16BE0A7-90B5-46D8-82F9-EE6939B5FD8D}" Directory_="APPDIR" Attributes="4" KeyPath="Version"/>
     <ROW Component="Quartz.dll" ComponentId="{A7D9C0DF-8EA1-42F9-BA82-4DD25BEFE5BA}" Directory_="APPDIR" Attributes="0" KeyPath="Quartz.dll"/>
     <ROW Component="System.Net.Http.Formatting.dll" ComponentId="{93EC2A18-F9F5-4ACE-806F-6C2E2C9C51F1}" Directory_="APPDIR" Attributes="0" KeyPath="System.Net.Http.Formatting.dll"/>
-    <ROW Component="WebView2Loader.dll" ComponentId="{0442DC04-8759-4547-B935-F37ED86E936C}" Directory_="native_Dir" Attributes="0" KeyPath="WebView2Loader.dll"/>
-    <ROW Component="WebView2Loader.dll_1" ComponentId="{FFDA5169-5A28-47F3-947A-8C63A7FC6C97}" Directory_="native_1_Dir" Attributes="256" KeyPath="WebView2Loader.dll_1"/>
-    <ROW Component="WebView2Loader.dll_2" ComponentId="{7F54F8B8-BD6F-413A-992E-4392EDC32EE1}" Directory_="native_2_Dir" Attributes="0" KeyPath="WebView2Loader.dll_2"/>
+    <ROW Component="WebView2Loader.dll" ComponentId="{211F4FD2-B838-4556-8BC0-7DE2CA36928C}" Directory_="native_2_Dir" Attributes="0" KeyPath="WebView2Loader.dll"/>
+    <ROW Component="WebView2Loader.dll_1" ComponentId="{4DB7D7BE-F044-402A-B651-54456CE8022D}" Directory_="native_Dir" Attributes="0" KeyPath="WebView2Loader.dll_1"/>
+    <ROW Component="WebView2Loader.dll_2" ComponentId="{80A8EB10-5E49-4DD4-86D6-042FEF23CF7B}" Directory_="native_1_Dir" Attributes="256" KeyPath="WebView2Loader.dll_2"/>
     <ROW Component="log4.config" ComponentId="{BE0A37FC-0879-42C0-A936-66E3CE5A744B}" Directory_="APPDIR" Attributes="0" KeyPath="log4.config" Type="0"/>
     <ROW Component="log4net.dll" ComponentId="{04C8709C-E893-4FC9-AEF8-F2BDA9B37408}" Directory_="APPDIR" Attributes="0" KeyPath="log4net.dll"/>
     <ROW Component="websocketsharp.dll" ComponentId="{7ECD765E-45E4-4350-A19F-45D96D2BE1F5}" Directory_="APPDIR" Attributes="0" KeyPath="websocketsharp.dll"/>
@@ -98,9 +98,9 @@
     <ROW File="Microsoft.Web.WebView2.Wpf.xml" Component_="log4.config" FileName="MICROS~2.XML|Microsoft.Web.WebView2.Wpf.xml" Attributes="0" SourcePath="..\OS2faktor\bin\Debug\Microsoft.Web.WebView2.Wpf.xml" SelfReg="false"/>
     <ROW File="Microsoft.Web.WebView2.Core.dll" Component_="Microsoft.Web.WebView2.Core.dll" FileName="MICROS~3.DLL|Microsoft.Web.WebView2.Core.dll" Attributes="0" SourcePath="..\OS2faktor\bin\Debug\Microsoft.Web.WebView2.Core.dll" SelfReg="false"/>
     <ROW File="Microsoft.Web.WebView2.Core.xml" Component_="log4.config" FileName="MICROS~3.XML|Microsoft.Web.WebView2.Core.xml" Attributes="0" SourcePath="..\OS2faktor\bin\Debug\Microsoft.Web.WebView2.Core.xml" SelfReg="false"/>
-    <ROW File="WebView2Loader.dll" Component_="WebView2Loader.dll" FileName="WEBVIE~1.DLL|WebView2Loader.dll" Attributes="0" SourcePath="..\OS2faktor\bin\Debug\runtimes\win-arm64\native\WebView2Loader.dll" SelfReg="false"/>
-    <ROW File="WebView2Loader.dll_1" Component_="WebView2Loader.dll_1" FileName="WEBVIE~1.DLL|WebView2Loader.dll" Attributes="0" SourcePath="..\OS2faktor\bin\Debug\runtimes\win-x64\native\WebView2Loader.dll" SelfReg="false"/>
-    <ROW File="WebView2Loader.dll_2" Component_="WebView2Loader.dll_2" FileName="WEBVIE~1.DLL|WebView2Loader.dll" Attributes="0" SourcePath="..\OS2faktor\bin\Debug\runtimes\win-x86\native\WebView2Loader.dll" SelfReg="false"/>
+    <ROW File="WebView2Loader.dll" Component_="WebView2Loader.dll" FileName="WEBVIE~1.DLL|WebView2Loader.dll" Attributes="0" SourcePath="..\OS2faktor\bin\Debug\runtimes\win-x86\native\WebView2Loader.dll" SelfReg="false"/>
+    <ROW File="WebView2Loader.dll_1" Component_="WebView2Loader.dll_1" FileName="WEBVIE~1.DLL|WebView2Loader.dll" Attributes="0" SourcePath="..\OS2faktor\bin\Debug\runtimes\win-arm64\native\WebView2Loader.dll" SelfReg="false"/>
+    <ROW File="WebView2Loader.dll_2" Component_="WebView2Loader.dll_2" FileName="WEBVIE~1.DLL|WebView2Loader.dll" Attributes="0" SourcePath="..\OS2faktor\bin\Debug\runtimes\win-x64\native\WebView2Loader.dll" SelfReg="false"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BootstrOptComponent">
     <ROW BootstrOptKey="GlobalOptions" GeneralOptions="b" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites" Options="2"/>

@@ -13,7 +13,7 @@
 			<div class="navbar-collapse collapse" id="navbar">
 				<ul sec:authorize="!isAuthenticated()" class="nav navbar-top-links navbar-right">
 					<li>
-						<a th:href="@{/saml/login}">
+						<a th:href="@{/desktop/selfservice}">
 							<i class="fa fa-sign-in"></i> Log ind
 						</a>
 					</li>
@@ -21,9 +21,14 @@
 
 				<ul sec:authorize="isAuthenticated()" class="nav navbar-top-links navbar-right">
 					<li>
-						<a th:if="${session.SESSION_REDIRECT_URL == null}" th:href="@{/saml/logout}">
-							<i class="fa fa-sign-out"></i> Log ud
-						</a>
+						<th:block th:if="${session.SESSION_REDIRECT_URL == null}">
+							<form th:action="@{/logout}" id="logout_form" method="post"></form>
+							<a href="#" onclick="$('#logout_form').submit();">
+								<em class="fa fa-sign-out"></em>
+								<span>Log ud</span>
+							</a>
+						</th:block>
+
 						<a th:if="${session.SESSION_REDIRECT_URL != null}" th:href="${session.SESSION_REDIRECT_URL}">
 							<i class="fa fa-arrow-left"></i> Tilbage
 						</a>

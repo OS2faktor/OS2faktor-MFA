@@ -1,5 +1,4 @@
-var frontendUrl;
-var roaming;
+var frontendUrl = "https://frontend.os2faktor.dk";
 
 // challenge window
 var challengePopupId;
@@ -7,77 +6,32 @@ var challengePopupId;
 const applicationServerKey = "BJgHwxgz45mYC9_gGqOF3RiCL97HVwt3tP9RqYz2btuv_r0Ev3bJ4A9PMzwpHVbsXnA715ZJmxhn5DDRDHoBnGI=";
 
 document.addEventListener('DOMContentLoaded', function () {
-	chrome.storage.managed.get(["FrontendUrl", "Roaming"], function(policy) {
-		if (policy.FrontendUrl) {
-			frontendUrl = policy.FrontendUrl;
-		}
-		else {
-			frontendUrl = "https://frontend.os2faktor.dk";
-		}
-		
-		if (policy.Roaming) {
-			roaming = policy.Roaming;
-		}
-		else {
-			roaming = false;
-		}
-		
-		fetchSettings();
-	});
+	fetchSettings();
 });
 
 function fetchSettings() {
-	if (roaming) {
-		chrome.storage.sync.get(["registrationId", "apiKey", "deviceId", "pinRegistered", "nemIdRegistered", "registered"], function (result) {
-			var registrationId = result["registrationId"];
-			var apiKey = result["apiKey"];
-			var deviceId = result["deviceId"];
-			var pinRegistered = result["pinRegistered"];
-			var registered = result["registered"];
-			var nemIdRegistered = result["nemIdRegistered"];
-			
-			// if no deviceId is available, try to fetch all data from local and copy to roaming profile
-			if (deviceId == null) {
-				chrome.storage.local.get(["registrationId", "apiKey", "deviceId", "pinRegistered", "nemIdRegistered", "registered"], function (localResult) {
-					var localRegistrationId = localResult["registrationId"];
-					var localApiKey = localResult["apiKey"];
-					var localDeviceId = localResult["deviceId"];
-					var localPinRegistered = localResult["pinRegistered"];
-					var localRegistered = localResult["registered"];
-					var localNemIdRegistered = localResult["nemIdRegistered"];
 
-					chrome.storage.sync.set({
-						registrationId: localRegistrationId,
-						apiKey: localApiKey,
-						deviceId: localDeviceId,
-						pinRegistered: localPinRegistered,
-						registered: localRegistered,
-						nemIdRegistered: localNemIdRegistered,
-					}, function() {
-						initializeDropdown(localRegistrationId, localApiKey, localDeviceId, localPinRegistered, localRegistered, localNemIdRegistered);
-					});
-				});
-			}
-			else {
-				initializeDropdown(registrationId, apiKey, deviceId, pinRegistered, registered, nemIdRegistered);
-			}
-		});
-	}
-	else {
-		chrome.storage.local.get(["registrationId", "apiKey", "deviceId", "pinRegistered", "nemIdRegistered", "registered"], function (result) {
-			var registrationId = result["registrationId"];
-			var apiKey = result["apiKey"];
-			var deviceId = result["deviceId"];
-			var pinRegistered = result["pinRegistered"];
-			var registered = result["registered"];
-			var nemIdRegistered = result["nemIdRegistered"];
-			
-			initializeDropdown(registrationId, apiKey, deviceId, pinRegistered, registered, nemIdRegistered);
-		});
-	}	
+	chrome.storage.local.get(["registrationId", "apiKey", "deviceId", "pinRegistered", "nemIdRegistered", "registered", "installedTts"], function (result) {
+		var registrationId = result["registrationId"];
+		var apiKey = result["apiKey"];
+		var deviceId = result["deviceId"];
+		var pinRegistered = result["pinRegistered"];
+		var registered = result["registered"];
+		var nemIdRegistered = result["nemIdRegistered"];
+		var installedTts = result["installedTts"];
+
+		initializeDropdown(registrationId, apiKey, deviceId, pinRegistered, registered, nemIdRegistered, installedTts);
+	});
 }
 
-function initializeDropdown(registrationId, apiKey, deviceId, pinRegistered, registered, nemIdRegistered) {
+function initializeDropdown(registrationId, apiKey, deviceId, pinRegistered, registered, nemIdRegistered, installedTts) {
+        if (!installedTts) {
+		var nowDate = new Date(); 
+		installedTts = "installeret " + nowDate.getFullYear() + '/' + (nowDate.getMonth() + 1) + '/' + nowDate.getDate();
+
+		chrome.storage.local.set({installedTts: installedTts});
+        }
+        
 	if (apiKey) {
 		document.getElementById('register').style.display = 'none';
 	}
@@ -91,19 +45,20 @@ function initializeDropdown(registrationId, apiKey, deviceId, pinRegistered, reg
 
 	if (deviceId) {
 		$('#deviceIdItemValue').text(deviceId);
+		document.getElementById('deviceInfoItem').style.display = 'none';
 	}
 	else {
 		document.getElementById('deviceIdItem').style.display = 'none';
-		document.getElementById('deviceIdRuler').style.display = 'none';
+		$('#deviceInfoItemValue').text(installedTts);
 	}
-	
+
 	if (nemIdRegistered) {
 		document.getElementById('nemIdRegister').style.display = 'none';
 	}
 	else {
 		document.getElementById('manage').style.display = 'none';
 	}
-	
+
 	if (pinRegistered) {
 		document.getElementById('pinRegister').style.display = 'none';
 	}
@@ -142,10 +97,10 @@ function initializeDropdown(registrationId, apiKey, deviceId, pinRegistered, reg
 function urlB64ToUint8Array(base64String) {
 	const padding = '='.repeat((4 - base64String.length % 4) % 4);
 	const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
-	
+
 	const rawData = window.atob(base64);
 	const outputArray = new Uint8Array(rawData.length);
-	
+
 	for (let i = 0; i < rawData.length; ++i) {
 		outputArray[i] = rawData.charCodeAt(i);
 	}
@@ -153,43 +108,55 @@ function urlB64ToUint8Array(base64String) {
 	return outputArray;
 }
 
-function getPushPermission() {
+// New register with Web Push or FCM stuff
+function register() {
+	console.log("registering push token");
+
 	navigator.serviceWorker.getRegistration().then(registration => {
-		registration.pushManager.subscribe({
-			userVisibleOnly: true,
-			applicationServerKey: urlB64ToUint8Array(applicationServerKey)
-		}).then(subscription => {
+               registration.pushManager.subscribe({
+                       userVisibleOnly: true,
+                       applicationServerKey: urlB64ToUint8Array(applicationServerKey)
+               }).then(subscription => {
 			const json = JSON.stringify(subscription.toJSON(), null, 2);
-			if (roaming) {
-				chrome.storage.sync.set({
-					registrationId: json
-				}, function() {
-					registerInFrontend(json);
-				});
-			}
-			else {
-				chrome.storage.local.set({
-					registrationId: json
-				}, function() {
-					registerInFrontend(json);
-				});
-			}
+
+			chrome.storage.local.set({
+				registrationId: json
+			}, function() {
+				performRegisterInFrontend(json);
+			});
 		},
 		error => {
 			console.log("error getting push permission", error);
-			registerInFrontend(null);
+			performRegisterInFrontend(null);
 		});
 	});
 }
 
-function register() {
-	getPushPermission();
+//Old registration using gcm
+function oldRegister() {
+	// identifier for push notifications
+	var senderIds = ["786549201808"];
+	chrome.gcm.register(senderIds, function (registrationId) {
+
+		if (chrome.runtime.lastError) {
+			console.log("Error occured while registering.");
+		}
+
+		chrome.storage.local.set({
+			registered: true,
+			registrationId: registrationId
+		}, function() {
+			performRegisterInFrontend(registrationId);
+		});
+	});
 }
 
-function registerInFrontend(registrationId) {
-	if (!registrationId) {
-		registrationId = '';
-	}
+function performRegisterInFrontend(registrationId) {
+	if (registrationId) {
+		// Chromium Edge workaround
+		if (registrationId == 'N/A') {
+			registrationId = '';
+		}
 
 		var w = 600;
 		var h = 400;
@@ -209,10 +176,9 @@ function registerInFrontend(registrationId) {
 			left: left,
 			top: top
 		}, function (win) {
-			chrome.runtime.getBackgroundPage(function(backgroundPage) {
-				backgroundPage.closePopup();
-			});
+
 		});
+	}
 }
 
 function performNemIdRegisterPopup(result) {
@@ -232,24 +198,19 @@ function performNemIdRegisterPopup(result) {
 			width: 800,
 			height: 600
 		}, function (win) {
-			chrome.runtime.getBackgroundPage(function(backgroundPage){
-				backgroundPage.runNemIdRegistrationMonitorTask(win.id);
-				backgroundPage.closePopup();
+			chrome.runtime.sendMessage({
+				runNemIdRegistrationMonitorTask : win.id
+			}, function(response) {
+				//We're not expecting a response here
 			});
 		});
 	}
 }
 
 function nemIdRegisterPopup(){
-	if (roaming) {
-		chrome.storage.sync.get(["registrationId","apiKey","deviceId"], function (result) {
-			performNemIdRegisterPopup(result);
-		});
-	} else {
-		chrome.storage.local.get(["registrationId","apiKey","deviceId"], function (result) {
-			performNemIdRegisterPopup(result);
-		});
-	}
+	chrome.storage.local.get(["registrationId","apiKey","deviceId"], function (result) {
+		performNemIdRegisterPopup(result);
+	});
 }
 
 function performPinRegisterPopup(result) {
@@ -269,24 +230,19 @@ function performPinRegisterPopup(result) {
 			width: 800,
 			height: 600
 		}, function (win) {
-			chrome.runtime.getBackgroundPage(function(backgroundPage){
-				backgroundPage.runPinRegistrationMonitorTask(win.id);
-				backgroundPage.closePopup();
+			chrome.runtime.sendMessage({
+				runPinRegistrationMonitorTask : win.id
+			}, function(response) {
+				//We're not expecting a response here
 			});
 		});
 	}
 }
 
-function pinRegisterPopup(){
-	if (roaming) {
-		chrome.storage.sync.get(["registrationId","apiKey","deviceId"], function (result) {
-			performPinRegisterPopup(result);
-		});
-	} else {
-		chrome.storage.local.get(["registrationId","apiKey","deviceId"], function (result) {
-			performPinRegisterPopup(result);
-		});
-	}
+function pinRegisterPopup() {
+	chrome.storage.local.get(["registrationId","apiKey","deviceId"], function (result) {
+		performPinRegisterPopup(result);
+	});
 }
 
 function performSelfServicePopup(result) {
@@ -306,24 +262,19 @@ function performSelfServicePopup(result) {
 			width: 800,
 			height: 600
 		}, function (win) {
-			chrome.runtime.getBackgroundPage(function(backgroundPage){
-				backgroundPage.runSelfServiceMonitorTask(win.id);
-				backgroundPage.closePopup();
+			chrome.runtime.sendMessage({
+				runSelfServiceMonitorTask : win.id
+			}, function(response) {
+				//We're not expecting a response here
 			});
 		});
 	}
 }
 
 function selfServicePopup() {
-	if (roaming) {
-		chrome.storage.sync.get(["registrationId","apiKey","deviceId"], function (result) {
-			performSelfServicePopup(result);
-		});
-	} else {
-		chrome.storage.local.get(["registrationId","apiKey","deviceId"], function (result) {
-			performSelfServicePopup(result);
-		});
-	}
+	chrome.storage.local.get(["registrationId","apiKey","deviceId"], function (result) {
+		performSelfServicePopup(result);
+	});
 }
 
 function challengePopup(){
@@ -342,7 +293,7 @@ function challengePopup(){
 		left: left,
 		top: top
 	}, function (win) {
-	
+
 	});
 }
 
@@ -365,8 +316,4 @@ function showResetWindow() {
 
 	});
 }
-
-window.addEventListener("load", event => {	
-	navigator.serviceWorker.register('sw.js');
-});
 

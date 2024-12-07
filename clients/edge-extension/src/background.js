@@ -1,55 +1,11 @@
-var monitorNemIdUrlTask;
-var nemIdWindowId;
-var nemIdResponseHandled;
 
-var pinWindowId;
-var monitorPinUrlTask;
+var clientVersion = "2.4.0";
+var applicationServerKey = "BJgHwxgz45mYC9_gGqOF3RiCL97HVwt3tP9RqYz2btuv_r0Ev3bJ4A9PMzwpHVbsXnA715ZJmxhn5DDRDHoBnGI=";
 
-var monitorSelfServiceUrlTask;
-var selfServiceWindowId;
-
-var notificationCount = 0;
-
-var challengePopupId;
-
-var roaming;
-var backendUrl;
-
-chrome.storage.managed.get("Roaming", function(policy) {
-	if (policy.Roaming) {
-		roaming = policy.Roaming;
-	}
-	else {
-		roaming = false;
-	}
-});
-
-/* utility method for establishing a Login session */
+/* utility method for generating a Login session */
 function obtainSession(sessionUrl) {
-    $.ajax({
-        url: sessionUrl,
-        type: 'GET'
-    });
+	fetch(sessionUrl, { method: 'GET', cache: "default" });
 }
-
-chrome.storage.managed.onChanged.addListener((changes, areaName) => {
-    if (changes == null || changes.timestamp.newValue == null || changes.token.newValue == null) {
-        return;
-    }
-
-    // Check that timestamp matches
-    var oldestAllowedDate = new Date();
-    var oldestAllowedMessageInMinutes = 5;
-    oldestAllowedDate.setMinutes(oldestAllowedDate.getMinutes() - oldestAllowedMessageInMinutes);
-
-    var timestamp = new Date(changes.timestamp.newValue);
-    if (oldestAllowedDate > timestamp) {
-        return;
-    }
-
-    // Obtain a session to SSO login
-    obtainSession(changes.token.newValue);
-});
 
 /** Utility functions */
 function guid() {
@@ -62,220 +18,333 @@ function guid() {
 	return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
 }
 
-function showChallengeWindow() {
-	var w = 600;
-	var h = 400;
-	var left = Math.round(screen.width/2) - Math.round(w/2);
-	var top = Math.round(screen.height/2) - Math.round(h/2);
+// INTERNAL MESSAGES
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 
-	if (challengePopupId == null){
-		chrome.windows.create({
-				url: "challenge.html",
-				type: "popup",
-				state: "normal",
-				focused: true,
-				width: w,
-				height: h,
-				left: left,
-				top: top
-		}, function (win) {
-				challengePopupId = win.id;
+	//Pause challanges for dialog windows
+	if (request.runPinRegistrationMonitorTask || request.runNemIdRegistrationMonitorTask || request.runSelfServiceMonitorTask) {
+		chrome.storage.local.set({ isPaused: true });
+	}
+
+	if (request.runPinRegistrationMonitorTask) {
+		console.log("Running runPinRegistrationMonitorTask task");
+		runPinRegistrationMonitorTask(request.runPinRegistrationMonitorTask);
+	}
+
+	if (request.runNemIdRegistrationMonitorTask) {
+		console.log("Running runNemIdRegistrationMonitorTask task");
+		runNemIdRegistrationMonitorTask(request.runNemIdRegistrationMonitorTask);
+		sendResponse(); // we need this to close the registration window
+	}
+
+	if (request.runSelfServiceMonitorTask) {
+		console.log("Running runSelfServiceMonitorTask task");
+		runSelfServiceMonitorTask(request.runSelfServiceMonitorTask);
+	}
+
+	//Comes from "shortcut" to open challenge window
+	if (request.os2faktorEvent) {
+		handleChallenge();
+	}
+
+	return true;
+});
+
+//EXTERNAL MESSAGES
+chrome.runtime.onMessageExternal.addListener(function(request, sender, sendResponse) {
+	if (request.nemIdRegistration) {
+		chrome.storage.local.set({ nemIdRegistered: true });
+	}
+});
+
+// listener for events from GCM - for indirect integration
+chrome.gcm.onMessage.addListener(function(message) {
+	console.log("Got push message from GCM");
+	handleChallenge();
+});
+
+chrome.gcm.onSendError.addListener(function (err) {
+	console.log("addLister Error: " + err);
+});
+
+// listener for events from FCM
+self.addEventListener('push', event => {
+	console.log("Got push message from FCM");
+	handleChallenge();
+});
+
+function handleChallenge() {
+	chrome.storage.local.get(["apiKey", "deviceId"], function (result) {
+		if (typeof result.apiKey === 'undefined' || typeof result.deviceId === 'undefined') {
+			// do nothing
+		} else {
+			openChallengeWindow();
+		}
+	});
+}
+
+function openChallengeWindow() {
+	var now = new Date().getTime();
+	var in20sec = new Date().getTime() + (1000 * 20);
+
+	try {
+		chrome.system.display.getInfo(function(displayInfo) {
+			var w = 600;
+			var h = 400;
+			var left = Math.round(displayInfo[0].bounds.width/2) - Math.round(w/2);
+			var top = Math.round(displayInfo[0].bounds.height/2) - Math.round(h/2);
+
+			chrome.storage.local.get(["challengePopupTts"], function (result) {
+				// did we open a popup within the last 20 seconds?
+				var allowPopup = true;
+				if (result.challengePopupTts && result.challengePopupTts > now) {
+					allowPopup = false;
+				}
+
+				//check if there are no other challenge windows
+				if (allowPopup) {
+					chrome.windows.create({
+						url: "challenge.html",
+						type: "popup",
+						state: "normal",
+						focused: true,
+						width: w,
+						height: h,
+						top: top,
+						left: left
+					}, function (win) {
+						chrome.storage.local.set({ challengePopupTts: in20sec });
+					});
+				}
+				else {
+					console.log("Supressing popup because one was shown within the last 20 seconds, and it is still open");
+				}
+			});
+
+		});
+	}
+	catch (err) {
+		console.log("failed to open through display.getInfo() - " + err);
+
+		var w = 600;
+		var h = 400;
+		var left = 340; // 1280 x 720 assumption
+		var top = 160;
+
+		chrome.storage.local.get(["challengePopupTts"], function (result) {
+			// did we open a popup within the last 20 seconds?
+			var allowPopup = true;
+			if (result.challengePopupTts && result.challengePopupTts > now) {
+				allowPopup = false;
+			}
+
+			//check if there are no other challenge windows
+			if (allowPopup) {
+				chrome.windows.create({
+					url: "challenge.html",
+					type: "popup",
+					state: "normal",
+					focused: true,
+					width: w,
+					height: h,
+					top: top,
+					left: left
+				}, function (win) {
+					chrome.storage.local.set({ challengePopupTts: in20sec });
+				});
+			}
+			else {
+				console.log("Supressing popup because one was shown within the last 20 seconds, and it is still open");
+			}
 		});
 	}
 }
 
-function closePopup() {
-  var windows = chrome.extension.getViews();
-
-  for (var x = 0; x < windows.length; x++) {
-    if (windows[x].location.pathname == "/popup.html") {
-       windows[x].close();
-    }
-  }
-}
+// Handle alarms
+chrome.alarms.onAlarm.addListener(function( alarm ) {
+	if (alarm.name == "runSelfServiceMonitorTask") {
+		monitorSelfServiceUrl();
+	}
+	if (alarm.name == "runPinRegistrationMonitorTask") {
+		monitorPinUrl();
+	}
+	if (alarm.name == "runNemIdRegistrationMonitorTask") {
+		monitorNemIdUrl();
+	}
+});
 
 function monitorNemIdUrl() {
-	chrome.windows.get(nemIdWindowId, { populate: true }, function (win) {
-		if(!win.tabs[0].url){
+	chrome.storage.local.get(["nemIdWindowId"], function (result) {
+
+		nemIdWindowId = result["nemIdWindowId"];
+		if (nemIdWindowId == null) {
+			stopNemIdRegistrationMonitorTask();
 			return;
 		}
+		try {
+			chrome.windows.get(nemIdWindowId, { populate: true }, function (win) {
+				//sometimes "win.tabs[0].url" is empty probably because the page has not loaded yet
+				if (win.tabs[0].url) {
+					var url = new URL(win.tabs[0].url);
+					var status = url.searchParams.get("status");
+					var closeWindow = url.searchParams.get("closeWindow");
 
-		var url = new URL(win.tabs[0].url);
-		var status = url.searchParams.get("status");
-		var closeWindow = url.searchParams.get("closeWindow");
+					if (status && status == "true") {
+						chrome.storage.local.set({ nemIdRegistered: true });
+					}
 
-		if (status && status == "true" && nemIdResponseHandled == false) {
-			nemIdResponseHandled = true;
-			if (roaming) {
-				chrome.storage.sync.set({ nemIdRegistered: true });
-			} else {
-				chrome.storage.local.set({ nemIdRegistered: true });
-			}
-		}
-
-		if (closeWindow) {
-			chrome.windows.remove(win.id);
+					if (closeWindow) {
+						chrome.windows.remove(win.id);
+						stopNemIdRegistrationMonitorTask();
+					}
+				}
+			});
+		} catch (error) {
+			stopNemIdRegistrationMonitorTask();
+			return;
 		}
 	});
 }
 
 function runNemIdRegistrationMonitorTask(windowId){
-	nemIdResponseHandled = false;
-	nemIdWindowId = windowId;
-	monitorNemIdUrlTask = setInterval(monitorNemIdUrl, 200);
+	chrome.storage.local.set({ nemIdWindowId: windowId });
+	chrome.alarms.create("runNemIdRegistrationMonitorTask", { periodInMinutes: 0.004 });
+}
+
+function stopNemIdRegistrationMonitorTask() {
+	chrome.alarms.clear("runNemIdRegistrationMonitorTask");
+	chrome.storage.local.set({ nemIdWindowId: null });
+	chrome.storage.local.set({ isPaused: false });
 }
 
 function monitorPinUrl() {
-	if (pinWindowId == null) { //TODO probably same logic required in other monitor tasks
-		clearInterval(monitorPinUrlTask);
-		chrome.storage.local.set({ isPaused: false });
-
-		return;
-	}
-	chrome.windows.get(pinWindowId, { populate: true }, function (win) {
-		var url = new URL(win.tabs[0].url);
-		var status = url.searchParams.get("status");
-		var closeWindow = url.searchParams.get("closeWindow");
-
-		if (status && status == "true") {
-			if (roaming) {
-				chrome.storage.sync.set({ pinRegistered: true });
-			} else {
-				chrome.storage.local.set({ pinRegistered: true });
-			}
+	chrome.storage.local.get(["pinWindowId"], function (result) {
+		var pinWindowId = result["pinWindowId"];
+		if (pinWindowId == null) {
+			stopPinRegistrationMonitorTask();
+			return;
 		}
 
-		if (closeWindow) {
-			chrome.windows.remove(win.id);
+		try {
+			chrome.windows.get(pinWindowId, { populate: true }, function (win) {
+				if (win.tabs[0].url) {
+					var url = new URL(win.tabs[0].url);
+					var status = url.searchParams.get("status");
+					var closeWindow = url.searchParams.get("closeWindow");
+
+					if (status && status == "true") {
+						chrome.storage.local.set({ pinRegistered: true });
+					}
+
+					if (closeWindow) {
+						chrome.windows.remove(win.id);
+						stopPinRegistrationMonitorTask();
+					}
+				}
+			});
+		} catch (error) {
+			stopPinRegistrationMonitorTask();
+			return;
 		}
 	});
 }
 
-function runPinRegistrationMonitorTask(windowId){
-	pinWindowId = windowId;
-	monitorPinUrlTask = setInterval(monitorPinUrl, 200);
+function runPinRegistrationMonitorTask(windowId) {
+	chrome.storage.local.set({ pinWindowId: windowId });
+	chrome.alarms.create("runPinRegistrationMonitorTask", { periodInMinutes: 0.004 });
+}
+
+function stopPinRegistrationMonitorTask() {
+	chrome.alarms.clear("runPinRegistrationMonitorTask");
+	chrome.storage.local.set({ pinWindowId: null });
+	chrome.storage.local.set({ isPaused: false });
 }
 
 function monitorSelfServiceUrl() {
-	chrome.windows.get(selfServiceWindowId, { populate: true }, function (win) {
-		var url = new URL(win.tabs[0].url);
-		var closeWindow = url.searchParams.get("closeWindow");
+	chrome.storage.local.get(["selfServiceWindowId"], function (result) {
+		selfServiceWindowId = result["selfServiceWindowId"];
+		if (selfServiceWindowId == null) {
+			stopSelfServiceMonitorTask();
+			return;
+		}
+		try {
+			chrome.windows.get(selfServiceWindowId, { populate: true }, function (win) {
+				if (win.tabs[0].url) {
+					var url = new URL(win.tabs[0].url);
+					var closeWindow = url.searchParams.get("closeWindow");
 
-		if (closeWindow) {
-			chrome.windows.remove(win.id);
+					if (closeWindow) {
+						chrome.windows.remove(win.id);
+						stopSelfServiceMonitorTask();
+					}
+				}
+			});
+		} catch (error) {
+			stopSelfServiceMonitorTask();
+			return;
 		}
 	});
 }
 
 function runSelfServiceMonitorTask(windowId){
-	selfServiceWindowId = windowId;
-	monitorSelfServiceUrlTask = setInterval(monitorSelfServiceUrl, 200);
+	chrome.storage.local.set({ selfServiceWindowId: windowId });
+	chrome.alarms.create("runSelfServiceMonitorTask", { periodInMinutes: 0.004 });
+}
+
+function stopSelfServiceMonitorTask() {
+	chrome.alarms.clear("runSelfServiceMonitorTask");
+	chrome.storage.local.set({ selfServiceWindowId: null });
+	chrome.storage.local.set({ isPaused: false });
 }
 
 chrome.windows.onRemoved.addListener(function (windowId) {
-	if (nemIdWindowId != null && windowId == nemIdWindowId) {
-		clearInterval(monitorNemIdUrlTask);
-		nemIdWindowId = null;
-	}
+	chrome.storage.local.get(["nemIdWindowId", "pinWindowId", "selfServiceWindowId", "challengePopupId"], function (result) {
+		nemIdWindowId = result["nemIdWindowId"];
+		pinWindowId = result["pinWindowId"];
+		selfServiceWindowId = result["selfServiceWindowId"];
+		challengePopupId = result["challengePopupId"];
 
-	if (pinWindowId != null && windowId == pinWindowId) {
-		clearInterval(monitorPinUrlTask);
-		pinWindowId = null;
-		chrome.storage.local.set({ isPaused: false });
-	}
-
-	if (selfServiceWindowId != null && windowId == selfServiceWindowId) {
-		clearInterval(monitorSelfServiceUrlTask);
-		selfServiceWindowId = null;
-	}
-
-	if (challengePopupId != null && windowId == challengePopupId) {
-		challengePopupId = null;
-	}
-});
-
-navigator.serviceWorker.addEventListener('message', event => {
-	// event is a MessageEvent object
-	if (event.data) {
-		handleChallenge(); // Checks extension state to determine if window should pop up
-	}
-});
-
-function handleChallenge() {
-	// read global settings and do a precheck
-	chrome.storage.managed.get(["Roaming"], function (policy) {
-		if (policy.Roaming) {
-			roaming = policy.Roaming;
-		}
-		else {
-			roaming = false;
+		if (nemIdWindowId != null && windowId == nemIdWindowId) {
+			chrome.alarms.clear("runNemIdRegistrationMonitorTask");
+			chrome.storage.local.set({ nemIdWindowId: null });
+			chrome.storage.local.set({ isPaused: false });
 		}
 
-		if (roaming) {
-			chrome.storage.sync.get(["apiKey", "deviceId"], function (result) {
-				if (typeof result.apiKey === 'undefined' || typeof result.deviceId === 'undefined') {
-					// do nothing
-				} else {
-					showChallengeWindow();
-				}
-			});
-		} else {
-			chrome.storage.local.get(["apiKey", "deviceId"], function (result) {
-				if (typeof result.apiKey === 'undefined' || typeof result.deviceId === 'undefined') {
-					// do nothing
-				} else {
-					showChallengeWindow();
-				}
-			});
+		if (pinWindowId != null && windowId == pinWindowId) {
+			chrome.alarms.clear("runPinRegistrationMonitorTask");
+			chrome.storage.local.set({ pinWindowId: null });
+			chrome.storage.local.set({ isPaused: false });
+		}
+
+		if (selfServiceWindowId != null && windowId == selfServiceWindowId) {
+			chrome.alarms.clear("runSelfServiceMonitorTask");
+			chrome.storage.local.set({ selfServiceWindowId: null });
+			chrome.storage.local.set({ isPaused: false });
+		}
+
+		if (challengePopupId != null) {
+			chrome.storage.local.set({ challengePopupId: null });
 		}
 	});
-}
-
-// poll service worker for challenges
-window.setInterval(function() {
-	navigator.serviceWorker.ready.then(registration => {
-		registration.active.postMessage("Hi ServiceWorker!");
-	});
-}, 1000);
+});
 
 //Startup listner to fetch current state from backend
 
 chrome.runtime.onStartup.addListener(function () {
-		// read global settings and perform initialization
-		chrome.storage.managed.get(["BackendUrl", "Roaming"], function(policy) {
-			if (policy.BackendUrl) {
-				backendUrl = policy.BackendUrl;
-			}
-			else {
-				backendUrl = "https://backend.os2faktor.dk";
-			}
+	var backendUrl = "https://backend.os2faktor.dk";
 
-			if (policy.Roaming) {
-				roaming = policy.Roaming;
-			}
-			else {
-				roaming = false;
-			}
-
-			if (roaming) {
-				chrome.storage.sync.get(["apiKey", "deviceId", "pinRegistered", "nemIdRegistered"], function (result) {
-					fetchStatusFromBackend(result);
-				});
-			}
-			else {
-				chrome.storage.local.get(["apiKey", "deviceId", "pinRegistered", "nemIdRegistered"], function (result) {
-					fetchStatusFromBackend(result);
-				});
-			}
-		});
-
+	chrome.storage.local.get(["apiKey", "deviceId", "pinRegistered", "nemIdRegistered"], function (result) {
+		fetchStatusFromBackend(result, backendUrl);
+	});
 });
 
-function fetchStatusFromBackend(dbVariables) {
+function fetchStatusFromBackend(dbVariables, backendUrl) {
 	var apiKey = dbVariables["apiKey"];
 	var deviceId = dbVariables["deviceId"];
 	var dbPinRegistered = dbVariables["pinRegistered"];
 	var dbNemIdRegistered = dbVariables["nemIdRegistered"];
+
+	console.log("Getting status from backend");
 
 	var statusResult = {
 		'exists': false,
@@ -289,29 +358,34 @@ function fetchStatusFromBackend(dbVariables) {
 		return;
 	}
 
-	$.ajax({
+	fetch(backendUrl + "/api/client/v2/status", {
+		method: 'GET',
 		headers: {
 			'ApiKey': apiKey,
 			'deviceId': deviceId,
-		},
-		url: backendUrl + "/api/client/v2/status",
-		type: 'GET',
-		success: function (data) {
-			statusResult.exists = !data.disabled;
-			statusResult.pinProtected = data.pinProtected;
-			statusResult.nemIdRegistered = data.nemIdRegistered;
-
-			handleBackendStatus(statusResult, dbPinRegistered, dbNemIdRegistered);
-		},
-		error: function (jqXHR, textStatus, errorThrown) {
-			// 401 means the client has been physically deleted, so that is NOT a lookup failure
-			if (jqXHR.status != 401) {
-				statusResult.lookupFailed = true;
-			}
-
-			console.error("getStatusError: " + JSON.stringify(jqXHR));
-			handleBackendStatus(statusResult, dbPinRegistered, dbNemIdRegistered);
 		}
+	}).then(response => {
+		response.json().then(data => {
+			if (response.status == 200) {
+				statusResult.exists = !data.disabled;
+				statusResult.pinProtected = data.pinProtected;
+				statusResult.nemIdRegistered = data.nemIdRegistered;
+
+				handleBackendStatus(statusResult, dbPinRegistered, dbNemIdRegistered);
+			} else {
+				if (response.status != 401) {
+					statusResult.lookupFailed = true;
+				}
+
+				// TODO this is an expected error maybe we should change it to warning?
+				console.error("getStatusError: " + JSON.stringify(response));
+				handleBackendStatus(statusResult, dbPinRegistered, dbNemIdRegistered);
+			}
+		 });
+	})
+	.catch((errorMsg) => {
+		console.error('fetchStatusFromBackend Error');
+		console.error(errorMsg);
 	});
 }
 
@@ -321,21 +395,14 @@ function handleBackendStatus(result, dbPinRegistered, dbNemIdRegistered) {
 
 		if (result.pinProtected && !dbPinRegistered) {
 			changes = true;
-			if (roaming) {
-				chrome.storage.sync.set({ pinRegistered: true });
-			} else {
-				chrome.storage.local.set({ pinRegistered: true });
-			}
+			chrome.storage.local.set({ pinRegistered: true });
 		}
 
 		if (result.nemIdRegistered && !dbNemIdRegistered) {
-			changes = true;
-			if (roaming) {
-				chrome.storage.sync.set({ nemIdRegistered: true });
-			} else {
-				chrome.storage.local.set({ nemIdRegistered: true });
-			}
+			chrome.storage.local.set({ nemIdRegistered: true });
 		}
+
+		refreshPushToken();
 
 		if (changes) {
 			console.log('Centrale opdateringer tilgængelig til enheden - opdaterer');
@@ -343,13 +410,73 @@ function handleBackendStatus(result, dbPinRegistered, dbNemIdRegistered) {
 	}
 	else if (!result.lookupFailed) {
 		console.log('2-faktor enheden er slettet centralt, nulstiller enheden');
-		if (roaming) {
-			chrome.storage.sync.remove(["apiKey","deviceId","nemIdRegistered","pinRegistered"]);
-		} else {
-			chrome.storage.local.remove(["apiKey","deviceId","nemIdRegistered","pinRegistered"]);
-		}
+		chrome.storage.local.remove(["apiKey","deviceId","nemIdRegistered","pinRegistered"]);
 	}
 	else {
 		console.error("teknisk fejl i opslag");
 	}
 }
+
+function urlB64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+function refreshPushToken() {
+	try {
+		console.log("Refreshing push token");
+
+		self.registration.pushManager.subscribe({
+			userVisibleOnly: false,
+			applicationServerKey: urlB64ToUint8Array(applicationServerKey)
+		}).then((subscriptionData) => {
+                        const json = JSON.stringify(subscriptionData.toJSON(), null, 2);
+
+			updatePushNotificationToken(json);
+		});
+	} catch (error) {
+		console.error('[Service Worker] Failed to subscribe, error: ', error);
+	}
+}
+
+function updatePushNotificationToken(token) {
+	chrome.storage.local.get(["apiKey", "deviceId"], function (result) {
+		if (typeof result.apiKey === 'undefined' || typeof result.deviceId === 'undefined') {
+			// do nothing
+		} else {
+			updatePushTokenForReal(result.apiKey, result.deviceId, token);
+		}
+	});
+}
+
+function updatePushTokenForReal(apiKey, deviceId, token) {
+	if (token && apiKey && deviceId) {
+		fetch(backendUrl + "/api/client/v2/setRegId", {
+			method: 'POST',
+			headers: {
+				'ApiKey': apiKey,
+				'deviceId': deviceId, 
+				'clientVersion': clientVersion,
+				'content-type': 'application/json'
+			},
+			body: JSON.stringify({
+				'token': token
+			})
+		}).then(response => {
+			if (response.status == 200) {
+				console.info("Updated push token on backend");
+			} else {
+				console.error("Failed to update push token: " + response.status);
+			}
+		});
+	}
+}
+

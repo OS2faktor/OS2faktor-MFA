@@ -1,3 +1,7 @@
+
+var clientVersion = "2.4.0";
+var applicationServerKey = "BJgHwxgz45mYC9_gGqOF3RiCL97HVwt3tP9RqYz2btuv_r0Ev3bJ4A9PMzwpHVbsXnA715ZJmxhn5DDRDHoBnGI=";
+
 /* utility method for generating a Login session */
 function obtainSession(sessionUrl) {
 	fetch(sessionUrl, { method: 'GET', cache: "default" });
@@ -411,6 +415,8 @@ function fetchStatusFromBackend(dbVariables, roaming, backendUrl) {
 	var dbPinRegistered = dbVariables["pinRegistered"];
 	var dbNemIdRegistered = dbVariables["nemIdRegistered"];
 
+	console.log("Getting status from backend");
+
 	var statusResult = {
 		'exists': false,
 		'lookupFailed': false,
@@ -423,40 +429,34 @@ function fetchStatusFromBackend(dbVariables, roaming, backendUrl) {
 		return;
 	}
 
-	//We cannot use $.ajax so we use fetch instead
-	//https://stackoverflow.com/a/66468860/6205976
 	fetch(backendUrl + "/api/client/v2/status", {
 		method: 'GET',
 		headers: {
 			'ApiKey': apiKey,
 			'deviceId': deviceId,
 		}
-	}).then(response =>
-		response.json().then(data => ({
-			data: data,
-			status: response.status
-		}))
-	)
-	.then(res => {
-		if (res.status == 200) {
-			var data = res.data;
-			statusResult.exists = !data.disabled;
-			statusResult.pinProtected = data.pinProtected;
-			statusResult.nemIdRegistered = data.nemIdRegistered;
+	}).then(response => {
+		response.json().then(data => {
+			if (response.status == 200) {
+				statusResult.exists = !data.disabled;
+				statusResult.pinProtected = data.pinProtected;
+				statusResult.nemIdRegistered = data.nemIdRegistered;
 
-			handleBackendStatus(statusResult, dbPinRegistered, dbNemIdRegistered, roaming);
-		} else {
-			if (res.status != 401) {
-				statusResult.lookupFailed = true;
+				handleBackendStatus(statusResult, dbPinRegistered, dbNemIdRegistered, roaming);
+			} else {
+				if (response.status != 401) {
+					statusResult.lookupFailed = true;
+				}
+
+				// TODO this is an expected error maybe we should change it to warning?
+				console.error("getStatusError: " + JSON.stringify(response));
+				handleBackendStatus(statusResult, dbPinRegistered, dbNemIdRegistered, roaming);
 			}
-
-			// TODO this is an expected error maybe we should change it to warning?
-			console.error("getStatusError: " + JSON.stringify(res));
-			handleBackendStatus(statusResult, dbPinRegistered, dbNemIdRegistered, roaming);
-		}
+		 });
 	})
-	.catch((error) => {
-		console.error('fetchStatusFromBackend Error:', error);
+	.catch((errorMsg) => {
+		console.error('fetchStatusFromBackend Error');
+		console.error(errorMsg);
 	});
 }
 
@@ -482,6 +482,8 @@ function handleBackendStatus(result, dbPinRegistered, dbNemIdRegistered, roaming
 			}
 		}
 
+		refreshPushToken();
+
 		if (changes) {
 			console.log('Centrale opdateringer tilgængelig til enheden - opdaterer');
 		}
@@ -498,3 +500,79 @@ function handleBackendStatus(result, dbPinRegistered, dbNemIdRegistered, roaming
 		console.error("teknisk fejl i opslag");
 	}
 }
+
+function urlB64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+function refreshPushToken() {
+	try {
+		console.log("Refreshing push token");
+
+		self.registration.pushManager.subscribe({
+			userVisibleOnly: false,
+			applicationServerKey: urlB64ToUint8Array(applicationServerKey)
+		}).then((subscriptionData) => {
+                        const json = JSON.stringify(subscriptionData.toJSON(), null, 2);
+
+			updatePushNotificationToken(json);
+		});
+	} catch (error) {
+		console.error('[Service Worker] Failed to subscribe, error: ', error);
+	}
+}
+
+function updatePushNotificationToken(token) {
+	chrome.storage.local.get("Roaming", function(policy) {
+		if (policy.Roaming) {
+			chrome.storage.sync.get(["apiKey", "deviceId"], function (result) {
+				if (typeof result.apiKey === 'undefined' || typeof result.deviceId === 'undefined') {
+					// do nothing
+				} else {
+					updatePushTokenForReal(result.apiKey, result.deviceId, token);
+				}
+			});
+		} else {
+			chrome.storage.local.get(["apiKey", "deviceId"], function (result) {
+				if (typeof result.apiKey === 'undefined' || typeof result.deviceId === 'undefined') {
+					// do nothing
+				} else {
+					updatePushTokenForReal(result.apiKey, result.deviceId, token);
+				}
+			});
+		}
+	});
+}
+
+function updatePushTokenForReal(apiKey, deviceId, token) {
+	if (token && apiKey && deviceId) {
+		fetch(backendUrl + "/api/client/v2/setRegId", {
+			method: 'POST',
+			headers: {
+				'ApiKey': apiKey,
+				'deviceId': deviceId, 
+				'clientVersion': clientVersion,
+				'content-type': 'application/json'
+			},
+			body: JSON.stringify({
+				'token': token
+			})
+		}).then(response => {
+			if (response.status == 200) {
+				console.info("Updated push token on backend");
+			} else {
+				console.error("Failed to update push token: " + response.status);
+			}
+		});
+	}
+}
+

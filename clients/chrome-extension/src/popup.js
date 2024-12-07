@@ -171,11 +171,13 @@ function urlB64ToUint8Array(base64String) {
 
 // New register with Web Push or FCM stuff
 function register() {
+	console.log("registering push token");
+
 	navigator.serviceWorker.getRegistration().then(registration => {
-		registration.pushManager.subscribe({
-			userVisibleOnly: true,
-			applicationServerKey: urlB64ToUint8Array(applicationServerKey)
-		}).then(subscription => {
+               registration.pushManager.subscribe({
+                       userVisibleOnly: true,
+                       applicationServerKey: urlB64ToUint8Array(applicationServerKey)
+               }).then(subscription => {
 			const json = JSON.stringify(subscription.toJSON(), null, 2);
 
 			if (roaming) {

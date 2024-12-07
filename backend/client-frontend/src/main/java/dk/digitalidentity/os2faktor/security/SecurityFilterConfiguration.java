@@ -1,12 +1,12 @@
 package dk.digitalidentity.os2faktor.security;
 
-import dk.digitalidentity.os2faktor.service.HashingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import dk.digitalidentity.os2faktor.dao.ClientDao;
+import dk.digitalidentity.os2faktor.service.HashingService;
 
 @Configuration
 public class SecurityFilterConfiguration {

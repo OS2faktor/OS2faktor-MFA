@@ -53,7 +53,7 @@
 		<dependency>
 			<groupId>dk.digitalidentity</groupId>
 			<artifactId>saml-module</artifactId>
-			<version>2.2.1</version>
+			<version>4.0.13</version>
 		</dependency>
 
 		<dependency>
@@ -84,7 +84,13 @@
 
         <repositories>
                 <repository>
-                        <id>shared-resources</id>
+                        <id>1-maven-repository</id>
+                        <name>Maven Repository</name>
+                        <url>https://repo.maven.apache.org/maven2/</url>
+                 </repository>
+
+                <repository>
+                        <id>2-shared-resources</id>
                         <name>Shared Resources</name>
                         <url>https://mvn.digital-identity.dk/release</url>
                 </repository>

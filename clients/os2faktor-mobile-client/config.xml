@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="dk.digitalidentity.os2faktor" version="2.2.3" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" 
+<widget id="dk.digitalidentity.os2faktor" version="2.3.0" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" 
 xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>OS2faktor</name>
     <description>
@@ -30,7 +30,7 @@ xmlns:cdv="http://cordova.apache.org/ns/1.0">
             <meta-data android:name="firebase_crash_collection_enabled" android:value="false" />
             <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/notification_icons" />
         </config-file>
-        <preference name="android-targetSdkVersion" value="33" />
+        <preference name="android-targetSdkVersion" value="34" />
         <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/os2faktor_logo_round.xml" />
         <preference name="AndroidWindowSplashScreenBackground" value="#ffffff" />
         <preference name="GradlePluginKotlinEnabled" value="true" />

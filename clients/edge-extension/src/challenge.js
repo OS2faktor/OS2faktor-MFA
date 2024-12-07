@@ -1,11 +1,11 @@
 var backendUrl;
-var roaming;
-var clientVersion = "2.3.0";
+var clientVersion = "2.4.0";
 
 const swalWithBootstrapButtons = swal.mixin({
-    confirmButtonClass: 'btn',
-    cancelButtonClass: 'btn btn-danger',
-    buttonsStyling: false,
+    customClass: {
+      confirmButton: "btn",
+      cancelButton: "btn btn-danger"
+    }
 });
 
 (function () {
@@ -21,7 +21,7 @@ const swalWithBootstrapButtons = swal.mixin({
 			$("#noChallenge").show();
 		}
 	}
-	
+
 	function checkForChallenges(registrationId, apiKey, deviceId, pinRegistered) {
 		chrome.storage.local.get(["isPaused"], function (result) {
 			var isPaused = result["isPaused"];
@@ -35,7 +35,7 @@ const swalWithBootstrapButtons = swal.mixin({
 							if (data !== "") {
 								chrome.storage.local.set({ isPaused: true });
 								foundChallenge = true;
-								
+
 								showChallenge(data, apiKey, deviceId, pinRegistered, false);
 							}
 						},
@@ -64,21 +64,20 @@ const swalWithBootstrapButtons = swal.mixin({
 			return;
 		}
 
-		swalWithBootstrapButtons({
+		swalWithBootstrapButtons.fire({
 			title: 'Godkend login forespørgsel',
 			html: 'Der er ankommet en login forespørgsel ' + ((data.tts != null) ? data.tts : '') + ' fra <h4 style="margin-top: 15px; margin-bottom: 15px;">' + data.serverName + '</h4>' + ((data.challenge != null && data.challenge.length > 0)
                            ? 'Vil du godkende nedenstående kontrolkode og gennemføre login?<h2 style="margin-top: 15px; margin-bottom: 15px;">' + data.challenge + '</h2>'
                            : 'Ønsker du at godkende denne login forespørgsel?<br/><br/>'
                          ) + ((wrongPinCode) ? '<p style="color:red;">Forkert pinkode!</p>' : '') +
 			      ((pinRegistered) ? '<p>Indtast PIN-kode</p>' + '<input id="swal-input-pin" class="form-control" type="number" style="-webkit-text-security:disc;" maxlength="4" placeholder="PIN" oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);" required="required" oninvalid="this.setCustomValidity(\'Invalid PIN code\')" autofocus="autofocus">' : ''),
-			type: null,
 			showCancelButton: true,
 			reverseButtons: true,
 			confirmButtonText: 'Godkend',
 			cancelButtonText: 'Afvis',
 			allowOutsideClick: false,
-			onOpen: (model) => {
-				window.resizeTo(512,$(model).height()+74+(window.outerHeight - window.innerHeight));
+			didOpen: (model) => {
+				window.resizeTo(512, $(model).height() + 74 + (window.outerHeight - window.innerHeight));
 			},
 			preConfirm: () => {
 				if (pinRegistered) {
@@ -88,7 +87,7 @@ const swalWithBootstrapButtons = swal.mixin({
 		}).then((result) => {
 			if (result.value) {
 				$.ajax({
-					headers: { 'ApiKey': apiKey, 'deviceId': deviceId, 'pinCode': ((pinRegistered) ? result.value[0] : null) },
+					headers: { 'ApiKey': apiKey, 'deviceId': deviceId, 'pinCode': ((pinRegistered) ? result.value[0] : null), 'roaming': false},
 					url: backendUrl + "/api/client/" + data.uuid + "/accept",
 					type: 'PUT',
 					success: function () {
@@ -145,39 +144,20 @@ const swalWithBootstrapButtons = swal.mixin({
 		// display a waiting page if nothing happens for a while
 		setTimeout(showWaiting, 1800);
 	}
+
+	// set backendUrl
+	backendUrl = "https://backend.os2faktor.dk";
 	
-	// read global settings and perform initialization
-	chrome.storage.managed.get(["BackendUrl", "Roaming"], function(policy) {
-		if (policy.BackendUrl) {
-			backendUrl = policy.BackendUrl;
-		}
-		else {
-			backendUrl = "https://backend.os2faktor.dk";
-	        }
+	// Setup ajax so that all our calls will contain clientVersion
+	$.ajaxSetup({
+		headers: { 'clientVersion': clientVersion }
+	});
 
-		if (policy.Roaming) {
-			roaming = policy.Roaming;
-		}
-		else {
-			roaming = false;
-		}
+	// turn off any residual pause flags
+	chrome.storage.local.set({ isPaused: false });
 
-		// Setup ajax so that all our calls will contain clientVersion
-		$.ajaxSetup({
-			headers: { 'clientVersion': clientVersion }
-		});
-
-		// turn of any residual pause flags
-		chrome.storage.local.set({ isPaused: false });
-
-		if (roaming) {
-			chrome.storage.sync.get(["registrationId", "apiKey", "deviceId", "pinRegistered"], function (result) {
-				initializePage(result);
-			});
-		} else {
-			chrome.storage.local.get(["registrationId", "apiKey", "deviceId", "pinRegistered"], function (result) {
-				initializePage(result);
-			});
-		}
+	// setup page
+	chrome.storage.local.get(["registrationId", "apiKey", "deviceId", "pinRegistered"], function (result) {
+		initializePage(result);
 	});
 })();

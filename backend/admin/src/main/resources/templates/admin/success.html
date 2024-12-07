@@ -24,7 +24,10 @@
 			<a class="p-2 text-dark active" th:href="@{/admin}">Søg</a>
 			<a class="p-2 text-dark" th:href="@{/admin/list}">Registreringer</a>
 			<a class="p-2 text-dark" th:href="@{/admin/statistics}">Statistik</a>
-			<a class="p-2 text-dark" th:href="@{/saml/logout}">Log af</a>
+			<form th:action="@{/logout}" id="logout_form" method="post"></form>
+			<a class="p-2 text-dark" href="#" onclick="$('#logout_form').submit();">
+				<span>Log af</span>
+			</a>
 		</nav>
 	</div>
 
