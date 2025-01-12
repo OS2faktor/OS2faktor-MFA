@@ -1,6 +1,7 @@
 ﻿using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
 using Microsoft.Win32;
+using OS2faktor.Utils;
 using System;
 using System.ComponentModel;
 using System.IO;
@@ -30,7 +31,7 @@ namespace OS2faktor
 
             string urlString = Properties.Settings.Default.frontendUrl
                 + "/ui/register2/nemid?"
-                + "&apiKey=" + Uri.EscapeDataString(Properties.Settings.Default.apiKey)
+                + "&apiKey=" + Uri.EscapeDataString(EncryptionUtil.GetDecryptedApiKey(Properties.Settings.Default.apiKey))
                 + "&deviceId=" + Uri.EscapeDataString(Properties.Settings.Default.deviceId);
 
             try

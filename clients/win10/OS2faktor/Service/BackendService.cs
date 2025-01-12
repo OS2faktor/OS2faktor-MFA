@@ -1,4 +1,5 @@
 ﻿using OS2faktor.Service.DTO;
+using OS2faktor.Utils;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace OS2faktor.Service
             using (HttpClient client = new HttpClient())
             {
                 StatusResult clientStatus = new StatusResult();
-                client.DefaultRequestHeaders.Add("ApiKey", Properties.Settings.Default.apiKey);
+                client.DefaultRequestHeaders.Add("ApiKey", EncryptionUtil.GetDecryptedApiKey(Properties.Settings.Default.apiKey));
                 client.DefaultRequestHeaders.Add("DeviceId", Properties.Settings.Default.deviceId);
 
                 try
@@ -82,7 +83,7 @@ namespace OS2faktor.Service
             using (HttpClient client = new HttpClient())
             {
                 var deletionResult = new DeletionResult();
-                client.DefaultRequestHeaders.Add("ApiKey", Properties.Settings.Default.apiKey);
+                client.DefaultRequestHeaders.Add("ApiKey", EncryptionUtil.GetDecryptedApiKey(Properties.Settings.Default.apiKey));
                 client.DefaultRequestHeaders.Add("DeviceId", Properties.Settings.Default.deviceId);
 
                 try

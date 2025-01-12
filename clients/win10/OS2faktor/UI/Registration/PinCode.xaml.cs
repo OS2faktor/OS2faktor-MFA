@@ -1,4 +1,5 @@
 ﻿using OS2faktor.Service;
+using OS2faktor.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,7 +46,7 @@ namespace OS2faktor.UI.Registration
                     if (result.Success)
                     {
                         Properties.Settings.Default.deviceId = result.DeviceId;
-                        Properties.Settings.Default.apiKey = result.ApiKey;
+                        Properties.Settings.Default.apiKey = EncryptionUtil.GetEncryptedAndEncodedApiKey(result.ApiKey);
                         Properties.Settings.Default.IsPinRegistered = true;
                         Properties.Settings.Default.Save();
                         Properties.Settings.Default.Reload();

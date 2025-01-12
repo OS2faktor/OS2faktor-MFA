@@ -56,6 +56,6 @@ public class HardwareToken {
 	private String clientDeviceId;
 	
 	@JsonIgnore
-	@Column
+	@Column(name = "code_offset")
 	private long offset;
 }

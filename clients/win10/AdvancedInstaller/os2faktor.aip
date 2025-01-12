@@ -14,10 +14,10 @@
     <ROW Property="ARPNOREPAIR" Value="1"/>
     <ROW Property="LIMITUI" Value="1"/>
     <ROW Property="Manufacturer" Value="OS2"/>
-    <ROW Property="ProductCode" Value="1030:{E12282B3-7F29-4B1E-8E4E-F89E5FAF57BD} " Type="16"/>
+    <ROW Property="ProductCode" Value="1030:{A5D2D529-10AE-4C32-8BFB-37847B4622EF} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1030"/>
     <ROW Property="ProductName" Value="OS2faktor"/>
-    <ROW Property="ProductVersion" Value="2.6.1" Type="32"/>
+    <ROW Property="ProductVersion" Value="2.7.0" Type="32"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND"/>
     <ROW Property="UpgradeCode" Value="{FF8A1A78-F9E8-4581-B1C6-B1EEE7771F20}"/>
     <ROW Property="WindowsType9X" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
@@ -48,6 +48,7 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
     <ROW Component="APPDIR" ComponentId="{C09D6992-6055-456C-917B-0773B67EDCF8}" Directory_="APPDIR" Attributes="0"/>
+    <ROW Component="Encryption" ComponentId="{AD21D93F-F228-423E-BED3-37C91E66076C}" Directory_="APPDIR" Attributes="4" KeyPath="Encryption"/>
     <ROW Component="FontAwesome5.Net.dll" ComponentId="{9C6CD788-D886-4DE6-892D-4E5BD53686F2}" Directory_="APPDIR" Attributes="0" KeyPath="FontAwesome5.Net.dll"/>
     <ROW Component="FontAwesome5.dll" ComponentId="{9AD60F19-1026-46BC-A969-82F19BE45D5A}" Directory_="APPDIR" Attributes="0" KeyPath="FontAwesome5.dll"/>
     <ROW Component="IconPNG.png" ComponentId="{170B70B0-B0F6-4560-949B-257CD30BEA40}" Directory_="Resources_Dir" Attributes="0" KeyPath="IconPNG.png" Type="0"/>
@@ -209,6 +210,7 @@
     <ROW Feature_="MainFeature" Component_="WebView2Loader.dll"/>
     <ROW Feature_="MainFeature" Component_="WebView2Loader.dll_1"/>
     <ROW Feature_="MainFeature" Component_="WebView2Loader.dll_2"/>
+    <ROW Feature_="MainFeature" Component_="Encryption"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiInstExSeqComponent">
     <ROW Action="AI_DOWNGRADE" Condition="AI_NEWERPRODUCTFOUND AND (UILevel &lt;&gt; 5)" Sequence="210"/>
@@ -241,6 +243,7 @@
     <ROW Condition="VersionNT" Description="[ProductName] kan ikke installeres på [WindowsType9XDisplay]." DescriptionLocId="AI.LaunchCondition.No9X" IsPredefined="true" Builds="DefaultBuild"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiRegsComponent">
+    <ROW Registry="Encryption" Root="-1" Key="Software\[Manufacturer]\[ProductName]" Name="Encryption" Value="false" Component_="Encryption"/>
     <ROW Registry="InstallPath" Root="-1" Key="Software\[Manufacturer]\[ProductName]" Name="InstallPath" Value="[APPDIR]" Component_="InstallPath"/>
     <ROW Registry="Path" Root="-1" Key="Software\[Manufacturer]\[ProductName]" Name="Path" Value="[APPDIR]" Component_="ProductInformation"/>
     <ROW Registry="Version" Root="-1" Key="Software\[Manufacturer]\[ProductName]" Name="Version" Value="[ProductVersion]" Component_="ProductInformation"/>

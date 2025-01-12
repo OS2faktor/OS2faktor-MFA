@@ -5,10 +5,14 @@ using OS2faktor.Utils;
 using Quartz;
 using Quartz.Impl;
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
+using System.Web.UI.WebControls;
 using System.Windows;
 using System.Windows.Threading;
 using System.Xml.Linq;
@@ -28,9 +32,16 @@ namespace OS2faktor
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
+            // Prevent starting another instance of the application
+            if (PriorProcess() != null)
+            {
+                Application.Current.Shutdown();
+                return;
+            }
+
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
-            this.ShutdownMode = ShutdownMode.OnExplicitShutdown; //this prevents application form closing when we close a window.
+            this.ShutdownMode = ShutdownMode.OnExplicitShutdown; //this prevents application from closing when we close a window.
 
             // allow restart manager to restart application (used by InnoSetup)
             RestartManagerWrapper.RegisterApplicationRestart(null, 0);
@@ -40,6 +51,7 @@ namespace OS2faktor
 
             // Attempt to migrate any existing configuration (old client installations)
             MigrateExistingConfiguration();
+            MigrateUnencryptedApiKey();
 
             WSCommunication.Init();
 
@@ -101,6 +113,48 @@ namespace OS2faktor
 
             // Create jobs
             InitSchedulerWebSocket();
+        }
+
+        // Returns a System.Diagnostics.Process pointing to
+        // a pre-existing process with the same name as the
+        // current one, if any; or null if the current process
+        // is unique.
+        private Process PriorProcess()
+        {
+            Process curr = Process.GetCurrentProcess();
+            Process[] procs = Process.GetProcessesByName(curr.ProcessName);
+
+            foreach (Process p in procs)
+            {
+                if ((p.Id != curr.Id) && (p.MainModule.FileName == curr.MainModule.FileName))
+                {
+                    return p;
+                }
+            }
+
+            return null;
+        }
+
+        private void MigrateUnencryptedApiKey()
+        {
+            // if not registered or encryption not enabled, skip
+            if (!EncryptionUtil.EncryptionEnabled() || string.IsNullOrEmpty(OS2faktor.Properties.Settings.Default.apiKey))
+            {
+                return;
+            }
+
+            string apiKey = OS2faktor.Properties.Settings.Default.apiKey;
+            Guid unencryptedApiKey = default;
+            if (Guid.TryParse(apiKey, out unencryptedApiKey))
+            {
+                OS2faktor.Properties.Settings.Default.apiKey = EncryptionUtil.GetEncryptedAndEncodedApiKey(apiKey);
+                OS2faktor.Properties.Settings.Default.Save();
+                OS2faktor.Properties.Settings.Default.Reload();
+            }
+            else
+            {
+                log.Debug($"ApiKey was most likely encrypted already.");
+            }
         }
 
         private void MigrateExistingConfiguration()
@@ -507,9 +561,12 @@ namespace OS2faktor
 
         private void Application_Exit(object sender, ExitEventArgs e)
         {
-            notifyIcon.Visible = false;
-            notifyIcon.Icon = null;
-            notifyIcon.Dispose();
+            if (notifyIcon != null)
+            {
+                notifyIcon.Visible = false;
+                notifyIcon.Icon = null;
+                notifyIcon.Dispose();
+            }
         }
     }
 }

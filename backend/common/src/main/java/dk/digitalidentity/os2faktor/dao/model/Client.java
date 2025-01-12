@@ -147,4 +147,7 @@ public class Client {
 	@Column
 	@JsonIgnore
 	private String secret;
+	
+	@Column(name = "robot_mfa")
+	private boolean robotMFA;
 }

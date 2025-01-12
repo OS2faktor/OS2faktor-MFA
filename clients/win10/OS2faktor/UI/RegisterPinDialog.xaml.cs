@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OS2faktor.Utils;
+using System;
 using System.ComponentModel;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -27,7 +28,7 @@ namespace OS2faktor
 
             string urlString = Properties.Settings.Default.frontendUrl
                 + "/ui/pin/register?"
-                + "&apiKey=" + Uri.EscapeDataString(Properties.Settings.Default.apiKey)
+                + "&apiKey=" + Uri.EscapeDataString(EncryptionUtil.GetDecryptedApiKey(Properties.Settings.Default.apiKey))
                 + "&deviceId=" + Uri.EscapeDataString(Properties.Settings.Default.deviceId);
 
             webview.Source = new Uri(urlString);

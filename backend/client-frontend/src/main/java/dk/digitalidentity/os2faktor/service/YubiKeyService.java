@@ -46,7 +46,7 @@ public class YubiKeyService {
 	public AssertionRequest startYubiKeyLogin(String deviceId) {
 		StartAssertionOptions options = StartAssertionOptions.builder()
 				.username(deviceId)
-				.userVerification(UserVerificationRequirement.PREFERRED)
+				.userVerification(UserVerificationRequirement.DISCOURAGED)
 				.build();
 		return relyingParty.startAssertion(options);
 	}

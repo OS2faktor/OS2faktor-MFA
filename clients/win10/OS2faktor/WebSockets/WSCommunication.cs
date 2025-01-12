@@ -6,6 +6,7 @@ using System.Dynamic;
 using System.Windows;
 using OS2faktor.WebSockets;
 using OS2faktor.UI;
+using OS2faktor.Utils;
 
 namespace OS2faktor
 {
@@ -27,7 +28,7 @@ namespace OS2faktor
             log.Debug("Attempting to connect");
 
             WebSocket.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12;
-            WebSocket.SetCredentials(Properties.Settings.Default.deviceId, Properties.Settings.Default.apiKey, true);
+            WebSocket.SetCredentials(Properties.Settings.Default.deviceId, EncryptionUtil.GetDecryptedApiKey(Properties.Settings.Default.apiKey), true);
             WebSocket.Connect();
         }
 
@@ -145,6 +146,24 @@ namespace OS2faktor
             WebSocket.OnError += (sender, e) =>
             {
                 log.Error("Error: " + e.Message);
+
+                if (e.Message.Equals("An error has occurred in setting the credentials."))
+                {
+                    //Failed to decrypt the ApiKey. Reset the client
+                    Disconnect();
+
+                    Properties.Settings.Default.apiKey = null;
+                    Properties.Settings.Default.deviceId = null;
+                    Properties.Settings.Default.IsNemIDRegistered = false;
+                    Properties.Settings.Default.IsPinRegistered = false;
+                    Properties.Settings.Default.Save();
+                    Properties.Settings.Default.Reload();
+
+                    ((App)App.Current).UpdateContextMenuVisibility();
+
+                    WebSocket = new WebSocket(OS2faktor.Properties.Settings.Default.websocketUrl);
+                    Init();
+                }
             };
 
             WebSocket.OnClose += (sender, e) =>
