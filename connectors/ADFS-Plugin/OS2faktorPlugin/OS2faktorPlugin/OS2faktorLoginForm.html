@@ -145,6 +145,7 @@
                             outsideBrowserElem.style.cssText = 'display: none;';
                         }
                         else {
+                            clearInterval(loopFunction);
                             finishLoginFlow();
                         }
                     }

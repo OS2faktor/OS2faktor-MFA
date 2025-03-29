@@ -137,7 +137,10 @@ public class Client {
 
 	@Column
 	private boolean prime;
-	
+
+	@Column
+	private boolean passwordless;
+
 	@JsonIgnore
 	@Column
 	private boolean roaming;

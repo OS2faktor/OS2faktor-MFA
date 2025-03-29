@@ -9,8 +9,11 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Net;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web.UI.WebControls;
 using System.Windows;
@@ -29,12 +32,14 @@ namespace OS2faktor
         private static IScheduler sched;
         private System.Windows.Forms.NotifyIcon notifyIcon;
         private BackendService backendService;
+        static System.Threading.Mutex singleton = new Mutex(true, "Local\\f8219a75-d821-4c8e-9756-688a0792d3df");
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
             // Prevent starting another instance of the application
-            if (PriorProcess() != null)
+            if (!singleton.WaitOne(TimeSpan.Zero, true))
             {
+                //there is already another instance running!
                 Application.Current.Shutdown();
                 return;
             }
@@ -113,26 +118,6 @@ namespace OS2faktor
 
             // Create jobs
             InitSchedulerWebSocket();
-        }
-
-        // Returns a System.Diagnostics.Process pointing to
-        // a pre-existing process with the same name as the
-        // current one, if any; or null if the current process
-        // is unique.
-        private Process PriorProcess()
-        {
-            Process curr = Process.GetCurrentProcess();
-            Process[] procs = Process.GetProcessesByName(curr.ProcessName);
-
-            foreach (Process p in procs)
-            {
-                if ((p.Id != curr.Id) && (p.MainModule.FileName == curr.MainModule.FileName))
-                {
-                    return p;
-                }
-            }
-
-            return null;
         }
 
         private void MigrateUnencryptedApiKey()

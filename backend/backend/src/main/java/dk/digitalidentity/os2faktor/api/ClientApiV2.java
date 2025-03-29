@@ -175,6 +175,18 @@ public class ClientApiV2 {
 			}
 		}
 
+		if (request.isPasswordless() && request.getPincode() != null && request.getPincode().length() >= 6) {
+			switch (client.getType()) {
+				case ANDROID:
+				case IOS:
+					client.setPasswordless(true);
+					break;
+				default:
+					log.warn("Attempting to set passwordless when registering client of invalid type: " + client.getDeviceId() + " / " + client.getType());
+					break;
+			}
+		}
+
 		clientService.save(client);
 		
 		response.setSuccess(true);
@@ -261,6 +273,13 @@ public class ClientApiV2 {
 				log.error("Failed to encrypt and encode pin", ex);
 
 				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		}
+
+		// at least 6 character pins allow for passwordless on iOS and Android
+		if (request.getNewPin().length() >= 6) {
+			if (client.getType().equals(ClientType.ANDROID) || client.getType().equals(ClientType.IOS)) {
+				client.setPasswordless(true);
 			}
 		}
 
@@ -394,9 +413,11 @@ public class ClientApiV2 {
 	
 	public boolean isValidPin(String pinString) {
 		// already checked, but let's avoid out of bound issues
-		if (pinString.length() != 4) {
+		if (pinString.length() < 4 || pinString.length() > 6) {
 			return false;
 		}
+
+		// only verify the first 4 digits - as pincodes of size 4 IS allowed
 
 		char[] pin = pinString.toCharArray();
 		if (pin[0] == pin[1] && pin[1] == pin[2] && pin[2] == pin[3]) {

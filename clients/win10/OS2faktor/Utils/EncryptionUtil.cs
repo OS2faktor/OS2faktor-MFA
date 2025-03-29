@@ -11,7 +11,6 @@ namespace OS2faktor.Utils
     class EncryptionUtil
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private static string decryptedApiKey = null;
         private static bool? encryptionEnabled = null;
 
         public static string EncodePin(string pin)
@@ -116,18 +115,13 @@ namespace OS2faktor.Utils
 
         public static string GetDecryptedApiKey(string apiKeyEncoded)
         {
-            // caching
-            if (!string.IsNullOrEmpty(decryptedApiKey))
-            {
-                return decryptedApiKey;
-            }
-
             // input empty, return empty
             if (string.IsNullOrEmpty(apiKeyEncoded))
             {
                 return null;
             }
 
+            string decryptedApiKey = null;
             if (EncryptionEnabled())
             {
                 byte[] toDecrypt = EncryptionUtil.Base64Decode(apiKeyEncoded);

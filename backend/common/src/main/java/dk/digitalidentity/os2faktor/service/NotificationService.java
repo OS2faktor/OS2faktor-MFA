@@ -68,6 +68,7 @@ public class NotificationService {
 					.serverName(notification.getServerName())
 					.serverId(notification.getServerId())
 					.clientDeviceId(notification.getClient().getDeviceId())
+					.passwordless(notification.isPasswordless())
 					.build()
 				)
 				.collect(Collectors.toList());

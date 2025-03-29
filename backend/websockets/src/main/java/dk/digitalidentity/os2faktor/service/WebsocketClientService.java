@@ -76,7 +76,7 @@ public class WebsocketClientService {
 	
 						if (client.getFailedPinAttempts() >= 5) {
 							Calendar c = Calendar.getInstance();
-							c.add(Calendar.HOUR_OF_DAY, 1);
+							c.add(Calendar.MINUTE, 5);
 							Date lockedUntil = c.getTime();
 	
 							SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");

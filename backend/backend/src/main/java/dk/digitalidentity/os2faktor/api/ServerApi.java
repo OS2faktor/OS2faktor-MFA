@@ -172,7 +172,7 @@ public class ServerApi {
 	}
 
 	@PutMapping("/api/server/client/{deviceId}/authenticate")
-	public ResponseEntity<?> authenticateClient(@PathVariable("deviceId") String deviceId, @RequestParam(value = "emitChallenge", defaultValue = "true", required = false) boolean emitChallenge) {
+	public ResponseEntity<?> authenticateClient(@PathVariable("deviceId") String deviceId, @RequestParam(value = "emitChallenge", defaultValue = "true", required = false) boolean emitChallenge, @RequestParam(value = "passwordless", defaultValue = "false", required = false) boolean passwordless) {
 		Client client = clientService.getByDeviceId(deviceId);
 		if (client == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -196,6 +196,11 @@ public class ServerApi {
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 		}
 
+		if (passwordless && !client.isPasswordless()) {
+			log.warn("Attempting to initiate passwordless on non-passwordless client / clientId = " + client.getDeviceId() + " / serverId = " + server.getId());
+			return new ResponseEntity<>("Client is not passwordless", HttpStatus.BAD_REQUEST);
+		}
+
 		Notification subscriptionInfo = new Notification();
 		subscriptionInfo.setSubscriptionKey(idGenerator.generateUuid());
 		subscriptionInfo.setPollingKey(idGenerator.generateUuid());
@@ -206,6 +211,11 @@ public class ServerApi {
 		subscriptionInfo.setServerName(server.getName());
 		subscriptionInfo.setServerId(server.getId());
 		subscriptionInfo.setChallenge((emitChallenge) ? idGenerator.generateChallenge() : "");
+		subscriptionInfo.setPasswordless(passwordless);
+		
+		if (passwordless) {
+			subscriptionInfo.setChallenge(idGenerator.generatePasswordlessChallenge());
+		}
 
 		// EDGE or CHROME manifest v3
 		if ((client.getType().equals(ClientType.EDGE) || (client.getType().equals(ClientType.CHROME)) && isJSONValid(client.getToken()))) {

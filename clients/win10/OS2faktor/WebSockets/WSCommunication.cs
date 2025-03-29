@@ -149,16 +149,17 @@ namespace OS2faktor
 
                 if (e.Message.Equals("An error has occurred in setting the credentials."))
                 {
-                    //Failed to decrypt the ApiKey. Reset the client
                     Disconnect();
 
+                    /*
+                     * this is NOT intended... we can get the disconnect for other reasons
                     Properties.Settings.Default.apiKey = null;
                     Properties.Settings.Default.deviceId = null;
                     Properties.Settings.Default.IsNemIDRegistered = false;
                     Properties.Settings.Default.IsPinRegistered = false;
                     Properties.Settings.Default.Save();
                     Properties.Settings.Default.Reload();
-
+                    */
                     ((App)App.Current).UpdateContextMenuVisibility();
 
                     WebSocket = new WebSocket(OS2faktor.Properties.Settings.Default.websocketUrl);

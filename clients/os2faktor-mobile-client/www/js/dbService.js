@@ -6,6 +6,7 @@
 /// apiKey                 - actual ApiKey
 /// isNemIdRegistered      - true if client is NemID registered
 /// isPinCodeRegistered    - true if client is pin registered
+/// isPin6                 - true if a 6 digit pin is used
 /// pin                    - contains pincode for local validation
 /// biometrics             - true if client has chosen to log in with biometrics
 
@@ -111,6 +112,7 @@ function DBService() {
     dbService.deleteValue('isNemIdRegistered');
     dbService.deleteValue('isPinCodeRegistered');
     dbService.deleteValue('pin');
+    dbService.deleteValue('isPin6');
     dbService.deleteValue('biometrics');
     dbService.deleteValue('isBlocked');
   }

@@ -17,6 +17,16 @@ public class IdGenerator {
 		return UUID.randomUUID().toString();
 	}
 	
+	public String generatePasswordlessChallenge() {
+        char[] legalChars = "0123456789".toCharArray();
+
+        StringBuilder builder = new StringBuilder();
+        builder.append(legalChars[random.nextInt(legalChars.length)]);
+        builder.append(legalChars[random.nextInt(legalChars.length)]);
+
+        return builder.toString();
+	}
+
 	public byte[] getRandomBytes(int size) {
 		byte[] tmp = new byte[size];
 		

@@ -11,4 +11,5 @@ public class RegisterRequest {
 	private ClientType type;
 	private String token;
 	private String pincode;
+	private boolean passwordless;
 }

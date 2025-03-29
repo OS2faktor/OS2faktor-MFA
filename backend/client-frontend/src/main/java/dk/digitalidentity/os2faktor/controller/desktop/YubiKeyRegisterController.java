@@ -159,7 +159,7 @@ public class YubiKeyRegisterController extends BaseController {
 			return userOrLoginPage.loginPage;
 		}
 
-		PartialClient partialClient = partialClientDao.getById(form.getId());
+		PartialClient partialClient = partialClientDao.findById(form.getId());
 		if (partialClient == null) {
 			// TODO: setup a better error message for user - we need a failed registration flow page
 			log.warn("Authenticated user with pid: " + userOrLoginPage.user.getPid() + " did not have a partial client with id " + form.getId());

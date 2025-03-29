@@ -71,6 +71,9 @@ public class Notification {
 	@Column
 	private String redirectUrl;
 
+	@Column
+	private boolean passwordless;
+	
 	@JsonIgnore
 	@Column
 	private String serverName;

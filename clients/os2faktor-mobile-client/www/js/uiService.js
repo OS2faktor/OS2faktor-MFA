@@ -61,9 +61,32 @@ function UIService() {
         loggedIn = true;
         loggedInTimestamp = Date.now() / 1000;
 
+        uiService.updateMitIDStatus();
+
         uiService.update();
       }
     });
+  }
+
+  this.updateMitIDStatus = function() {
+    window.setTimeout(function() {
+      backendService.status(function(result) {
+        if (result.exists) {
+          var dbNemIdRegistered = dbService.getValue('isNemIdRegistered') === 'true';
+          var changes = false;
+
+          if (result.nemIdRegistered && !dbNemIdRegistered) {
+            changes = true;
+            dbService.setValue('isNemIdRegistered', result.nemIdRegistered);
+          }
+
+          if (changes) {
+            logService.logg('Centrale opdateringer tilgængelig til enheden - opdaterer');
+            uiService.update();
+          }
+        }
+      });
+    }, 100);
   }
 
   this.bioLogin = function(authenticated) {
@@ -78,6 +101,8 @@ function UIService() {
       loggedIn = true;
       loggedInTimestamp = Date.now() / 1000;
 
+      uiService.updateMitIDStatus();
+        
       uiService.update(); 
     }
   }
@@ -88,6 +113,7 @@ function UIService() {
     var deviceId = dbService.getValue('deviceId');
     var enrolled = dbService.isSet('isNemIdRegistered');
     var pincodeSet = dbService.isSet('isPinCodeRegistered');
+    var pin6 = dbService.isSet('isPin6');
     var biometrics = dbService.getValue('biometrics');
     var blocked = dbService.isSet("isBlocked") == true && dbService.getValue("isBlocked") === 'true';
 
@@ -113,12 +139,20 @@ function UIService() {
         showBiometricsLogin = true;
       }
   
-      // preload data for entering pincode
-      var rootElement = document.getElementById('enterPin');
-      pinboxes = rootElement.getElementsByClassName("pinfill");
+      if (pin6) {
+        $('.pin6').show();
+      }
 
       $("box-forgot-pin").hide();
       $("#enterPin").show();
+
+      // preload data for entering pincode
+      if (pin6) {
+        pinboxes = $('#enterPin .pin6-pinfill');
+      }
+      else {
+        pinboxes = $('#enterPin .pin4-pinfill');
+      }
 	  
       scannerService.pause();
     }
@@ -140,6 +174,7 @@ function UIService() {
 
         $("#nemIdRegisterMenuItem").hide();
         $("#pinCodeRegisterMenuItem").hide();
+        $("#pinCodeChangeMenuItem").hide();
         $("#selfServiceMenuItem").hide();
       }
       else {
@@ -159,10 +194,12 @@ function UIService() {
 
         if (pincodeSet) {
           $('#pinCodeRegisterMenuItem').hide();
+          $("#pinCodeChangeMenuItem").show();
           $('#btn-logout').show();
         }
         else {
           $('#pinCodeRegisterMenuItem').show();
+          $("#pinCodeChangeMenuItem").hide();
           $('#btn-logout').hide();
         }
       }
@@ -184,29 +221,66 @@ function UIService() {
     $('#box-register-pin').hide();
     $('#box-reset').hide();
     $('#box-challenge').hide();
+    $('#box-challenge-passwordless').hide();
   }
   
   this.openChallengeWindow = function(challenge, serverName, challengeUuid, tts) {
     scannerService.pause();
     uiService.hideBoxes();
-    
-    $('#ch-serverName').text(serverName);
-    $('#ch-challengeUuid').text(challengeUuid);
-    $('#ch-tts').text(tts);
-    
-    if (challenge) {
-        $('#ch-challenge').text(challenge);
-        $('#ch-challenge-block').show();
-        $('#ch-nochallenge-block').hide();
+
+    if (challenge && challenge.length == 2) {
+        $('#ch-challengeUuid-passwordless').text(challengeUuid);
+        $('#ch-serverName-passwordless').text(serverName);
+        $('#ch-tts-passwordless').text(tts);
+
+	// clear any previous challenges
+        $('#ch-challenge-passwordless').text('');
+        $('#box-challenge-passwordless').show();
+
+        pin = '';        
+        pinboxes = $('#box-challenge-passwordless .pinfill');
     }
     else {
-        $('#ch-challenge-block').hide();
-        $('#ch-nochallenge-block').show();
-    }
+        $('#ch-challengeUuid').text(challengeUuid);
+        $('#ch-serverName').text(serverName);
+        $('#ch-tts').text(tts);
     
-    $('#box-challenge').show();
+        if (challenge) {
+            $('#ch-challenge').text(challenge);
+            $('#ch-challenge-block').show();
+            $('#ch-nochallenge-block').hide();
+        }
+        else {
+            $('#ch-challenge-block').hide();
+            $('#ch-nochallenge-block').show();
+        }
+
+        $('#box-challenge').show();
+    }
   }
   
+  this.finishPasswordlessChallenge = function(challenge) {
+      var challengeUuid = $("#ch-challengeUuid-passwordless").text();
+      backendService.acceptChallengePasswordless(challengeUuid, challenge, function(result) {
+        if (!result.valid) {
+          if (result.locked) {
+            $('#challengePasswordlessErrorMsg').text('2-faktor enheden er låst indtil ' + result.lockedUntil);
+            $('#challengePasswordlessErrorMsg').show();
+          }
+          else {
+            $('#challengePasswordlessErrorMsg').text('Forkert kontrolkode!');
+            $('#challengePasswordlessErrorMsg').show();
+          }
+        }
+        else {
+          $('#challengePasswordlessErrorMsg').text('');
+          $('#challengePasswordlessErrorMsg').hide();
+
+          uiService.update();
+        }
+      });
+  }
+
   this.openResetWindow = function() {
     scannerService.pause();
     uiService.hideBoxes();
@@ -229,8 +303,7 @@ function UIService() {
     uiService.hideBoxes();
     
     // preload data for entering pincode
-    var rootElement = document.getElementById('box-register-pin');
-    pinboxes = rootElement.getElementsByClassName("pinfill");
+    pinboxes = $('#box-register-pin .pinfill');
     
     $('#box-register-pin').show();
     
@@ -245,6 +318,8 @@ function UIService() {
         if (result.success) {
           dbService.setValue('pin', pin);
           dbService.setValue('isPinCodeRegistered', true);
+          // new registrations are always 6 digit pin (only older are not)
+          dbService.setValue('isPin6', true);
           
           $('#registerPinErrorMsg').text('');
           $('#registerPinErrorMsg').hide();
@@ -276,6 +351,8 @@ function UIService() {
           dbService.setValue('deviceId', result.deviceId);
           dbService.setValue('pin', pin);
           dbService.setValue('isPinCodeRegistered', true);
+          // new registrations are always 6 digit pin (only older are not)
+          dbService.setValue('isPin6', true);
 
           $('#registerPinErrorMsg').text('');
           $('#registerPinErrorMsg').hide();
@@ -315,7 +392,7 @@ function UIService() {
         dbService.setValue('isNemIdRegistered', true);
       }
 
-      uiService.update();
+      uiService.logout();
     });
   }
   

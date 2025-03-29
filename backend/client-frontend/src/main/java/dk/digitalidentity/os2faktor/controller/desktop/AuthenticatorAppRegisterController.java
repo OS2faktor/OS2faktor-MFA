@@ -156,7 +156,7 @@ public class AuthenticatorAppRegisterController extends BaseController {
 			return userOrLoginPage.loginPage;
 		}
 
-		PartialClient partialClient = partialClientDao.getById(form.partialClientId);
+		PartialClient partialClient = partialClientDao.findById(form.partialClientId);
 		if (partialClient == null) {
 			// TODO: setup a better error message for user - we need a failed registration flow page
 			log.warn("Authenticated user with pid: " + userOrLoginPage.user.getPid() + " did not have a partial client with id " + form.partialClientId);

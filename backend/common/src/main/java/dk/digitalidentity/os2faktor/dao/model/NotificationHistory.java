@@ -69,4 +69,8 @@ public class NotificationHistory {
 	
 	@Column
 	private String clientDeviceId;
+	
+	@Column
+	private boolean passwordless;
+
 }

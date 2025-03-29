@@ -54,10 +54,12 @@
                             <div class="ibox-content" style="min-height: calc(100vh - 120px);">
                                 <div class="valignbox">
                                     <div class="pinbox-holder">
-                                        <div class="pinbox rounded-circle"><div class="pinfill rounded-circle"></div></div>
-                                        <div class="pinbox rounded-circle"><div class="pinfill rounded-circle"></div></div>
-                                        <div class="pinbox rounded-circle"><div class="pinfill rounded-circle"></div></div>
-                                        <div class="pinbox rounded-circle"><div class="pinfill rounded-circle"></div></div>
+                                        <div class="pinbox rounded-circle"><div class="pinfill pin4-pinfill pin6-pinfill rounded-circle"></div></div>
+                                        <div class="pinbox rounded-circle"><div class="pinfill pin4-pinfill pin6-pinfill rounded-circle"></div></div>
+                                        <div class="pinbox rounded-circle"><div class="pinfill pin4-pinfill pin6-pinfill rounded-circle"></div></div>
+                                        <div class="pinbox rounded-circle"><div class="pinfill pin4-pinfill pin6-pinfill rounded-circle"></div></div>
+                                        <div class="pinbox rounded-circle pin6" style="display: none;"><div class="pinfill pin6-pinfill rounded-circle"></div></div>
+                                        <div class="pinbox rounded-circle pin6" style="display: none;"><div class="pinfill pin6-pinfill rounded-circle"></div></div>
                                     </div>
 
                                     <table class="table pin">
@@ -89,7 +91,7 @@
                                         Indtast din pinkode for at logge ind
                                         </p>
 
-										<p><a role="button" class="forgotPin" onclick="uiService.openResetWindowForgotPin();">Glemt pinkode? Klik her</a></p>
+					<p><a role="button" class="forgotPin" onclick="uiService.openResetWindowForgotPin();">Glemt pinkode? Klik her</a></p>
 
                                         <div id="loginErrorMsg" style="color: red; font-weight: bold; font-size: larger; display: none;">
                                         </div>
@@ -98,7 +100,7 @@
                             </div>
                         </div>
 
-						<!-- reset -->
+			<!-- reset -->
                         <div class="ibox" id="box-forgot-pin" style="display: none;">
                             <div class="ibox-content" style="min-height: calc(100vh - 120px);">
                                 <div class="panel panel-primary" style="margin-top: 30%;">
@@ -108,7 +110,7 @@
 
                                     <div class="panel-body">
                                         <p>
-										Hvis du har glemt din pinkode, bliver du nødt til at nulstille 2-faktor enheden. <br/>
+					Hvis du har glemt din pinkode, bliver du nødt til at nulstille 2-faktor enheden. <br/>
                                         Efter 2-faktor enheden er blevet nulstillet, kan den ikke anvendes længere, og skal
                                         gen-aktiveres hvis den skal bruges i fremtiden.
                                         </p>
@@ -163,6 +165,10 @@
                                 <a role="button" onclick="uiService.openSetPinWindow(null);"><i class="fa fa-th"></i>&nbsp; Vælg pinkode</a>
                             </li>
 
+                            <li id="pinCodeChangeMenuItem">
+                                <a role="button" onclick="uiService.openSetPinWindow(null);"><i class="fa fa-th"></i>&nbsp; Skift pinkode</a>
+                            </li>
+
                             <li id="selfServiceMenuItem">
                                 <a role="button" onclick="uiService.openSelfServiceWindow();"><i class="fa fa-users"></i>&nbsp; Administration af enheder</a>
                             </li>
@@ -193,11 +199,80 @@
                             </div>
                         </div>
 
+                        <!-- challenge passwordless -->
+                        <div class="ibox" id="box-challenge-passwordless" style="display: none;">
+                            <div class="ibox-content" style="min-height: calc(100vh - 120px);">
+
+                                <div class="challengeDialog-passwordless panel panel-primary">
+                                    <span id="ch-challengeUuid-passwordless" style="display: none;"></span>
+
+                                    <div class="panel-heading" style="font-weight: bold;">
+                                        Godkend login forespørgsel
+                                    </div>
+
+                                    <div class="panel-body">
+                                        <p>
+                                        Der er ankommet en login forespørgsel <span id="ch-tts-passwordless">kl 10:00</span> fra
+                                        </p>
+
+                                        <div id="ch-serverName-passwordless" style="font-size: larger; font-weight: bold; text-align: center; margin-bottom: 10px;">Skive Kommune</div>
+
+                                        <div style="margin-top: 20px;">
+
+                                            <div class="valignbox" style="margin-top: 2vh !important;">
+                                                <hr/>
+
+                                                <div class="pinbox-holder">
+                                                    <div class="pinbox rounded-circle"><div class="pinfill rounded-circle"></div></div>
+                                                    <div class="pinbox rounded-circle"><div class="pinfill rounded-circle"></div></div>
+                                                </div>
+
+                                                <table class="table pin">
+                                                    <tr>
+                                                        <td style="width: 33%;" onclick="enterPin('1', uiService.finishPasswordlessChallenge);">1</td>
+                                                        <td style="width: 34%;" onclick="enterPin('2', uiService.finishPasswordlessChallenge);">2</td>
+                                                        <td style="width: 33%;" onclick="enterPin('3', uiService.finishPasswordlessChallenge);">3</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td onclick="enterPin('4', uiService.finishPasswordlessChallenge);">4</td>
+                                                        <td onclick="enterPin('5', uiService.finishPasswordlessChallenge);">5</td>
+                                                        <td onclick="enterPin('6', uiService.finishPasswordlessChallenge);">6</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td onclick="enterPin('7', uiService.finishPasswordlessChallenge);">7</td>
+                                                        <td onclick="enterPin('8', uiService.finishPasswordlessChallenge);">8</td>
+                                                        <td onclick="enterPin('9', uiService.finishPasswordlessChallenge);">9</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>&nbsp;</td>
+                                                        <td onclick="enterPin('0', uiService.finishPasswordlessChallenge);">0</td>
+                                                        <td onclick="enterPin('del', null);"><em class="fa fa-fw fa-arrow-left"></em></td>
+                                                    </tr>
+                                                </table>
+
+                                                <div class="pinbox-footer" style="text-align: center; margin-top: 30px;">
+		            			<h4>Indtast kontrolkode</h4>
+
+                                                    <div id="challengePasswordlessErrorMsg" style="color: red; font-weight: bold; font-size: larger; display: none;">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div style="width: 100%; text-align: center; margin-top: 30px;">
+                                            <button type="button" onclick="backendService.rejectChallenge($('#ch-challengeUuid-passwordless').text());" class="btn btn-lg btn-danger" style="width: 90%; margin-left: 5%; margin-right: 5%;">Afvis</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        
                         <!-- challenge -->
                         <div class="ibox" id="box-challenge" style="display: none;">
                             <div class="ibox-content" style="min-height: calc(100vh - 120px);">
 
-                                <div class="panel panel-primary" style="margin-top: 30%;">
+                                <div class="challengeDialog panel panel-primary">
                                     <span id="ch-challengeUuid" style="display: none;"></span>
 
                                     <div class="panel-heading" style="font-weight: bold;">
@@ -261,6 +336,8 @@
                             <div class="ibox-content" style="min-height: calc(100vh - 120px);">
                                 <div class="valignbox">
                                     <div class="pinbox-holder">
+                                        <div class="pinbox rounded-circle"><div class="pinfill rounded-circle"></div></div>
+                                        <div class="pinbox rounded-circle"><div class="pinfill rounded-circle"></div></div>
                                         <div class="pinbox rounded-circle"><div class="pinfill rounded-circle"></div></div>
                                         <div class="pinbox rounded-circle"><div class="pinfill rounded-circle"></div></div>
                                         <div class="pinbox rounded-circle"><div class="pinfill rounded-circle"></div></div>
@@ -444,8 +521,8 @@
     }
 
     div.pinbox-holder > .pinbox {
-        height: 40px;
-        width: 40px;
+        height: 30px;
+        width: 30px;
         border: 1px solid black;
         display: inline-block;
         margin: 0px 7px;
@@ -453,8 +530,8 @@
 
     div.pinbox-holder .filled {
         margin: 3px;
-        height: 32px;
-        width: 32px;
+        height: 22px;
+        width: 22px;
         background: black;
     }
 
@@ -462,10 +539,10 @@
         margin-top: 5vh;
     }
 
-	.forgotPin:active {
-		color: #1ab394 !important;
-		font-weight: bold !important;
-	}
+    .forgotPin:active {
+        color: #1ab394 !important;
+        font-weight: bold !important;
+    }
 
     /* tall screens should do more vertical centering */
     @media (min-height: 700px) {
@@ -473,6 +550,23 @@
             margin-top: 15vh;
         }
     }
+
+    /* default challenge window position */
+    .challengeDialog {
+        margin-top: 30%;
+    }
+
+    .challengeDialog-passwordless {
+        margin-top: 5%;
+    }
+
+    /* on landscape tablets a bit higher up */
+    @media (orientation: landscape) {
+        .challengeDialog {
+            margin-top: 10%;
+        }
+    }
+
     </style>
 
     <script src="inspinia/2.9.3/js/jquery-3.1.1.min.js"></script>
@@ -499,6 +593,8 @@
 
     <script type="text/javascript">
       var pinboxes;
+      var pin = '';
+
       $(document).ready(function() {
         $('#reg-name').on('keyup', function(e) {
           var name = $('#reg-name').val();
@@ -565,7 +661,6 @@
         }
       });
 
-      var pin = '';
       function enterPin(c, handler) {
         if (c == 'del') {
           if (pin.length > 1) {
@@ -576,31 +671,28 @@
           }
         }
         else {
-          if (pin.length < 4) {
+          if (pin.length < pinboxes.length) {
             pin = pin + c;
           }
 
-          if (pin.length == 4) {
+          if (pin.length == pinboxes.length) {
             var actualPin = pin;
 
             pin = '';
 
-            //Clear the pinfill boxes
-            for (let item of pinboxes) {
-                item.classList.remove("filled");
-            }
+            // clear the pinfill boxes
+            pinboxes.removeClass("filled");
 
             handler(actualPin);
           }
         }
 
-        for (var i = 1; i <= 4; i++) {
-            var element = pinboxes[i-1];
-
+        for (var i = 1; i <= pinboxes.length; i++) {
             if (i <= pin.length) {
-                element.classList.add('filled');
-            } else {
-                element.classList.remove('filled');
+                $(pinboxes[i-1]).addClass('filled');
+            }
+            else {
+                $(pinboxes[i-1]).removeClass('filled');
             }
         }
       }

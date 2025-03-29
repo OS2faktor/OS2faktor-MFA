@@ -20,7 +20,7 @@ function BackendService() {
     $.ajax({
       headers: {
         'ApiKey': apiKey,
-        'deviceId': deviceId,
+        'deviceId': deviceId
       },
       url: backendUrl + "/api/client/v2/validatePin",
       type: 'POST',
@@ -104,7 +104,7 @@ function BackendService() {
     var name = dbService.getValue('name');
     var token = dbService.getValue('regId');
     var clientType = getDeviceType();
-    var uniqueClientId = device.uuid;
+    var uniqueClientId = (typeof device !== 'undefined') ? device.uuid : 'browser';
 
     var result = {
       'success': false,
@@ -123,6 +123,7 @@ function BackendService() {
         'pincode': pin,
         'type': clientType,
         'token': token,
+        'passwordless': true,
         'uniqueClientId': uniqueClientId
       }),
       success: function(data) {
@@ -209,6 +210,47 @@ function BackendService() {
         }
 
         logService.logg("getStatusError: " + JSON.stringify(jqXHR));
+        handler(result);
+      }
+    });
+  }
+
+  this.acceptChallengePasswordless = function(challengeUuid, challenge, handler) {
+    var apiKey = dbService.getValue('apiKey');
+    var deviceId = dbService.getValue('deviceId');
+    var pin = dbService.getValue('pin');
+
+    var result = {
+      'valid': false,
+      'locked': false,
+      'lockedUntil': ''
+    };
+
+    $.ajax({
+      headers: {
+        'ApiKey': apiKey,
+        'deviceId': deviceId,
+        'pinCode': pin,
+        'passwordlessChallenge': challenge
+      },
+      url: backendUrl + "/api/client/" + challengeUuid + "/accept",
+      type: 'PUT',
+      success: function(data) {
+        logService.logg("bruger godkendte login");
+
+        result.valid = true;
+        handler(result);
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        if (jqXHR.responseText) {
+          var data = JSON.parse(jqXHR.responseText);
+          
+          if ("LOCKED" == data.status) {
+            result.locked = true;
+            result.lockedUntil = data.lockedUntil;
+          }
+        }
+        
         handler(result);
       }
     });

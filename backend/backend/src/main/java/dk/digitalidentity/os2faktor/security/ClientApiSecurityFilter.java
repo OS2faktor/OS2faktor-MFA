@@ -63,7 +63,7 @@ public class ClientApiSecurityFilter implements Filter {
 			}
 
 			if (!matches) {
-				log.error("Wrong ApiKey on: " + deviceId);
+				log.warn("Wrong ApiKey on: " + deviceId);
 				response.sendError(401, "Wrong ApiKey!");
 				return;
 			}

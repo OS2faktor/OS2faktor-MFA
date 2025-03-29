@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -54,12 +55,19 @@ public class ClientApi {
 			return ResponseEntity.notFound().build();
 		}
 		
-		Notification notification = challenges.get(0);
+		// sort by date descending to get the latest in case there are more than one
+		Notification notification = challenges.stream().sorted((c1, c2) -> c2.getCreated().compareTo(c1.getCreated())).findFirst().orElse(null);
 
 		Challenge challenge = new Challenge();
 		challenge.setUuid(notification.getSubscriptionKey());
 		challenge.setServerName(notification.getServerName());
-		challenge.setChallenge(notification.getChallenge());
+		if (notification.isPasswordless()) {
+			// send 2 chars, as that will trigger a different UI in client
+			challenge.setChallenge("??");
+		}
+		else {
+			challenge.setChallenge(notification.getChallenge());
+		}
 		
 		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
 		challenge.setTts("kl " + sdf.format(notification.getCreated()));
@@ -72,7 +80,7 @@ public class ClientApi {
 	}
 
 	@PutMapping("/api/client/{uuid}/accept")
-	public ResponseEntity<?> accept(@PathVariable("uuid") String uuid, @RequestHeader("deviceId") String deviceId, @RequestHeader("clientVersion") String clientVersion, @RequestHeader(name = "pinCode", required = false) String pinCode, @RequestHeader(name = "roaming", required = false) boolean roaming) {
+	public ResponseEntity<?> accept(@PathVariable("uuid") String uuid, @RequestHeader("deviceId") String deviceId, @RequestHeader("clientVersion") String clientVersion, @RequestHeader(name = "pinCode", required = false) String pinCode, @RequestHeader(name = "roaming", required = false) boolean roaming, @RequestHeader(name = "passwordlessChallenge", required = false, defaultValue = "") String passwordlessChallenge) {
 		Notification challenge = notificationDao.findBySubscriptionKey(uuid);
 		if (challenge != null) {
 			if (!challenge.getClient().getDeviceId().equals(deviceId)) {
@@ -110,26 +118,18 @@ public class ClientApi {
 				if (!matches) {
 					log.warn("Wrong pin for device: " + challenge.getClient().getDeviceId());
 
-					PinResult result = new PinResult();
+					PinResult result = wrongPinResult(client);
+					clientService.save(client);
 
-					if (client.getFailedPinAttempts() >= 5) {
-						Calendar c = Calendar.getInstance();
-						c.add(Calendar.MINUTE, 5);
-						Date lockedUntil = c.getTime();
+					return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+				}
+			}
 
-						result.setStatus(PinResultStatus.LOCKED);
-						SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-						result.setLockedUntil(format.format(lockedUntil));
-
-						client.setFailedPinAttempts(0);
-						client.setLockedUntil(lockedUntil);
-						client.setLocked(true);
-					}
-					else {
-						client.setFailedPinAttempts(client.getFailedPinAttempts() + 1);
-						result.setStatus(PinResultStatus.WRONG_PIN);
-					}
-
+			// is this a passwordless flow, then validate the code
+			if (client.isPasswordless() && challenge.isPasswordless()) {
+				if (!Objects.equals(challenge.getChallenge(), passwordlessChallenge)) {
+					// we are "abusing" the current pin-system for this, as we want to trigger the same locking flow for wrong pins
+					PinResult result = wrongPinResult(client);
 					clientService.save(client);
 
 					return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
@@ -200,5 +200,29 @@ public class ClientApi {
 		clientService.save(client);
 
 		return new ResponseEntity<>(HttpStatus.OK);
+	}
+	
+	private PinResult wrongPinResult(Client client) {
+		PinResult result = new PinResult();
+
+		if (client.getFailedPinAttempts() >= 5) {
+			Calendar c = Calendar.getInstance();
+			c.add(Calendar.MINUTE, 5);
+			Date lockedUntil = c.getTime();
+
+			result.setStatus(PinResultStatus.LOCKED);
+			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+			result.setLockedUntil(format.format(lockedUntil));
+
+			client.setFailedPinAttempts(0);
+			client.setLockedUntil(lockedUntil);
+			client.setLocked(true);
+		}
+		else {
+			client.setFailedPinAttempts(client.getFailedPinAttempts() + 1);
+			result.setStatus(PinResultStatus.WRONG_PIN);
+		}
+
+		return result;
 	}
 }

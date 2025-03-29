@@ -20,3 +20,5 @@ plugins/
 !www/inspinia/2.9.3/js/plugins
 .gradle
 package-lock.json
+
+docker-build/*.zip

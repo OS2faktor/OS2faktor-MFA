@@ -7,7 +7,8 @@ function BiometricService() {
 
   this.init = function() {
     var optionalParams = {
-      allowBackup : false
+      disableBackup : true,
+      fallbackButtonTitle: 'Brug PIN'
     };
 
     if (!browserOnly) {

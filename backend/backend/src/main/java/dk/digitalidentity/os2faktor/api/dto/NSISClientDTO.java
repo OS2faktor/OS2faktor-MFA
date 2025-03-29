@@ -20,4 +20,5 @@ public class NSISClientDTO {
 	private boolean locked;
 	private Date lockedUntil;
 	private String serialnumber;
+	private boolean passwordless;
 }

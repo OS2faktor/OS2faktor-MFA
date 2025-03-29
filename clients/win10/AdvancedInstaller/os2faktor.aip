@@ -14,10 +14,10 @@
     <ROW Property="ARPNOREPAIR" Value="1"/>
     <ROW Property="LIMITUI" Value="1"/>
     <ROW Property="Manufacturer" Value="OS2"/>
-    <ROW Property="ProductCode" Value="1030:{A5D2D529-10AE-4C32-8BFB-37847B4622EF} " Type="16"/>
+    <ROW Property="ProductCode" Value="1030:{9810D566-65E1-4A0E-A135-81A5E0966C3C} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1030"/>
     <ROW Property="ProductName" Value="OS2faktor"/>
-    <ROW Property="ProductVersion" Value="2.7.0" Type="32"/>
+    <ROW Property="ProductVersion" Value="2.8.0" Type="32"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND"/>
     <ROW Property="UpgradeCode" Value="{FF8A1A78-F9E8-4581-B1C6-B1EEE7771F20}"/>
     <ROW Property="WindowsType9X" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>

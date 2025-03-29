@@ -4,7 +4,7 @@
 #define AppId "{{99fc06ec-8285-4bd1-a018-58c74fca4987}"
 #define AppSourceDir "Z:\projects\os2faktor\connectors\ADFS-Plugin\OS2faktorPlugin\OS2faktorPlugin\bin\Release"
 #define AppName "OS2faktor"
-#define AppVersion "2.5.0"
+#define AppVersion "2.6.0"
 #define AppPublisher "Digital Identity"
 #define AppURL "http://digital-identity.dk/"
 #define AppExeName "OS2faktorADFSSetup.exe"
@@ -33,7 +33,7 @@ UninstallDisplayIcon={#AppSourceDir}\..\..\..\Resources\di.ico
 Root: HKLM; Subkey: "SOFTWARE\{#AppPublisher}";
 Root: HKLM; Subkey: "SOFTWARE\{#AppPublisher}\{#AppName}"; Flags: uninsdeletekey
 Root: HKLM; Subkey: "SOFTWARE\{#AppPublisher}\{#AppName}"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}";
-Root: HKLM; Subkey: "SOFTWARE\{#AppPublisher}\{#AppName}"; ValueType: string; ValueName: "ConnectorVersion"; ValueData: "adfs-2.5.0"
+Root: HKLM; Subkey: "SOFTWARE\{#AppPublisher}\{#AppName}"; ValueType: string; ValueName: "ConnectorVersion"; ValueData: "adfs-2.6.0"
 Root: HKLM; Subkey: "SOFTWARE\{#AppPublisher}\{#AppName}"; ValueType: string; ValueName: "ApiKey"; ValueData: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"; Flags: createvalueifdoesntexist
 Root: HKLM; Subkey: "SOFTWARE\{#AppPublisher}\{#AppName}"; ValueType: string; ValueName: "CprField"; ValueData: "cprAttribute"; Flags: createvalueifdoesntexist
 Root: HKLM; Subkey: "SOFTWARE\{#AppPublisher}\{#AppName}"; ValueType: string; ValueName: "PidField"; ValueData: ""; Flags: createvalueifdoesntexist
