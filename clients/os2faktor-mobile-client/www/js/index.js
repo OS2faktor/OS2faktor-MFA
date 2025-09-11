@@ -43,6 +43,13 @@ if (document.URL.indexOf('file:///home/brian') >= 0) {
   onDeviceReady();
 }
 
+function handleOpenURL(url) {
+  // setTimeout(function() {
+    // here we can debug
+    // alert("received url: " + url);
+  // }, 0);
+}
+
 function onDeviceReady() {
   document.addEventListener("pause", uiService.appLostFocus, false);
   document.addEventListener("resign", uiService.appLostFocus, false);

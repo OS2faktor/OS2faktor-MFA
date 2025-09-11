@@ -25,6 +25,7 @@ import dk.digitalidentity.os2faktor.security.ClientSecurityFilter;
 import dk.digitalidentity.os2faktor.service.HardwareTokenService;
 import dk.digitalidentity.os2faktor.service.MFATokenManager;
 import dk.digitalidentity.os2faktor.service.MFATokenManager.OtpVerificationResult;
+import dk.digitalidentity.os2faktor.service.totp.Hash;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
@@ -165,7 +166,7 @@ public class AuthenticatorAppLoginController extends BaseController {
 		}
 
 		// last argument is a span of 7 codes (-90, -60, -30, 0, 30, 60, 90 seconds from current offset)
-		OtpVerificationResult otpVerificationResult = mfaTokenManager.verifyTotp(form.mfaCode, client.getSecret(), offset, 7);
+		OtpVerificationResult otpVerificationResult = mfaTokenManager.verifyTotp(form.mfaCode, client.getSecret(), offset, 7, Hash.SHA1);
 		if (!otpVerificationResult.success()) {
 			client.setFailedPinAttempts(client.getFailedPinAttempts() + 1);
 			clientService.save(client);

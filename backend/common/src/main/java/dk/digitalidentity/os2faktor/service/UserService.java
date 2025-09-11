@@ -39,7 +39,7 @@ public class UserService {
 			encryptedSsn = ssnService.encryptAndEncodeEncodedSsn(encodedSsn);
 		}
 		catch (Exception ex) {
-			log.error("Failed to encrypt ssn", ex);
+			log.warn("Failed to encrypt ssn", ex);
 			return null;
 		}
 		

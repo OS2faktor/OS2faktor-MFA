@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -14,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,10 +23,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import dk.digitalidentity.os2faktor.api.dto.AuthenticateUserRequestBody;
+import dk.digitalidentity.os2faktor.api.dto.LoginMfaResponse;
+import dk.digitalidentity.os2faktor.dao.NotificationHistoryDao;
 import dk.digitalidentity.os2faktor.dao.model.Client;
 import dk.digitalidentity.os2faktor.dao.model.ExternalLoginSession;
 import dk.digitalidentity.os2faktor.dao.model.HardwareToken;
 import dk.digitalidentity.os2faktor.dao.model.LoginServiceProvider;
+import dk.digitalidentity.os2faktor.dao.model.NotificationHistoryDTO;
+import dk.digitalidentity.os2faktor.dao.model.ProjectionClient;
 import dk.digitalidentity.os2faktor.dao.model.enums.ClientType;
 import dk.digitalidentity.os2faktor.dao.model.enums.NSISLevel;
 import dk.digitalidentity.os2faktor.security.AuthorizedLoginServiceProviderHolder;
@@ -59,8 +65,24 @@ public class LoginApiController {
 	@Autowired
 	private HashingService hashingService;
 
+	@Autowired
+	private NotificationHistoryDao notificationHistoryDao;
+
 	@Value("${os2faktor.frontend.baseurl}")
 	private String frontendBaseUrl;
+
+	@GetMapping("/api/login/mfa/history")
+	public ResponseEntity<?> mfaHistory(@RequestParam(name = "after") String after) {
+		// should not happen, but better safe than NullPointer ;)
+		LoginServiceProvider loginServiceProvider = AuthorizedLoginServiceProviderHolder.getLoginServiceProvider();
+		if (loginServiceProvider == null) {
+			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+		}
+
+		List<NotificationHistoryDTO> result = notificationHistoryDao.getHistory(loginServiceProvider.getCvr(), LocalDateTime.parse(after));
+
+		return ResponseEntity.ok().body(result);
+	}
 
 	@PostMapping("/api/login/authenticateUser")
 	public ResponseEntity<?> authenticateUser(@RequestBody AuthenticateUserRequestBody body, @RequestParam(defaultValue = "yubikey") String type) throws Exception {
@@ -232,6 +254,49 @@ public class LoginApiController {
 		
 		RobotClientResponse response = new RobotClientResponse(client.getSecret(), client.getDeviceId());
 		
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	@GetMapping("/api/login/mfa/nonLocal")
+	public ResponseEntity<?> getMfaNonLocal(@RequestParam(name = "deviceId", required = false, value = "") String deviceId) {
+		LoginServiceProvider loginServiceProvider = AuthorizedLoginServiceProviderHolder.getLoginServiceProvider();
+		if (loginServiceProvider == null) {
+			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+		}
+
+		List<ProjectionClient> clients = null;
+		if (StringUtils.hasText(deviceId)) {
+			clients = clientService.getNonLocalClients(deviceId);
+		}
+		else {
+			clients = clientService.getNonLocalClients();
+		}
+		
+		LoginMfaResponse response = new LoginMfaResponse();
+		response.setCount(clients.size());
+		if (clients.size() > 0) {
+			response.setLastClientDeviceId(clients.get(clients.size() - 1).getDeviceId());
+			response.setClients(clients);
+		}
+
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@GetMapping("/api/login/mfa/local")
+	public ResponseEntity<?> getMfaLocal() {
+		LoginServiceProvider loginServiceProvider = AuthorizedLoginServiceProviderHolder.getLoginServiceProvider();
+		if (loginServiceProvider == null) {
+			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+		}
+
+		List<ProjectionClient> clients = clientService.getLocalClients(loginServiceProvider.getCvr());
+		LoginMfaResponse response = new LoginMfaResponse();
+		response.setCount(clients.size());
+		if (clients.size() > 0) {
+			response.setLastClientDeviceId(clients.get(clients.size() - 1).getDeviceId());
+			response.setClients(clients);
+		}
+
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 }

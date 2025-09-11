@@ -3,8 +3,6 @@ package dk.digitalidentity.os2faktor.service;
 import java.io.ByteArrayOutputStream;
 
 import org.apache.commons.codec.binary.Base64;
-import org.jboss.aerogear.security.otp.Totp;
-import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.stereotype.Service;
 
 import com.google.zxing.BarcodeFormat;
@@ -12,7 +10,10 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
-import dk.digitalidentity.os2faktor.service.model.IncrementalClock;
+import dk.digitalidentity.os2faktor.service.totp.Base32;
+import dk.digitalidentity.os2faktor.service.totp.Hash;
+import dk.digitalidentity.os2faktor.service.totp.IncrementalClock;
+import dk.digitalidentity.os2faktor.service.totp.Totp;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -55,7 +56,7 @@ public class MFATokenManager {
 	}
 
 	public record OtpVerificationResult (boolean success, int offsetResult) { }
-	public OtpVerificationResult verifyTotp(String code, String secret, int initialOffset, int span) {
+	public OtpVerificationResult verifyTotp(String code, String secret, int initialOffset, int span, Hash hashAlgo) {
 		code = code.replace(" ", "");
 		if (!isValidLong(code)) {
 			return new OtpVerificationResult(false, 0);
@@ -64,7 +65,7 @@ public class MFATokenManager {
 		// validate with +/- 90 seconds
 		IncrementalClock[] clocks = getClocks(initialOffset, span);
 		for (int i = 0; i < clocks.length; i++) {
-			Totp totp = new Totp(secret, clocks[i]);
+			Totp totp = new Totp(secret, clocks[i], hashAlgo);
 			boolean valid = totp.verify(code);
 
 			if (valid) {

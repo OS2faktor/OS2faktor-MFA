@@ -21,13 +21,15 @@
 									<h4 th:text="#{html.yubikey.login.title}"></h4>
 									<p>Du skal nu godkende at browseren må anvende din hardwarenøgle. Hvis der ikke vises en browser-dialog, der spørger om lov til at tilgå
 									din hardwarenøgle, kan det skyldes at din browser ikke understøtter hardwarenøgle, eller at browseren forbyder adgangen til hardwaren.</p>
-									
+
+									<br/>
+									<button class="btn btn-primary btn-block" id="mobileBtn" onclick="login();">Start Login</button>
+									<br/>
+
 									<p>Hvis der ikke kommer en browser-dialog frem, skal du kontakte din it-afdeling for yderligere hjælp.</p>						
 								</form>
-								
-								<br/>
-								
-								<button class="btn btn-primary btn-block" style="display: none;" id="iosBtn" onclick="login();">Start Login</button>
+
+								<pre id="console" style="display: none;"></pre>
 							</div>
 						</div>
 					</div>
@@ -69,54 +71,93 @@
 		}
 		
 		function login() {
-			for (let i = 0; i < assertionRequest.publicKey.allowCredentials.length; i++) {
-				assertionRequest.publicKey.allowCredentials[i].id = strToBin(assertionRequest.publicKey.allowCredentials[i].id);
-			}
-
-			assertionRequest.publicKey.challenge = strToBin(assertionRequest.publicKey.challenge);
-
-			navigator.credentials.get(assertionRequest).then(function(assertion) {
-				payloadObject = {
-					id: assertion.id,
-					rawId: binToStr(assertion.rawId),
-					response: {
-						authenticatorData: binToStr(assertion.response.authenticatorData),
-						signature: binToStr(assertion.response.signature),
-						clientDataJSON: binToStr(assertion.response.clientDataJSON),
-						userHandle: (assertion.response.userHandle ? binToStr(assertion.response.userHandle) : assertion.response.userHandle)
-					},
-					clientExtensionResults: assertion.getClientExtensionResults(),
-					type: assertion.type,
+			try {
+				trace('pubKeyLen = ' + assertionRequest.publicKey.allowCredentials.length);
+				for (let i = 0; i < assertionRequest.publicKey.allowCredentials.length; i++) {
+					assertionRequest.publicKey.allowCredentials[i].id = strToBin(assertionRequest.publicKey.allowCredentials[i].id);
 				}
+	
+				trace('attempting to decode challenge');
+				
+				assertionRequest.publicKey.challenge = strToBin(assertionRequest.publicKey.challenge);
 
-				var payload = JSON.stringify(payloadObject);
+				trace('calling webauthn');
 
-				$("#loginForm input").val(payload);
-				$("#loginForm").submit();
-			}).catch(function(err) {
-				console.log("login error");
-				console.log(err);
-				console.log(err.name);
-			});
-		}
-		
-		function isIOS() {
-			return [
-				'iPad Simulator',
-				'iPhone Simulator',
-				'iPad',
-				'iPhone'
-			].includes(navigator.platform);
-		}
-		
-		$(document).ready(function() {
-			assertionRequest = JSON.parse(assertionRequest);
+				navigator.credentials.get(assertionRequest).then(function(assertion) {
+					trace('webauthn callback');
 
-			if (!isIOS()) {
-				login();
+					payloadObject = {
+						id: assertion.id,
+						rawId: binToStr(assertion.rawId),
+						response: {
+							authenticatorData: binToStr(assertion.response.authenticatorData),
+							signature: binToStr(assertion.response.signature),
+							clientDataJSON: binToStr(assertion.response.clientDataJSON),
+							userHandle: (assertion.response.userHandle ? binToStr(assertion.response.userHandle) : assertion.response.userHandle)
+						},
+						clientExtensionResults: assertion.getClientExtensionResults(),
+						type: assertion.type,
+					}
+	
+					var payload = JSON.stringify(payloadObject);
+					
+					trace('response: ' + payload);
+	
+					$("#loginForm input").val(payload);
+					$("#loginForm").submit();
+				}).catch(function(err) {
+					log("login error: " + err + " / " + err.name);
+	
+					console.log("login error");
+					console.log(err);
+					console.log(err.name);
+				});
 			}
-			else {
-				$('#iosBtn').show();
+			catch (err) {
+				log("login error: " + err + " / " + err.name);
+			}
+		}
+		
+		function hasTouchSupport() {
+			return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+		}
+
+		function trace(msg) {
+			try {
+				$('#console').append(msg + ' \n');
+			} catch (err) {
+				;
+			}
+		}
+
+		function log(msg) {
+			try {
+				$('#console').show();
+				$('#console').append(msg + ' \n');
+			} catch (err) {
+				;
+			}
+		}
+
+		$(document).ready(function() {			
+			try {
+				trace('assertionRequest: ' + assertionRequest);
+
+				assertionRequest = JSON.parse(assertionRequest);
+				
+				trace('assertionRequest postParse: ' + assertionRequest);
+				
+				if (!hasTouchSupport()) {
+					login();
+					
+					$('#mobileBtn').hide();
+				}
+				else {
+					login();
+				}
+			}
+			catch (err) {
+				log('Error during initialization: ' + err);
 			}
 		});
 		

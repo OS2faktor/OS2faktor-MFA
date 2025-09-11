@@ -26,6 +26,7 @@ import dk.digitalidentity.os2faktor.service.LocalClientService;
 import dk.digitalidentity.os2faktor.service.MFATokenManager;
 import dk.digitalidentity.os2faktor.service.MFATokenManager.OtpVerificationResult;
 import dk.digitalidentity.os2faktor.service.UserService;
+import dk.digitalidentity.os2faktor.service.totp.Hash;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
@@ -154,7 +155,7 @@ public class HardwareTokenRegisterController extends BaseController {
 			// last argument is a span of 21 codes (-300, -270, ..., -30, 0, 30, ..., 270, 300 seconds from current offset)
 			// note that this is a special case for registration, as we want to make sure we can register the token, but
 			// once registered, the offset will only move +/- 90 seconds from each usage
-			OtpVerificationResult otpVerificationResult = mfaTokenManager.verifyTotp(form.code, existingToken.getSecretKey(), offset, 21);
+			OtpVerificationResult otpVerificationResult = mfaTokenManager.verifyTotp(form.code, existingToken.getSecretKey(), offset, 21, Hash.valueOf(existingToken.getHashAlgo()));
 			if (!otpVerificationResult.success()) {
 				model.addAttribute("wrongCode", true);
 				error = true;

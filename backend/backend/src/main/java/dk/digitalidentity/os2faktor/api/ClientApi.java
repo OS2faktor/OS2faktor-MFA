@@ -49,7 +49,11 @@ public class ClientApi {
 			return ResponseEntity.badRequest().build();
 		}
 
-		List<Notification> challenges = notificationDao.findByClientAndClientRejectedFalseAndClientAuthenticatedFalseAndClientLockedFalse(client);
+		if (client.isLocked()) {
+			return ResponseEntity.notFound().build();
+		}
+
+		List<Notification> challenges = notificationDao.findByClientAndClientRejectedFalseAndClientAuthenticatedFalse(client);
 
 		if (challenges.size() == 0) {
 			return ResponseEntity.notFound().build();

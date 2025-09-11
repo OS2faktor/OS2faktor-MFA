@@ -1,5 +1,4 @@
-
-var clientVersion = "2.4.0";
+var clientVersion = "2.5.1";
 var applicationServerKey = "BJgHwxgz45mYC9_gGqOF3RiCL97HVwt3tP9RqYz2btuv_r0Ev3bJ4A9PMzwpHVbsXnA715ZJmxhn5DDRDHoBnGI=";
 
 /* utility method for generating a Login session */
@@ -55,22 +54,6 @@ chrome.runtime.onMessageExternal.addListener(function(request, sender, sendRespo
 	if (request.nemIdRegistration) {
 		chrome.storage.local.set({ nemIdRegistered: true });
 	}
-});
-
-// listener for events from GCM - for indirect integration
-chrome.gcm.onMessage.addListener(function(message) {
-	console.log("Got push message from GCM");
-	handleChallenge();
-});
-
-chrome.gcm.onSendError.addListener(function (err) {
-	console.log("addLister Error: " + err);
-});
-
-// listener for events from FCM
-self.addEventListener('push', event => {
-	console.log("Got push message from FCM");
-	handleChallenge();
 });
 
 function handleChallenge() {

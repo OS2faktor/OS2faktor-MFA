@@ -1,7 +1,7 @@
  {
 	"name": "OS2faktor Chrome Extension",
 	"manifest_version": 3,
-	"version": "2.4.0",
+	"version": "2.5.0",
 	"minimum_chrome_version": "88",
 	"description": "Google Chrome - OS2faktor client",
 	"permissions": [ "background", "gcm", "notifications", "tabs", "storage", "alarms", "system.display" ],

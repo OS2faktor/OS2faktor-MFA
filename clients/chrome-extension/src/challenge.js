@@ -1,6 +1,6 @@
 var backendUrl;
 var roaming;
-var clientVersion = "2.4.0";
+var clientVersion = "2.5.0";
 
 const swalWithBootstrapButtons = swal.mixin({
     confirmButtonClass: 'btn',
@@ -22,12 +22,12 @@ const swalWithBootstrapButtons = swal.mixin({
 		}
 	}
 
-	function checkForChallenges(registrationId, apiKey, deviceId, pinRegistered) {
+	function checkForChallenges(apiKey, deviceId, pinRegistered) {
 		chrome.storage.local.get(["isPaused"], function (result) {
 			var isPaused = result["isPaused"];
 
 			if (!isPaused) {
-				if (registrationId && apiKey && deviceId) {
+				if (apiKey && deviceId) {
 					$.ajax({
 						headers: { 'ApiKey': apiKey, 'deviceId': deviceId },
 						url: backendUrl + "/api/client",
@@ -127,19 +127,18 @@ const swalWithBootstrapButtons = swal.mixin({
 	}
 
 	function initializePage(result) {
-		var registrationId = result["registrationId"];
 		var apiKey = result["apiKey"];
 		var deviceId = result["deviceId"];
 		var pinRegistered = result["pinRegistered"];
 
 		// check immediately
 		setTimeout(function() {
-			checkForChallenges(registrationId, apiKey, deviceId, pinRegistered);
+			checkForChallenges(apiKey, deviceId, pinRegistered);
 		}, 200);
 
 		// re-check every 2 seconds
 		setInterval(function() {
-			checkForChallenges(registrationId, apiKey, deviceId, pinRegistered);
+			checkForChallenges(apiKey, deviceId, pinRegistered);
 		}, 2000);
 
 		// display a waiting page if nothing happens for a while
@@ -171,11 +170,11 @@ const swalWithBootstrapButtons = swal.mixin({
 		chrome.storage.local.set({ isPaused: false });
 
 		if (roaming) {
-			chrome.storage.sync.get(["registrationId", "apiKey", "deviceId", "pinRegistered"], function (result) {
+			chrome.storage.sync.get(["apiKey", "deviceId", "pinRegistered"], function (result) {
 				initializePage(result);
 			});
 		} else {
-			chrome.storage.local.get(["registrationId", "apiKey", "deviceId", "pinRegistered"], function (result) {
+			chrome.storage.local.get(["apiKey", "deviceId", "pinRegistered"], function (result) {
 				initializePage(result);
 			});
 		}

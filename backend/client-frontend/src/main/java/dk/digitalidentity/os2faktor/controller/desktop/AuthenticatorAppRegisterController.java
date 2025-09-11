@@ -29,6 +29,7 @@ import dk.digitalidentity.os2faktor.service.LocalClientService;
 import dk.digitalidentity.os2faktor.service.MFATokenManager;
 import dk.digitalidentity.os2faktor.service.MFATokenManager.OtpVerificationResult;
 import dk.digitalidentity.os2faktor.service.UserService;
+import dk.digitalidentity.os2faktor.service.totp.Hash;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
@@ -178,7 +179,7 @@ public class AuthenticatorAppRegisterController extends BaseController {
 		
 		String secret = partialClient.getChallenge();
 		// last argument is a span of 7 codes (-90, -60, -30, 0, 30, 60, 90 seconds from current offset)
-		OtpVerificationResult otpVerificationResult = mfaTokenManager.verifyTotp(form.mfaCode, secret, 0, 7);
+		OtpVerificationResult otpVerificationResult = mfaTokenManager.verifyTotp(form.mfaCode, secret, 0, 7, Hash.SHA1);
 		if (!otpVerificationResult.success()) {
 			model.addAttribute("form", form);
 			model.addAttribute("invalidMfa", true);

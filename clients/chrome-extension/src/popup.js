@@ -197,7 +197,7 @@ function register() {
 		},
 		error => {
 			console.log("error getting push permission", error);
-			performRegisterInFrontend(null);
+			performRegisterInFrontend('N/A');
 		});
 	});
 }

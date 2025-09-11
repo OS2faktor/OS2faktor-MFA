@@ -1,6 +1,6 @@
 const swalWithBootstrapButtons = swal.mixin({
     customClass: {
-      confirmButton: "btn",
+      confirmButton: "btn btn-primary",
       cancelButton: "btn btn-danger"
     }
 });

@@ -4,4 +4,3 @@ document.addEventListener('os2faktorEvent', function(e) {
 	   // do nothing on callback
    });
 }, false);
-

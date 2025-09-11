@@ -64,7 +64,7 @@ namespace OS2faktor.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2.8.0")]
+        [global::System.Configuration.DefaultSettingValueAttribute("2.8.1")]
         public string version {
             get {
                 return ((string)(this["version"]));

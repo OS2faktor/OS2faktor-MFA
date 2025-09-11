@@ -58,4 +58,8 @@ public class HardwareToken {
 	@JsonIgnore
 	@Column(name = "code_offset")
 	private long offset;
+
+	@JsonIgnore
+	@Column
+	private String hashAlgo; 
 }

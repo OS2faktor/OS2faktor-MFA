@@ -1,13 +1,13 @@
- {
+{
 	"name": "OS2faktor Edge Extension",
 	"manifest_version": 3,
-	"version": "2.4.1",
-	"description": "Google Chrome - OS2faktor client",
-	"permissions": [ "background", "gcm", "notifications", "tabs", "storage", "alarms", "system.display" ],
+	"version": "2.5.2",
+	"description": "OS2faktor MFA klient",
+	"permissions": [ "storage", "tabs", "background", "alarms" ],
 	"host_permissions" : [ "https://backend.os2faktor.dk/*", "https://frontend.os2faktor.dk/*" ],
 	"background": {
 		"service_worker": "background.js"
-	  },
+	},
 	"action": {
 		"default_popup": "popup.html",
 		"default_icon": {
@@ -22,16 +22,16 @@
 	},
 	"web_accessible_resources": [{
 		"resources": ["images/icon_128.png"],
-		"matches":["http://*/*", "https://*/*"]
+		"matches":["https://*.dk/*"]
 	}],
 	"storage": {
 		"managed_schema": "schema.json"
 	},
 	"content_scripts": [{
-		"matches":["http://*/*", "https://*/*"],
+		"matches":["https://*.dk/*"],
 		"js": ["eventListener.js"]
 	}],
 	"externally_connectable": {
-		"matches": ["https://*.os2faktor.dk/*", "http://localhost:*/*" ]
+		"matches": ["https://*.os2faktor.dk/*" ]
 	}
- }
+}

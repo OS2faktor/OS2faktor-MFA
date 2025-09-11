@@ -68,7 +68,8 @@ public class SsnService {
 				return encryptAndEncodeEncodedSsn(ssn, false);
 			}
 			else {
-				if (ssn != null && ssn.length() > 0 && ssn.endsWith("d")) {
+				// special syntax in some munis - ends with d for disabled or encapsulated in <> for disabled ;)
+				if (ssn != null && ssn.length() > 0 && (ssn.endsWith("d") || ssn.endsWith(">"))) {
 					log.warn("Malformed encoded ssn: " + ssn);
 				}
 				else {

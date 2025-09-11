@@ -137,7 +137,7 @@ public class WebsocketClientService {
 		
 		Date timestamp = calendar.getTime();
 
-		List<Notification> challenges = notificationDao.findByCreatedAfterAndClientType(timestamp, ClientType.WINDOWS);
+		List<Notification> challenges = notificationDao.findByCreatedAfterAndClientType(timestamp, ClientType.WINDOWS.toString());
 		stopWatch.stop();
 
 		stopWatch.start("iterateChallenges");

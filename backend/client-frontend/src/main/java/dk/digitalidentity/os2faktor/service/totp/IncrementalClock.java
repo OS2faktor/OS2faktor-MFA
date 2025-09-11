@@ -1,10 +1,8 @@
-package dk.digitalidentity.os2faktor.service.model;
+package dk.digitalidentity.os2faktor.service.totp;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
-
-import org.jboss.aerogear.security.otp.api.Clock;
 
 public class IncrementalClock extends Clock {
     private final int interval;

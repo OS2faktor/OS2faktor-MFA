@@ -97,7 +97,25 @@ public class YubiKeyLoginController extends BaseController {
 			return "yubikey/loginfailed";
 		}
 
-		AssertionResult loginResult = yubiKeyService.finalizeYubiKeyLogin(notification, form.getResponse());
+		if (!StringUtils.hasText(form.getResponse())) {
+			log.warn("Called YubiKey login with empty payload: " + client.getDeviceId());
+			return "yubikey/loginfailed";			
+		}
+
+		AssertionResult loginResult = null;
+		try {
+			loginResult = yubiKeyService.finalizeYubiKeyLogin(notification, form.getResponse());
+		}
+		catch (Exception ex) {
+			if (ex.getMessage() != null && ex.getMessage().contains("Incorrect challenge")) {
+				log.warn("Failed to validate response from yubikey " + client.getDeviceId() + " on response '" + form.getResponse() + "'", ex);				
+			}
+			else {
+				log.error("Failed to validate response from yubikey " + client.getDeviceId() + " on response '" + form.getResponse() + "'", ex);
+			}
+			return "yubikey/loginfailed";
+		}
+
 		if (!loginResult.isSuccess()) {
 			return "yubikey/loginfailed";
 		}

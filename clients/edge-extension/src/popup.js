@@ -110,44 +110,10 @@ function urlB64ToUint8Array(base64String) {
 
 // New register with Web Push or FCM stuff
 function register() {
-	console.log("registering push token");
-
-	navigator.serviceWorker.getRegistration().then(registration => {
-               registration.pushManager.subscribe({
-                       userVisibleOnly: true,
-                       applicationServerKey: urlB64ToUint8Array(applicationServerKey)
-               }).then(subscription => {
-			const json = JSON.stringify(subscription.toJSON(), null, 2);
-
-			chrome.storage.local.set({
-				registrationId: json
-			}, function() {
-				performRegisterInFrontend(json);
-			});
-		},
-		error => {
-			console.log("error getting push permission", error);
-			performRegisterInFrontend(null);
-		});
-	});
-}
-
-//Old registration using gcm
-function oldRegister() {
-	// identifier for push notifications
-	var senderIds = ["786549201808"];
-	chrome.gcm.register(senderIds, function (registrationId) {
-
-		if (chrome.runtime.lastError) {
-			console.log("Error occured while registering.");
-		}
-
-		chrome.storage.local.set({
-			registered: true,
-			registrationId: registrationId
-		}, function() {
-			performRegisterInFrontend(registrationId);
-		});
+	chrome.storage.local.set({
+		registrationId: 'N/A'
+	}, function() {
+		performRegisterInFrontend('N/A');
 	});
 }
 

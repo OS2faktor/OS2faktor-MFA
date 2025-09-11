@@ -23,14 +23,12 @@ import dk.digitalidentity.os2faktor.api.model.PollingResponse;
 import dk.digitalidentity.os2faktor.dao.NotificationDao;
 import dk.digitalidentity.os2faktor.dao.PseudonymDao;
 import dk.digitalidentity.os2faktor.dao.ServerDao;
-import dk.digitalidentity.os2faktor.dao.StatisticDao;
 import dk.digitalidentity.os2faktor.dao.model.Client;
 import dk.digitalidentity.os2faktor.dao.model.LocalClient;
 import dk.digitalidentity.os2faktor.dao.model.Municipality;
 import dk.digitalidentity.os2faktor.dao.model.Notification;
 import dk.digitalidentity.os2faktor.dao.model.Pseudonym;
 import dk.digitalidentity.os2faktor.dao.model.Server;
-import dk.digitalidentity.os2faktor.dao.model.Statistic;
 import dk.digitalidentity.os2faktor.dao.model.User;
 import dk.digitalidentity.os2faktor.dao.model.enums.ClientType;
 import dk.digitalidentity.os2faktor.security.AuthorizedServerHolder;
@@ -71,9 +69,6 @@ public class ServerApi {
 
 	@Autowired
 	private IdGenerator idGenerator;
-
-	@Autowired
-	private StatisticDao statisticDao;
 
 	@Autowired
 	private PushServiceWrapper pushService;
@@ -208,6 +203,7 @@ public class ServerApi {
 		subscriptionInfo.setClientAuthenticated(false);
 		subscriptionInfo.setClientRejected(false);
 		subscriptionInfo.setClient(client);
+		subscriptionInfo.setClientType(client.getType().toString());
 		subscriptionInfo.setServerName(server.getName());
 		subscriptionInfo.setServerId(server.getId());
 		subscriptionInfo.setChallenge((emitChallenge) ? idGenerator.generateChallenge() : "");
@@ -261,14 +257,6 @@ public class ServerApi {
 		}
 
 		subscriptionInfoDao.save(subscriptionInfo);
-
-		Statistic statistic = new Statistic();
-		statistic.setClientType(client.getType().toString());
-		statistic.setClientVersion(client.getClientVersion());
-		statistic.setCvr(server.getMunicipality().getCvr());
-		statistic.setDeviceId(client.getDeviceId());
-		statistic.setServerId(server.getId());
-		statisticDao.save(statistic);
 
 		// not super important to take care of race-conditions here, as long as we have
 		// a rough count

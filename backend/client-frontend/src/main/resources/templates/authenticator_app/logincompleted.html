@@ -21,6 +21,10 @@
 										Login med <span th:if="${clientType == null || clientType == 'TOTP'}">Authenticator</span><span th:if="${clientType == 'TOTPH'}">Kodeviser</span> gennemført succesfuldt. Luk dette vindue for at fortsætte login-flowet.
 									</p>
 								</form>
+								
+								<a id="closeWindow" style="display: none; min-width: 250px;" class="btn btn-primary" onclick="return closeWindow();">
+									<span>Luk vindue</span>
+								</a>
 							</div>
 						</div>
 					</div>
@@ -46,8 +50,20 @@
 			catch (err) {
 				console.log("Failed to automatically close window: " + err);
 			}
+			
+			$('#closeWindow').show();
 		});
 
+		function closeWindow() {
+			try {
+				window.close();
+			}
+			catch (err) {
+				console.log("Failed to close window: " + err);
+			}
+
+			return false;
+		}
 		
 		/*]]>*/
 	</script>

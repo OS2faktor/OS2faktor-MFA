@@ -1,11 +1,8 @@
 ﻿using Microsoft.Web.WebView2.Core;
-using Microsoft.Web.WebView2.Wpf;
 using Microsoft.Win32;
 using OS2faktor.Utils;
 using System;
-using System.ComponentModel;
 using System.IO;
-using System.Threading;
 using System.Windows;
 
 namespace OS2faktor

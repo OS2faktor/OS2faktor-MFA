@@ -86,4 +86,7 @@ public class Notification {
     @ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "client_device_id")
 	private Client client;
+	
+	@Column
+	private String clientType;
 }

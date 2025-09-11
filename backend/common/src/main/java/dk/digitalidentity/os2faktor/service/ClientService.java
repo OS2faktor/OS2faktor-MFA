@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import dk.digitalidentity.os2faktor.dao.ClientDao;
 import dk.digitalidentity.os2faktor.dao.model.Client;
+import dk.digitalidentity.os2faktor.dao.model.ProjectionClient;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -67,5 +68,17 @@ public class ClientService {
 
 	public List<Client> getByNotificationKey(String notificationKey) {
 		return clientDao.findByNotificationKey(notificationKey);
+	}
+
+	public List<ProjectionClient> getNonLocalClients() {
+		return clientDao.getNonLocalClients();
+	}
+	
+	public List<ProjectionClient> getNonLocalClients(String deviceId) {
+		return clientDao.getNonLocalClients(deviceId);
+	}
+
+	public List<ProjectionClient> getLocalClients(String cvr) {
+		return clientDao.getLocalClients(cvr);
 	}
 }

@@ -3,11 +3,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         xmlns:local="clr-namespace:OS2faktor"
         mc:Ignorable="d"
         Title="OS2faktor klient administration" Height="612" Width="800">
     <Grid>
-        <WebBrowser x:Name="webview" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="0,0,0,0" Loaded="webview_Loaded" Navigating="webview_Navigating">
-        </WebBrowser>
+        <wv2:WebView2 Name="webview" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="0,0,0,0" Loaded="webview_Loaded" NavigationStarting="webview_NavigationStarting">
+        </wv2:WebView2>
     </Grid>
 </Window>

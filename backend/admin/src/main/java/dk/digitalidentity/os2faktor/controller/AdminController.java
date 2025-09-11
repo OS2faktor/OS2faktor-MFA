@@ -22,7 +22,6 @@ import dk.digitalidentity.os2faktor.security.SecurityUtil;
 import dk.digitalidentity.os2faktor.service.ClientService;
 import dk.digitalidentity.os2faktor.service.LocalClientService;
 import dk.digitalidentity.os2faktor.service.SsnService;
-import dk.digitalidentity.os2faktor.service.StatisticService;
 import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
@@ -37,9 +36,6 @@ public class AdminController {
 	@Autowired
 	private SsnService ssnService;
 	
-	@Autowired
-	private StatisticService statisticService;
-
 	@Autowired
 	private ClientService clientService;
 	
@@ -69,16 +65,6 @@ public class AdminController {
 						.collect(Collectors.toList()));
 		
 		return "admin/list";
-	}
-	
-	@RequireAdminRole
-	@GetMapping("/admin/statistics")
-	public String statisticsPage(Model model) {
-		String cvr = SecurityUtil.getUser().getCvr();
-
-		model.addAttribute("statistics", statisticService.getAllByCvr(cvr));
-		
-		return "admin/statistics";
 	}
 	
 	@RequireAdminRole
