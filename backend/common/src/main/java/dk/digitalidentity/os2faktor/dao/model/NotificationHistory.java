@@ -6,8 +6,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -31,11 +29,9 @@ public class NotificationHistory {
 	private String pollingKey;
 
 	@Column
-	@Temporal(TemporalType.TIMESTAMP)
 	private Date created;
 
 	@Column
-	@Temporal(TemporalType.TIMESTAMP)
 	private Date sentTimestamp;
 
 	@Column
@@ -48,11 +44,9 @@ public class NotificationHistory {
 	private boolean clientRejected;
 
 	@Column
-	@Temporal(TemporalType.TIMESTAMP)
 	private Date clientFetchedTimestamp;
 
 	@Column
-	@Temporal(TemporalType.TIMESTAMP)
 	private Date clientResponseTimestamp;
 
 	@Column

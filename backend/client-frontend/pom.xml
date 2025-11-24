@@ -18,13 +18,13 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<layout>ZIP</layout>
-					<directories>
-						<directory>${basedir}/config</directory>
-					</directories>
-					<addResources>
-						true
-					</addResources>
+                                        <layout>ZIP</layout>
+                                        <addResources>
+                                                true
+                                        </addResources>
+                                        <additionalClasspathElements>
+                                                <additionalClasspathElement>${basedir}/config</additionalClasspathElement>
+                                        </additionalClasspathElements>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -43,6 +43,11 @@
 			<artifactId>spring-boot-starter-thymeleaf</artifactId>
 		</dependency>
 
+                <dependency>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-validation</artifactId>
+                </dependency>
+
         <dependency>
                 <groupId>org.thymeleaf.extras</groupId>
                 <artifactId>thymeleaf-extras-springsecurity6</artifactId>
@@ -57,7 +62,7 @@
 		<dependency>
 			<groupId>dk.digitalidentity</groupId>
 			<artifactId>saml-module</artifactId>
-			<version>4.1.0</version>
+			<version>4.5.0</version>
 		</dependency>
 
 		<dependency>
@@ -81,7 +86,6 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>1.18.32</version>
 			<optional>true</optional>
 		</dependency>
 

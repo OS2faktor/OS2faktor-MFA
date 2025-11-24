@@ -2,8 +2,6 @@ package dk.digitalidentity.os2faktor.controller.desktop;
 
 import java.util.Date;
 
-import javax.validation.Valid;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -31,6 +29,7 @@ import dk.digitalidentity.os2faktor.service.MFATokenManager.OtpVerificationResul
 import dk.digitalidentity.os2faktor.service.UserService;
 import dk.digitalidentity.os2faktor.service.totp.Hash;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

@@ -2,9 +2,6 @@ package dk.digitalidentity.os2faktor.dao.model;
 
 import java.util.Date;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -22,8 +19,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -40,7 +37,6 @@ public class Client {
 
 	@JsonIgnore
 	@CreationTimestamp
-	@Temporal(TemporalType.TIMESTAMP)
 	@Column(updatable = false)
 	private Date created;
 
@@ -88,7 +84,6 @@ public class Client {
 	private User user;
 
 	@JsonIgnore
-	@Temporal(TemporalType.TIMESTAMP)
 	private Date associatedUserTimestamp;
 	
 	@Column
@@ -108,7 +103,6 @@ public class Client {
 	private boolean locked;
 
 	@JsonIgnore
-	@Temporal(TemporalType.TIMESTAMP)
 	@Column
 	private Date lockedUntil;
 	
@@ -119,7 +113,6 @@ public class Client {
 
     @JsonFormat(pattern = "yyyy-MM-dd")
 	@UpdateTimestamp
-	@Temporal(TemporalType.TIMESTAMP)
 	@Column
 	private Date lastUsed;
 

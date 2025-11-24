@@ -10,11 +10,12 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.3.4</version>
+		<version>4.0.0</version>
 	</parent>
 
 	<properties>
-		<java.version>21</java.version>
+		<java.version>25</java.version>
+                <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
 	<build>
@@ -22,10 +23,15 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.13.0</version>
 				<configuration>
-					<source>21</source>
-					<target>21</target>
+					<source>25</source>
+					<target>25</target>
+                                        <annotationProcessorPaths>
+                                                <path>
+                                                        <groupId>org.projectlombok</groupId>
+                                                        <artifactId>lombok</artifactId>
+                                                </path>
+                                        </annotationProcessorPaths>
 				</configuration>
 			</plugin>
 
@@ -69,6 +75,8 @@
 		<module>admin</module>
 		<module>client-frontend</module>
 		<module>websockets</module>
+<!--
 		<module>driftstatus</module>
+-->
 	</modules>
 </project>

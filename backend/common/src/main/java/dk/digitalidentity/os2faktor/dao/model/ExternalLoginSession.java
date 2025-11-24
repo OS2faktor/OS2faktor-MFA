@@ -12,8 +12,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -27,7 +25,6 @@ public class ExternalLoginSession {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
-	@Temporal(TemporalType.TIMESTAMP)
 	@Column
 	private Date tts;
 

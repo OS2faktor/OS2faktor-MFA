@@ -91,7 +91,7 @@ public class KodeviserApi {
 				}
 				else {
 					String cvr = loginServiceProvider.getCvr();
-					if (!Objects.equals(token.getRegisteredToCvr(), cvr)) {
+					if (token.getRegisteredToCvr() != null && !Objects.equals(token.getRegisteredToCvr(), cvr)) {
 						// device belongs to other municipality
 						log.warn("Attempting to deregister " + serial + ", but caller is from " + cvr + ", and token is registered to " + token.getRegisteredToCvr());
 						return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

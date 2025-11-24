@@ -1,7 +1,5 @@
 package dk.digitalidentity.os2faktor.controller.mobile;
 
-import javax.validation.Valid;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,6 +23,7 @@ import dk.digitalidentity.os2faktor.dao.model.Client;
 import dk.digitalidentity.os2faktor.security.ClientSecurityFilter;
 import dk.digitalidentity.os2faktor.service.HashingService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 
 @Controller
 public class PinController extends BaseController {
