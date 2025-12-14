@@ -2,15 +2,17 @@ package dk.digitalidentity.os2faktor.dao.model;
 
 import java.time.LocalDateTime;
 
-public interface NotificationHistoryDTO {
-    LocalDateTime getCreated();
-    LocalDateTime getSentTimestamp();
-    String getServerName();
-    boolean isClientNotified();
-    boolean isClientAuthenticated();
-    boolean isClientRejected();
-    String getClientDeviceId();
-    LocalDateTime getClientFetchedTimestamp();
-    LocalDateTime getClientResponseTimestamp();
-    String getClientType();
-}
+public record NotificationHistoryDTO(
+	LocalDateTime created,
+	LocalDateTime sentTimestamp,
+	String serverName,
+	boolean clientNotified,
+	boolean clientAuthenticated,
+	boolean clientRejected,
+	String clientDeviceId,
+	LocalDateTime clientFetchedTimestamp,
+	LocalDateTime clientResponseTimestamp,
+	String clientType,
+	String systemName,
+	String username
+) {}

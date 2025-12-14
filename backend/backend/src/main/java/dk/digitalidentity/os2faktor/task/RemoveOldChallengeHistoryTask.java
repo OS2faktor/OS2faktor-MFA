@@ -20,8 +20,8 @@ public class RemoveOldChallengeHistoryTask {
 	@Value("${scheduled.run:false}")
 	private boolean runScheduled;
 
-	// delete from notifications from history table that are over a month old
-	@Scheduled(cron = "0 30 19 * * ?")
+	// run once every half hour, at a skewed time, and delete 10.000 notifications (up to).
+	@Scheduled(cron = "17 4,34 * * * ?")
 	private void removeChallenges() {
 		if (!runScheduled) {
 			return;

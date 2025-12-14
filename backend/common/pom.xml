@@ -47,6 +47,24 @@
 			<artifactId>lombok</artifactId>
 			<version>1.18.32</version>
 		</dependency>
+		
+		<!-- TODO: 3.5.0 ? -->
+		<dependency>
+			<groupId>com.google.zxing</groupId>
+			<artifactId>core</artifactId>
+			<version>3.3.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.zxing</groupId>
+			<artifactId>javase</artifactId>
+			<version>3.3.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+		</dependency>
 	</dependencies>
 
         <dependencyManagement>

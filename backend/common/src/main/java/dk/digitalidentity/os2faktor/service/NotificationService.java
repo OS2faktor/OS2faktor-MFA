@@ -1,19 +1,21 @@
 package dk.digitalidentity.os2faktor.service;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import dk.digitalidentity.os2faktor.dao.NotificationHistoryDao;
-import dk.digitalidentity.os2faktor.dao.model.Notification;
-import dk.digitalidentity.os2faktor.dao.model.NotificationHistory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import dk.digitalidentity.os2faktor.dao.NotificationDao;
+import dk.digitalidentity.os2faktor.dao.NotificationHistoryDao;
+import dk.digitalidentity.os2faktor.dao.model.Notification;
+import dk.digitalidentity.os2faktor.dao.model.NotificationHistory;
 
 @Service
 public class NotificationService {
@@ -39,10 +41,7 @@ public class NotificationService {
 
 	@Transactional
 	public void deleteOldNotificationHistory() {
-		Calendar calendar = Calendar.getInstance();
-		calendar.add(Calendar.MONTH, -1);
-
-		Date timestamp = calendar.getTime();
+		Date timestamp = Date.from(Instant.now().minus(14, ChronoUnit.DAYS));
 
 		notificationHistoryDao.deleteByCreatedBefore(timestamp);
 	}
@@ -70,6 +69,8 @@ public class NotificationService {
 					.clientDeviceId(notification.getClient().getDeviceId())
 					.passwordless(notification.isPasswordless())
 					.clientType(notification.getClientType())
+					.systemName(notification.getSystemName())
+					.username(notification.getUsername())
 					.build()
 				)
 				.collect(Collectors.toList());

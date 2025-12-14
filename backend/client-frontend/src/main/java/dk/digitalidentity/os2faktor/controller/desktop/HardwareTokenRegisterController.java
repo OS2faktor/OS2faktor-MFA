@@ -1,5 +1,7 @@
 package dk.digitalidentity.os2faktor.controller.desktop;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -241,7 +243,7 @@ public class HardwareTokenRegisterController extends BaseController {
 
 		String existingRedirectUrl = getExistingRedirectUrl(request);
 		if (existingRedirectUrl != null) {
-			return existingRedirectUrl + "?result=true&deviceId=" + client.getDeviceId() + "&name=" + client.getName();
+			return existingRedirectUrl + "?result=true&deviceId=" + client.getDeviceId() + "&name=" + URLEncoder.encode(client.getName(), StandardCharsets.UTF_8);
 		}
 
 		return "hardware_token/registration_success";
