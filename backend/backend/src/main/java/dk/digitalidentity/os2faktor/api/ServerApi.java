@@ -208,6 +208,13 @@ public class ServerApi {
 			username = null;
 		}
 
+		if (systemName != null && systemName.isBlank()) {
+			systemName = null;
+		}
+		if (username != null && username.isBlank()) {
+			username = null;
+		}
+
 		Notification subscriptionInfo = new Notification();
 		subscriptionInfo.setSubscriptionKey(idGenerator.generateUuid());
 		subscriptionInfo.setPollingKey(idGenerator.generateUuid());
