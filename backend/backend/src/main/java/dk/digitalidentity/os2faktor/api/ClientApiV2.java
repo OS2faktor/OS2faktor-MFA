@@ -175,16 +175,26 @@ public class ClientApiV2 {
 			}
 		}
 
-		if (request.isPasswordless() && request.getPincode() != null && request.getPincode().length() >= 6) {
-			switch (client.getType()) {
-				case ANDROID:
-				case IOS:
+		switch (client.getType()) {
+			case ANDROID:
+			case IOS:
+				if (getMajorClientVersion(client) >= 3) {
 					client.setPasswordless(true);
-					break;
-				default:
-					log.warn("Attempting to set passwordless when registering client of invalid type: " + client.getDeviceId() + " / " + client.getType());
-					break;
-			}
+					client.setSupportsChallengeFlow(true);
+				}
+				break;
+			case FIREFOX:
+				client.setSupportsChallengeFlow(true);
+				break;
+			case WINDOWS:
+			case EDGE:
+			case CHROME:
+				if (getMajorClientVersion(client) >= 3) {
+					client.setSupportsChallengeFlow(true);
+				}
+				break;
+			default:
+				break;
 		}
 
 		clientService.save(client);
@@ -273,13 +283,6 @@ public class ClientApiV2 {
 				log.error("Failed to encrypt and encode pin", ex);
 
 				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-			}
-		}
-
-		// at least 6 character pins allow for passwordless on iOS and Android
-		if (request.getNewPin().length() >= 6) {
-			if (client.getType().equals(ClientType.ANDROID) || client.getType().equals(ClientType.IOS)) {
-				client.setPasswordless(true);
 			}
 		}
 
@@ -451,5 +454,20 @@ public class ClientApiV2 {
 		}
 		
 		return true;
+	}
+	
+	private int getMajorClientVersion(Client client) {
+		if (client.getClientVersion() != null) {
+			String[] tokens = client.getClientVersion().split("\\.");
+
+			try {
+				return Integer.parseInt(tokens[0]);
+			}
+			catch (Exception ex) {
+				log.warn("Malformed client version '" + client.getClientVersion() + "' for " + client.getDeviceId());
+			}
+		}
+
+		return 0;
 	}
 }

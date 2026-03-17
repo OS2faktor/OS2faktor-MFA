@@ -42,6 +42,10 @@ namespace OS2faktor
             if (bool.TryParse(queryDictionary["status"], out status))
             {
                 Properties.Settings.Default.IsPinRegistered = status;
+                if (status)
+                {
+                    Properties.Settings.Default.pinLength = 6;
+                }
                 Properties.Settings.Default.Save();
                 Properties.Settings.Default.Reload();
             }

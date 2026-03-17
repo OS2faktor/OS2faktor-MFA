@@ -122,6 +122,7 @@
     <Compile Include="Service\DTO\DeletionResult.cs" />
     <Compile Include="Service\DTO\RegistrationResult.cs" />
     <Compile Include="Service\DTO\StatusResult.cs" />
+    <Compile Include="Service\DTO\ValidatePinResult.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="UI\NewNotification.xaml.cs">
       <DependentUpon>NewNotification.xaml</DependentUpon>

@@ -146,4 +146,7 @@ public class Client {
 	
 	@Column(name = "robot_mfa")
 	private boolean robotMFA;
+	
+	@Column
+	private boolean supportsChallengeFlow;
 }

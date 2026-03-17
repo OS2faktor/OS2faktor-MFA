@@ -1,0 +1,58 @@
+{
+  "manifest_version": 3,
+  "name": "OS2faktor MFA",
+  "version": "3.0.0",
+  "description": "OS2faktor MFA",
+
+  "browser_specific_settings": {
+    "client_type": "FIREFOX",
+    "gecko": {
+      "id": "os2faktor@digital-identity.dk",
+      "strict_min_version": "109.0",
+      "data_collection_permissions": {
+        "required": [ "none" ],
+        "optional": [ "personallyIdentifyingInfo" ]
+      }
+    }
+  },
+
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "storage",
+    "alarms"
+  ],
+
+  "host_permissions": [
+    "https://backend.os2faktor.dk/*",
+    "https://frontend.os2faktor.dk/*",
+    "https://*.dk/*"
+  ],
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "OS2faktor MFA",
+    "default_icon": {
+      "128": "images/icon_128.png"
+    }
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["https://*.dk/*"],
+      "js": ["os2faktor-modal.js", "content.js"],
+      "run_at": "document_end"
+    }
+  ],
+
+  "background": {
+    "scripts": ["config.js", "background.js"]
+  },
+
+  "web_accessible_resources": [
+    {
+      "resources": ["reset.html", "css/modal.css", "images/os2faktor-logo.png"],
+      "matches": ["https://*.dk/*"]
+    }
+  ]
+}

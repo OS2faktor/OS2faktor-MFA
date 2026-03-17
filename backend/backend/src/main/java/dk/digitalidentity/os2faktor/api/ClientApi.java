@@ -94,7 +94,26 @@ public class ClientApi {
 
 			Client client = challenge.getClient();
 			
-			if (StringUtils.hasLength(clientVersion)) {
+			// on updated version, check to see if new features are enabled
+			if (StringUtils.hasLength(clientVersion) && !Objects.equals(clientVersion, client.getClientVersion())) {
+				switch (client.getType()) {
+					case IOS:
+					case ANDROID:
+						if (getMajorClientVersion(client) >= 3) {
+							client.setPasswordless(true);
+							client.setSupportsChallengeFlow(true);
+						}
+						break;
+					case EDGE:
+					case CHROME:
+						if (getMajorClientVersion(client) >= 3) {
+							client.setSupportsChallengeFlow(true);
+						}
+						break;
+					default:
+						break;
+				}
+
 				client.setClientVersion(clientVersion);
 			}
 			
@@ -129,8 +148,8 @@ public class ClientApi {
 				}
 			}
 
-			// is this a passwordless flow, then validate the code
-			if (client.isPasswordless() && challenge.isPasswordless()) {
+			// is this a code challenge flow flow, then validate the code
+			if (client.isSupportsChallengeFlow() && challenge.isPasswordless()) {
 				if (!Objects.equals(challenge.getChallenge(), passwordlessChallenge)) {
 					// we are "abusing" the current pin-system for this, as we want to trigger the same locking flow for wrong pins
 					PinResult result = wrongPinResult(client);
@@ -228,5 +247,20 @@ public class ClientApi {
 		}
 
 		return result;
+	}
+	
+	private int getMajorClientVersion(Client client) {
+		if (client.getClientVersion() != null) {
+			String[] tokens = client.getClientVersion().split("\\.");
+
+			try {
+				return Integer.parseInt(tokens[0]);
+			}
+			catch (Exception ex) {
+				log.warn("Malformed client version '" + client.getClientVersion() + "' for " + client.getDeviceId());
+			}
+		}
+
+		return 0;
 	}
 }

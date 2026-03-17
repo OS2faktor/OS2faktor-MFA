@@ -1,6 +1,5 @@
 ﻿using OS2faktor.Service.DTO;
 using OS2faktor.Utils;
-using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -77,6 +76,32 @@ namespace OS2faktor.Service
             }
         }
 
+
+        public async Task<ValidatePinResult> ValidatePinAsync(string pin)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                var result = new ValidatePinResult();
+                client.DefaultRequestHeaders.Add("ApiKey", EncryptionUtil.GetDecryptedApiKey(Properties.Settings.Default.apiKey));
+                client.DefaultRequestHeaders.Add("DeviceId", Properties.Settings.Default.deviceId);
+                client.DefaultRequestHeaders.Add("clientVersion", Properties.Settings.Default.version);
+
+                try
+                {
+                    HttpResponseMessage response = await client.PostAsJsonAsync($"{backendUrl}/api/client/v2/validatePin", new { pincode = pin });
+                    if (response.IsSuccessStatusCode)
+                    {
+                        result = await response.Content.ReadAsAsync<ValidatePinResult>();
+                    }
+                }
+                catch (HttpRequestException e)
+                {
+                    log.Warn($"Error occured while trying to validate PIN against Backend:{backendUrl}: ", e);
+                }
+
+                return result;
+            }
+        }
 
         public async Task<DeletionResult> Delete(string deviceId)
         {

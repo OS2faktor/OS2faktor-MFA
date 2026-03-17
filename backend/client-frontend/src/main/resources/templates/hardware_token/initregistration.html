@@ -2,6 +2,40 @@
 <html>
 <head th:replace="~{fragments/header :: header}" />
 <body class="top-navigation">
+
+	<style>
+	  .image-container {
+	    text-align: center;
+	    display: block;
+	    margin: auto;
+	  }
+	  .image-container img {
+	    margin: auto;
+	  }
+	  
+	  /* Desktop */
+	  @media (min-width: 1024px) {
+	    .image-container {
+	      padding: 0 50px;
+	    }
+	    .image-container img {
+	      width: 500px;
+	      padding: 0 50px;
+	    }
+	  }
+	  
+	  /* Mobile */
+	  @media (max-width: 1023px) {
+	    .image-container {
+	      padding: 0;
+	    }
+	    .image-container img {
+	      max-width: 300px;
+	      padding: 0 20px;
+	    }
+	  }
+	</style>
+
 	<div id="wrapper">
 		<div id="page-wrapper" class="gray-bg">
 			<div th:replace="~{fragments/topbar :: topbar}"></div>
@@ -21,8 +55,11 @@
 									</p>
 						
 									<br/>
-									
-									<img style="width: 600px; margin: auto; display: block; padding: 0px 80px 0px 80px;" alt="hardware device" src="/img/token.png">
+
+									<span class="image-container">
+										<img alt="hardware device" th:src="@{/img/token.png}">
+										<img alt="hardware device" th:src="@{/img/pcp-token.png}">
+									</span>
 									
 									<br/>
 						

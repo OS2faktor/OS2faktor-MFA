@@ -22,12 +22,12 @@
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="35"/>
         </Grid.ColumnDefinitions>
-        <TextBlock HorizontalAlignment="Stretch" Margin="0,0,0,0" VerticalAlignment="Stretch" Grid.Column="1" Grid.Row="1" TextWrapping="WrapWithOverflow" FontSize="18" Text="Vælg en pinkode bestående kun af tal"/>
+        <TextBlock HorizontalAlignment="Stretch" Margin="0,0,0,0" VerticalAlignment="Stretch" Grid.Column="1" Grid.Row="1" TextWrapping="WrapWithOverflow" FontSize="18" Text="Vælg en pinkode bestående af 6 tal"/>
         <TextBlock HorizontalAlignment="Stretch" Margin="0,0,0,0" VerticalAlignment="Stretch" Grid.Column="1" Grid.Row="2" TextWrapping="WrapWithOverflow" FontSize="18">
-                Bemærk: Simple pinkoder er ikke lovlige, fx. 0000, 1111, 1234
+                Bemærk: Simple pinkoder er ikke lovlige, fx. 000000, 111111, 123456
         </TextBlock>
         <StackPanel Grid.Column="1" Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="0,0,0,0">
-            <PasswordBox x:Name="tbPinCode" ToolTip="Pin kode" Height="36" FontSize="18" MaxLength="4" PreviewTextInput="tbPinCode_PreviewTextInput" PreviewKeyDown="tbPinCode_PreviewKeyDown">
+            <PasswordBox x:Name="tbPinCode" ToolTip="Pin kode" Height="36" FontSize="18" MaxLength="6" PreviewTextInput="tbPinCode_PreviewTextInput" PreviewKeyDown="tbPinCode_PreviewKeyDown">
                 <!--Highlight on hover-->
                 <PasswordBox.Style>
                     <Style BasedOn="{x:Null}" TargetType="{x:Type PasswordBox}">
@@ -71,7 +71,7 @@
                     </Style>
                 </PasswordBox.Style>
             </PasswordBox>
-            <Label x:Name="lblInvalidPin" Content="Ugyldig pinkode. Pinkoden skal være 4 tal, og må ikke være for simpel" Foreground="Red" Visibility="Collapsed"/>
+            <Label x:Name="lblInvalidPin" Content="Ugyldig pinkode. Pinkoden skal være 6 tal, og må ikke være for simpel" Foreground="Red" Visibility="Collapsed"/>
             <Label x:Name="lblError" Content="Der opstod en teknisk fejl. Prøv igen." Foreground="Red" Visibility="Collapsed"/>
         </StackPanel>
         <Button x:Name="btnSave" Content="Aktiver enhed" HorizontalAlignment="Stretch" Margin="0,0,0,0" VerticalAlignment="Center" Grid.Column="1" Grid.Row="4" FontSize="22" Foreground="White" Background="#FF2C9FFF" Click="btnSave_Click">

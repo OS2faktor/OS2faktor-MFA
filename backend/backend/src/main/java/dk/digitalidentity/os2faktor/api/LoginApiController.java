@@ -39,7 +39,10 @@ import dk.digitalidentity.os2faktor.service.ExternalLoginSessionService;
 import dk.digitalidentity.os2faktor.service.HardwareTokenService;
 import dk.digitalidentity.os2faktor.service.HashingService;
 import dk.digitalidentity.os2faktor.service.IdGenerator;
+import dk.digitalidentity.os2faktor.service.MFATokenManager;
+import dk.digitalidentity.os2faktor.service.MFATokenManager.OtpVerificationResult;
 import dk.digitalidentity.os2faktor.service.SsnService;
+import dk.digitalidentity.os2faktor.service.totp.Hash;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -64,6 +67,9 @@ public class LoginApiController {
 	
 	@Autowired
 	private HashingService hashingService;
+
+	@Autowired
+	private MFATokenManager mfaTokenManager;
 
 	@Autowired
 	private NotificationHistoryDao notificationHistoryDao;
@@ -298,5 +304,52 @@ public class LoginApiController {
 		}
 
 		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	private record CodeOffsetBody(String serialnumber, String firstCode, String secondCode) { }
+	@PostMapping("/api/login/kodeviser/adjust")
+	public ResponseEntity<?> adjust(@RequestBody CodeOffsetBody body) throws Exception {
+		log.debug("TOTP adjustment requested for token: {}", body.serialnumber);
+		
+		// find current offset (it should be in the database) of token, as a starting point
+		int offset = 0;
+
+		HardwareToken token = hardwareTokenService.getBySerialnumber(body.serialnumber);
+		if (token == null) {
+			log.warn("TOTP adjustment failed - token not found: {}", body.serialnumber);
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+
+		offset = (int) token.getOffset();
+		log.debug("Current offset for token {}: {}", body.serialnumber, offset);
+
+		// then verify with 61 lookup attempts (this is +/- 15 minutes)
+		OtpVerificationResult otpVerificationResult = mfaTokenManager.verifyTotp(body.firstCode, token.getSecretKey(), offset, 61, Hash.valueOf(token.getHashAlgo()));
+		if (otpVerificationResult.success()) {
+			log.debug("First code verified for token {}, new offset: {}", body.serialnumber, otpVerificationResult.offsetResult());
+			
+			// do it again, with the new offset, this time on the next code (but only 7 attempts, which is normal)
+			otpVerificationResult = mfaTokenManager.verifyTotp(body.secondCode, token.getSecretKey(), otpVerificationResult.offsetResult(), 7, Hash.valueOf(token.getHashAlgo()));
+
+			// if this also succeeds, store the new offset on the client in the database and return success
+			if (otpVerificationResult.success()) {
+				int oldOffset = (int) token.getOffset();
+				int newOffset = otpVerificationResult.offsetResult();
+				token.setOffset(newOffset);
+				hardwareTokenService.save(token);
+				
+				log.info("TOTP adjustment successful for token: {} (offset changed: {} -> {})", body.serialnumber, oldOffset, newOffset);
+
+				return new ResponseEntity<>(HttpStatus.OK);
+			}
+			else {
+				log.warn("TOTP adjustment failed - second code invalid for token: {}", body.serialnumber);
+			}
+		}
+		else {
+			log.warn("TOTP adjustment failed - first code invalid for token: {}", body.serialnumber);
+		}
+
+		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 	}
 }

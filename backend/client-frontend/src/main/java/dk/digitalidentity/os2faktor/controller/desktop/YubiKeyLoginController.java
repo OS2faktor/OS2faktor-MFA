@@ -24,6 +24,7 @@ import dk.digitalidentity.os2faktor.dao.NotificationDao;
 import dk.digitalidentity.os2faktor.dao.model.Client;
 import dk.digitalidentity.os2faktor.dao.model.Notification;
 import dk.digitalidentity.os2faktor.dao.model.enums.ClientType;
+import dk.digitalidentity.os2faktor.service.ClientService;
 import dk.digitalidentity.os2faktor.service.YubiKeyService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -39,7 +40,7 @@ public class YubiKeyLoginController extends BaseController {
 	private NotificationDao notificationDao;
 	
 	@Autowired
-	private ClientDao clientDao;
+	private ClientService clientService;
 
 	@Autowired
 	private YubiKeyService yubiKeyService;
@@ -125,7 +126,7 @@ public class YubiKeyLoginController extends BaseController {
 		notificationDao.save(notification);
 		
 		client.setUseCount(client.getUseCount() + 1);
-		clientDao.save(client);
+		clientService.save(client);
 
 		String redirectUrl = (String) request.getSession().getAttribute(SESSION_REDIRECT_URL);
 		LocalDateTime redirectUrlTts = (LocalDateTime) request.getSession().getAttribute(SESSION_REDIRECT_URL_TTS);

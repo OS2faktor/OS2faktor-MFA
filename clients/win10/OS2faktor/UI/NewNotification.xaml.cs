@@ -1,21 +1,14 @@
-﻿using OS2faktor.Utils;
+using OS2faktor.Service;
+using OS2faktor.Service.DTO;
+using OS2faktor.Utils;
 using OS2faktor.WebSockets;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace OS2faktor.UI
@@ -27,18 +20,33 @@ namespace OS2faktor.UI
     {
         private const char OPEN_CIRCLE = '\u26AA';
         private const char CLOSED_CIRCLE = '\u26AB';
+        private const int CONTROL_CODE_LENGTH = 2;
+
         private string token;
         private string serverName;
         private string subscriptionKey;
         private DispatcherTimer dispatcherTimer;
         private bool preventSpam = false;
-        private string pin = "" + OPEN_CIRCLE + OPEN_CIRCLE + OPEN_CIRCLE + OPEN_CIRCLE;
-        private string enteredPin = "";
         private bool isPinRegistered = OS2faktor.Properties.Settings.Default.IsPinRegistered;
         private int reactivatedWindowCounter = 0;
 
+        private int pinLength;
+        private string pin;
+        private string enteredPin = "";
+
+        // Passwordless flow state
+        private bool isPasswordlessFlow = false;
+        private bool inControlCodeMode = false;
+        private string storedPin = "";
+        private string enteredControlCode = "";
+
         public NewNotification()
         {
+            pinLength = OS2faktor.Properties.Settings.Default.pinLength;
+            if (pinLength == 0) pinLength = 4;
+
+            pin = new string(OPEN_CIRCLE, pinLength);
+
             InitializeComponent();
             tbPIN.Text = pin;
 
@@ -61,8 +69,6 @@ namespace OS2faktor.UI
             this.Topmost = true;
             base.Show();
 
-            //this.Owner = System.Windows.Application.Current.MainWindow;
-
             var workingArea = System.Windows.SystemParameters.WorkArea;
 
             this.Left = workingArea.Right - this.ActualWidth - 20;
@@ -72,7 +78,7 @@ namespace OS2faktor.UI
             {
                 string windowName = window.GetType().Name;
 
-                //Prevent showing same notification twice
+                // Prevent showing same notification twice
                 if (windowName.Equals("NewNotification") && window != this)
                 {
                     var otherNotification = window as NewNotification;
@@ -83,7 +89,7 @@ namespace OS2faktor.UI
                     }
                 }
 
-                //Adjust position
+                // Adjust position
                 if (windowName.Equals("NewNotification") && window != this)
                 {
                     window.Topmost = true;
@@ -107,7 +113,6 @@ namespace OS2faktor.UI
 
                 if (windowName.Equals("NewNotification") && window != this)
                 {
-                    // Adjust any windows that were above this one to drop down
                     if (window.Top < this.Top)
                     {
                         window.Top = window.Top + window.ActualHeight;
@@ -115,9 +120,9 @@ namespace OS2faktor.UI
                 }
             }
         }
+
         private void btnApply_Click(object sender, RoutedEventArgs e)
         {
-            //simple prevention against brute-force
             if (preventSpam == false)
             {
                 WSCommunication.Accept(subscriptionKey, enteredPin);
@@ -165,7 +170,16 @@ namespace OS2faktor.UI
         internal void setToken(string token)
         {
             this.token = token;
-            tbCode.Text = token;
+
+            if ("??".Equals(token))
+            {
+                isPasswordlessFlow = true;
+                tbCode.Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                tbCode.Text = token;
+            }
         }
 
         internal void setServerName(string serverName)
@@ -193,7 +207,7 @@ namespace OS2faktor.UI
         }
 
         /*
-         * Handle pincode entry
+         * Handle pincode / control code entry
          */
         private void Window_TextInput(object sender, TextCompositionEventArgs e)
         {
@@ -202,53 +216,128 @@ namespace OS2faktor.UI
                 return;
             }
 
-            //simple prevention against brute-force
-            if (preventSpam == false)
+            if (preventSpam)
             {
-                Regex regex = new Regex("[^0-9]+");
-                if (!regex.IsMatch(e.Text))
-                {
-                    if (enteredPin.Length < 3)
-                    {
-                        enteredPin += e.Text;
-                        DisplayPincode();
-                    }
-                    //entered last character
-                    else if (enteredPin.Length == 3)
-                    {
-                        enteredPin += e.Text;
-                        DisplayPincode();
-                        WSCommunication.Accept(subscriptionKey, enteredPin);
+                return;
+            }
 
-                        preventSpam = true;
-                        DelayedAntispamUnlock();
-                    }
+            Regex regex = new Regex("[^0-9]+");
+            if (regex.IsMatch(e.Text))
+            {
+                return;
+            }
+
+            if (inControlCodeMode)
+            {
+                HandleControlCodeInput(e.Text);
+            }
+            else
+            {
+                HandlePinInput(e.Text);
+            }
+        }
+
+        private void HandlePinInput(string digit)
+        {
+            if (enteredPin.Length < pinLength - 1)
+            {
+                enteredPin += digit;
+                DisplayPincode();
+            }
+            else if (enteredPin.Length == pinLength - 1)
+            {
+                enteredPin += digit;
+                DisplayPincode();
+
+                if (isPasswordlessFlow)
+                {
+                    // Validate PIN via REST before asking for control code
+                    preventSpam = true;
+                    var backendService = new BackendService();
+                    backendService.ValidatePinAsync(enteredPin).ContinueWith(task =>
+                    {
+                        var result = task.Result;
+                        App.Current.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(() =>
+                        {
+                            preventSpam = false;
+
+                            if (result.Status == "OK")
+                            {
+                                storedPin = enteredPin;
+                                enteredPin = "";
+                                SwitchToControlCodeMode();
+                            }
+                            else if (result.Status == "LOCKED")
+                            {
+                                enteredPin = "";
+                                DisplayPincode();
+                                ShakeAnimation();
+                                ShowTextWithIcon(string.Format("Klient låst indtil: {0}", result.LockedUntil));
+                            }
+                            else
+                            {
+                                enteredPin = "";
+                                DisplayPincode();
+                                ShakeAnimation();
+                                ShowTextWithIcon("Forkert PIN-kode!");
+                            }
+                        }));
+                    });
+                }
+                else
+                {
+                    // Visual approval: send PIN directly via WebSocket
+                    WSCommunication.Accept(subscriptionKey, enteredPin);
+                    preventSpam = true;
+                    DelayedAntispamUnlock();
                 }
             }
         }
 
+        // passwordless flow
+        private void HandleControlCodeInput(string digit)
+        {
+            if (enteredControlCode.Length < CONTROL_CODE_LENGTH - 1)
+            {
+                enteredControlCode += digit;
+                DisplayPincode();
+            }
+            else if (enteredControlCode.Length == CONTROL_CODE_LENGTH - 1)
+            {
+                enteredControlCode += digit;
+                DisplayPincode();
+
+                WSCommunication.Accept(subscriptionKey, storedPin, enteredControlCode);
+                preventSpam = true;
+                DelayedAntispamUnlock();
+            }
+        }
+
+        private void SwitchToControlCodeMode()
+        {
+            inControlCodeMode = true;
+            enteredControlCode = "";
+            pin = new string(OPEN_CIRCLE, CONTROL_CODE_LENGTH);
+            tbPIN.Text = pin;
+            tbText.Text = "Indtast kontrolkode";
+        }
+
         /*
-         * Update Pincode UI 
+         * Update PIN / control code UI
          */
         private void DisplayPincode()
         {
-            for (int i = 0; i < enteredPin.Length; i++)
+            string entered = inControlCodeMode ? enteredControlCode : enteredPin;
+            int length = inControlCodeMode ? CONTROL_CODE_LENGTH : pinLength;
+
+            char[] ch = new char[length];
+            for (int i = 0; i < length; i++)
             {
-                replaceAtIndex(ref pin, i, CLOSED_CIRCLE);
-            }
-            for (int i = enteredPin.Length; i < 4; i++)
-            {
-                replaceAtIndex(ref pin, i, OPEN_CIRCLE);
+                ch[i] = i < entered.Length ? CLOSED_CIRCLE : OPEN_CIRCLE;
             }
 
+            pin = new string(ch);
             tbPIN.Text = pin;
-        }
-
-        private void replaceAtIndex(ref string text, int index, char replaceWith)
-        {
-            char[] ch = text.ToCharArray();
-            ch[index] = replaceWith;
-            text = new string(ch);
         }
 
         /*
@@ -261,15 +350,23 @@ namespace OS2faktor.UI
                 return;
             }
 
-            if ((e.Key == Key.Back || e.Key == Key.Delete) && enteredPin.Length > 0)
+            if (e.Key == Key.Back || e.Key == Key.Delete)
             {
-                enteredPin = enteredPin.Substring(0, enteredPin.Length - 1);
-                DisplayPincode();
+                if (inControlCodeMode && enteredControlCode.Length > 0)
+                {
+                    enteredControlCode = enteredControlCode.Substring(0, enteredControlCode.Length - 1);
+                    DisplayPincode();
+                }
+                else if (!inControlCodeMode && enteredPin.Length > 0)
+                {
+                    enteredPin = enteredPin.Substring(0, enteredPin.Length - 1);
+                    DisplayPincode();
+                }
             }
         }
 
         /*
-         * Code that triggers the shaking animation of Pincode textbox
+         * Code that triggers the shaking animation of the PIN/code textbox
          */
         private void ShakeAnimation()
         {
@@ -281,39 +378,60 @@ namespace OS2faktor.UI
         }
 
         /*
-         * When we get response from WebSockets
-         * Clear the PIN entry
-         * Trigger shake animation
-         * Display error message
+         * When we get an INCORRECT_PIN response from WebSockets:
+         * - In control code mode (passwordless): reset control code entry
+         * - In PIN entry mode (visual approval): clear PIN and show error
          */
         internal void IncorrectPincode(PinResult pinResult)
         {
-            enteredPin = "";
-            DisplayPincode();
-            ShakeAnimation();
+            if (inControlCodeMode)
+            {
+                enteredControlCode = "";
+                DisplayPincode();
+                ShakeAnimation();
 
+                if (pinResult != null && pinResult.status == PinResultStatus.LOCKED)
+                {
+                    inControlCodeMode = false;
+                    ShowTextWithIcon(string.Format("Klient låst indtil: {0}", pinResult.lockedUntil));
+                }
+                else
+                {
+                    ShowTextWithIcon("Forkert kontrolkode!");
+                }
+            }
+            else
+            {
+                enteredPin = "";
+                DisplayPincode();
+                ShakeAnimation();
+
+                if (pinResult != null)
+                {
+                    switch (pinResult.status)
+                    {
+                        case PinResultStatus.WRONG_PIN:
+                            ShowTextWithIcon("Forkert Pin!");
+                            break;
+                        case PinResultStatus.LOCKED:
+                            ShowTextWithIcon(string.Format("Klient låst indtil: {0}", pinResult.lockedUntil));
+                            break;
+                    }
+                }
+            }
+        }
+
+        private void ShowTextWithIcon(string message)
+        {
             FontAwesome5.ImageAwesome faIcon = new FontAwesome5.ImageAwesome();
             faIcon.Icon = FontAwesome5.EFontAwesomeIcon.Solid_ExclamationCircle;
             faIcon.Foreground = Brushes.White;
             faIcon.Margin = new Thickness(0, 0, 4, -2);
             faIcon.Height = tbText.FontSize;
 
-            if (pinResult != null)
-            {
-                switch (pinResult.status)
-                {
-                    case WebSockets.PinResultStatus.WRONG_PIN:
-                        tbText.Text = "";
-                        tbText.Inlines.Add(faIcon);
-                        tbText.Inlines.Add("Forkert Pin!");
-                        break;
-                    case WebSockets.PinResultStatus.LOCKED:
-                        tbText.Text = "";
-                        tbText.Inlines.Add(faIcon);
-                        tbText.Inlines.Add(string.Format("Klient låst indtil: {0}", pinResult.lockedUntil));
-                        break;
-                }
-            }
+            tbText.Text = "";
+            tbText.Inlines.Add(faIcon);
+            tbText.Inlines.Add(message);
         }
 
         private void Window_Deactivated(object sender, EventArgs e)
@@ -327,6 +445,5 @@ namespace OS2faktor.UI
                 });
             }
         }
-
     }
 }

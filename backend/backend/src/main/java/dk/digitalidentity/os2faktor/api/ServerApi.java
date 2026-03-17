@@ -167,7 +167,12 @@ public class ServerApi {
 	}
 
 	@PutMapping("/api/server/client/{deviceId}/authenticate")
-	public ResponseEntity<?> authenticateClient(@PathVariable("deviceId") String deviceId, @RequestParam(value = "emitChallenge", defaultValue = "true", required = false) boolean emitChallenge, @RequestParam(value = "passwordless", defaultValue = "false", required = false) boolean passwordless) {
+	public ResponseEntity<?> authenticateClient(
+					@PathVariable("deviceId") String deviceId,
+					@RequestParam(value = "emitChallenge", defaultValue = "true", required = false) boolean emitChallenge,
+					@RequestParam(value = "passwordless", defaultValue = "false", required = false) boolean passwordless,  // badly named parameter due to historic reasons (new challenge flow)
+					@RequestParam(value = "systemName", required = false) String systemName,
+					@RequestParam(value = "username", required = false) String username) {
 		Client client = clientService.getByDeviceId(deviceId);
 		if (client == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -191,9 +196,16 @@ public class ServerApi {
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 		}
 
-		if (passwordless && !client.isPasswordless()) {
-			log.warn("Attempting to initiate passwordless on non-passwordless client / clientId = " + client.getDeviceId() + " / serverId = " + server.getId());
-			return new ResponseEntity<>("Client is not passwordless", HttpStatus.BAD_REQUEST);
+		if (passwordless && !client.isSupportsChallengeFlow()) {
+			log.warn("Attempting to initiate challenge flow on client that does not support it / clientId = " + client.getDeviceId() + " / serverId = " + server.getId());
+			return new ResponseEntity<>("Client does not support challenge flow", HttpStatus.BAD_REQUEST);
+		}
+
+		if (systemName != null && systemName.isBlank()) {
+			systemName = null;
+		}
+		if (username != null && username.isBlank()) {
+			username = null;
 		}
 
 		Notification subscriptionInfo = new Notification();
@@ -208,6 +220,8 @@ public class ServerApi {
 		subscriptionInfo.setServerId(server.getId());
 		subscriptionInfo.setChallenge((emitChallenge) ? idGenerator.generateChallenge() : "");
 		subscriptionInfo.setPasswordless(passwordless);
+		subscriptionInfo.setSystemName(systemName);
+		subscriptionInfo.setUsername(username);
 		
 		if (passwordless) {
 			subscriptionInfo.setChallenge(idGenerator.generatePasswordlessChallenge());

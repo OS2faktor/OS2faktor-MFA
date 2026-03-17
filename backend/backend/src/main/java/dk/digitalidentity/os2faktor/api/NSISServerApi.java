@@ -126,6 +126,7 @@ public class NSISServerApi {
 				clientDTO.setLocked(client.isLocked());
 				clientDTO.setLockedUntil(client.getLockedUntil());
 				clientDTO.setPasswordless(client.isPasswordless());
+				clientDTO.setSupportsChallengeFlow(client.isSupportsChallengeFlow());
 				
 				if (client.getPincode() != null && client.getPincode().length() > 0) {
 					clientDTO.setHasPincode(true);
@@ -169,6 +170,7 @@ public class NSISServerApi {
 					clientDTO.setType(client.getType());
 					clientDTO.setLocked(client.isLocked());
 					clientDTO.setPasswordless(client.isPasswordless());
+					clientDTO.setSupportsChallengeFlow(client.isSupportsChallengeFlow());
 
 					if (clientDTO.isLocked()) {
 						clientDTO.setLockedUntil(client.getLockedUntil());
@@ -223,7 +225,8 @@ public class NSISServerApi {
 			clientDTO.setRoaming(client.isRoaming());
 			clientDTO.setLocked(client.isLocked());
 			clientDTO.setPasswordless(client.isPasswordless());
-			
+			clientDTO.setSupportsChallengeFlow(client.isSupportsChallengeFlow());
+
 			if (clientDTO.isLocked()) {
 				clientDTO.setLockedUntil(client.getLockedUntil());
 			}

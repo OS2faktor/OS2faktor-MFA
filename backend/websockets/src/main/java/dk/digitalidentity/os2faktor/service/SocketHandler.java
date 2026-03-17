@@ -82,6 +82,7 @@ public class SocketHandler extends TextWebSocketHandler {
 			String subscriptionKey = value.containsKey("subscriptionKey") ? value.get("subscriptionKey").toString() : "";
 			String version = value.containsKey("version") ? value.get("version").toString() : "";
 			String pinCode = value.containsKey("pin") ? value.get("pin").toString() : null;
+			String passwordlessChallenge = value.containsKey("passwordlessChallenge") ? value.get("passwordlessChallenge").toString() : null;
 
 			switch (status) {
 				case "ISALIVE":
@@ -89,7 +90,7 @@ public class SocketHandler extends TextWebSocketHandler {
 					break;
 				case "ACCEPT":
 				case "REJECT":
-					PinResult pinResult = websocketClientService.handleAcceptReject(status, clientSession.getClientDeviceId(), subscriptionKey, version, pinCode);
+					PinResult pinResult = websocketClientService.handleAcceptReject(status, clientSession.getClientDeviceId(), subscriptionKey, version, pinCode, passwordlessChallenge);
 					if (pinResult != null) {
 						switch (pinResult.getStatus()) {
 							case OK:
@@ -104,6 +105,7 @@ public class SocketHandler extends TextWebSocketHandler {
 								break;
 						}
 					}
+
 					break;
 				default:
 					log.warn("Client called with status = " + status + "  which is an unknown status type!");
@@ -294,6 +296,11 @@ public class SocketHandler extends TextWebSocketHandler {
 			}
 			else {
 				log.info("Sending challenge to " + session.getClientDeviceId());
+			}
+			
+			// send ?? for challenge flow
+			if (challenge.isPasswordless()) {
+				challengeValue = "??";
 			}
 			
 			WSMessageDTO jsonObject = new WSMessageDTO();

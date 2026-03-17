@@ -57,6 +57,7 @@ namespace OS2faktor
             // Attempt to migrate any existing configuration (old client installations)
             MigrateExistingConfiguration();
             MigrateUnencryptedApiKey();
+            MigratePinLength();
 
             WSCommunication.Init();
 
@@ -118,6 +119,18 @@ namespace OS2faktor
 
             // Create jobs
             InitSchedulerWebSocket();
+        }
+
+        private void MigratePinLength()
+        {
+            // Existing installs with a 4-digit PIN have pinLength == 0 (not yet stored).
+            // Treat them as 4-digit to preserve their registered PIN.
+            if (OS2faktor.Properties.Settings.Default.IsPinRegistered && OS2faktor.Properties.Settings.Default.pinLength == 0)
+            {
+                OS2faktor.Properties.Settings.Default.pinLength = 4;
+                OS2faktor.Properties.Settings.Default.Save();
+                OS2faktor.Properties.Settings.Default.Reload();
+            }
         }
 
         private void MigrateUnencryptedApiKey()
@@ -468,6 +481,7 @@ namespace OS2faktor
                 OS2faktor.Properties.Settings.Default.deviceId = null;
                 OS2faktor.Properties.Settings.Default.IsNemIDRegistered = false;
                 OS2faktor.Properties.Settings.Default.IsPinRegistered = false;
+                OS2faktor.Properties.Settings.Default.pinLength = 0;
                 OS2faktor.Properties.Settings.Default.Save();
                 OS2faktor.Properties.Settings.Default.Reload();
 

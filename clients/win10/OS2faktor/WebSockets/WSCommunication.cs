@@ -176,6 +176,7 @@ namespace OS2faktor
                     Properties.Settings.Default.deviceId = null;
                     Properties.Settings.Default.IsNemIDRegistered = false;
                     Properties.Settings.Default.IsPinRegistered = false;
+                    Properties.Settings.Default.pinLength = 0;
                     Properties.Settings.Default.Save();
                     Properties.Settings.Default.Reload();
 
@@ -193,13 +194,18 @@ namespace OS2faktor
             WebSocket.Close();
         }
 
-        internal static void Accept(string subscriptionKey, string pincode)
+        internal static void Accept(string subscriptionKey, string pincode, string passwordlessChallenge = null)
         {
             dynamic response = new ExpandoObject();
             response.subscriptionKey = subscriptionKey;
             response.status = "ACCEPT";
             response.version = OS2faktor.App.CLIENT_VERSION;
             response.pin = pincode;
+
+            if (!string.IsNullOrEmpty(passwordlessChallenge))
+            {
+                response.passwordlessChallenge = passwordlessChallenge;
+            }
 
             WebSocket.Send(JsonConvert.SerializeObject(response));
         }

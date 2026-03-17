@@ -21,4 +21,5 @@ public class NSISClientDTO {
 	private Date lockedUntil;
 	private String serialnumber;
 	private boolean passwordless;
+	private boolean supportsChallengeFlow;
 }

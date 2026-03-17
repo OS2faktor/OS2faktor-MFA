@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +40,7 @@ public class WebsocketClientService {
 	private SocketHandler socketHandler;
 
 	@Transactional
-	public PinResult handleAcceptReject(String status, String deviceId, String subscriptionKey, String version, String pinCode) {
+	public PinResult handleAcceptReject(String status, String deviceId, String subscriptionKey, String version, String pinCode, String passwordlessChallenge) {
 		// default result - pincode is OKAY
 		PinResult result = new PinResult();
 		result.setStatus(PinResultStatus.OK);
@@ -74,25 +75,7 @@ public class WebsocketClientService {
 					if (!matches) {
 						log.warn("Wrong pin for device: " + challenge.getClient().getDeviceId());
 	
-						if (client.getFailedPinAttempts() >= 5) {
-							Calendar c = Calendar.getInstance();
-							c.add(Calendar.MINUTE, 5);
-							Date lockedUntil = c.getTime();
-	
-							SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-	
-							result.setStatus(PinResultStatus.LOCKED);
-							result.setLockedUntil(format.format(lockedUntil));
-	
-							client.setFailedPinAttempts(0);
-							client.setLockedUntil(lockedUntil);
-							client.setLocked(true);
-						}
-						else {
-							result.setStatus(PinResultStatus.WRONG_PIN);
-	
-							client.setFailedPinAttempts(client.getFailedPinAttempts() + 1);
-						}
+						incrementPinLock(client, result);
 					}
 				}
 				catch (Exception ex) {
@@ -100,6 +83,15 @@ public class WebsocketClientService {
 					
 					// the best we can do - at least the client will act in a sane way
 					result.setStatus(PinResultStatus.WRONG_PIN);
+				}
+			}
+			
+			// is this a code challenge flow flow, then validate the code
+			if (client.isSupportsChallengeFlow() && challenge.isPasswordless()) {
+				if (!Objects.equals(challenge.getChallenge(), passwordlessChallenge)) {
+					log.warn("Wrong challenge-response for device: " + challenge.getClient().getDeviceId());
+
+					incrementPinLock(client, result);
 				}
 			}
 
@@ -125,6 +117,28 @@ public class WebsocketClientService {
 		}
 		
 		return result;
+	}
+
+	private void incrementPinLock(Client client, PinResult result) {
+		if (client.getFailedPinAttempts() >= 5) {
+			Calendar c = Calendar.getInstance();
+			c.add(Calendar.MINUTE, 5);
+			Date lockedUntil = c.getTime();
+
+			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+
+			result.setStatus(PinResultStatus.LOCKED);
+			result.setLockedUntil(format.format(lockedUntil));
+
+			client.setFailedPinAttempts(0);
+			client.setLockedUntil(lockedUntil);
+			client.setLocked(true);
+		}
+		else {
+			result.setStatus(PinResultStatus.WRONG_PIN);
+
+			client.setFailedPinAttempts(client.getFailedPinAttempts() + 1);
+		}
 	}
 
 	@Transactional

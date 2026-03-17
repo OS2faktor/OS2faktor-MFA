@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OS2Faktor Extension</title>
+
+    <link rel="stylesheet" href="libs/fontawesome-free-5.6.3-web/css/all.min.css" type="text/css" />
+
+    <style>
+        body {
+            width: 200px;
+            padding: 15px;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+        }
+
+        h2 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 16px;
+        }
+
+        ul {
+            font-size: 16px;
+            list-style-type: none;
+            padding-left: 10px;
+            margin: 0;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        li#deviceInfoItem {
+            font-size: smaller;
+        }
+
+        a {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        a:hover {
+            text-decoration: none;
+        }
+
+        img {
+           max-height: 30px;
+        }
+    </style>
+</head>
+<body>
+    <img id="logo" src="images/os2faktor.png"><br/>
+
+    <ul>
+        <li><a href="#" id="register-client"><i class="fas fa-fw fa-plus"></i>&nbsp Aktiver enhed</a></li>
+        <li><a href="#" id="activate-client"><i class="fas fa-fw fa-key"></i>&nbsp Udfør MitID aktivering</a></li>
+        <li><a href="#" id="pin-register"><i class="fas fa-fw fa-lock"></i>&nbsp PIN registrering</a></li>
+        <li><a href="#" id="manage-client"><i class="fas fa-fw fa-cog"></i>&nbsp Selvbetjening</a></li>
+        <li><a href="#" id="reset-client"><i class="fas fa-fw fa-minus"></i>&nbsp Nulstil enhed</a></li>
+
+        <li id="deviceIdRuler"><hr/></li>
+        <li id="deviceInfoItem"><center id="deviceInfoItemValue">&nbsp;</center></li>
+    </ul>
+
+    <script src="config.js"></script>
+    <script src="popup.js"></script>
+</body>
+</html>

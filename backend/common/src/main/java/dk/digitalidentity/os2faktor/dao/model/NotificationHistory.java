@@ -70,4 +70,10 @@ public class NotificationHistory {
 	@Column
 	private String clientType;
 
+	@Column
+	private String systemName;
+
+	@Column
+	private String username;
+
 }

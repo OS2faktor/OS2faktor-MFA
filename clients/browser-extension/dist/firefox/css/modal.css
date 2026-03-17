@@ -1,0 +1,202 @@
+.os2faktor-modal-overlay *,
+.os2faktor-modal-overlay *::before,
+.os2faktor-modal-overlay *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.os2faktor-modal-overlay {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.2);
+    display: none;
+    justify-content: flex-end;
+    align-items: flex-start;
+    z-index: 1000;
+    padding: 30px 30px 0 0;
+    box-sizing: border-box;
+}
+
+.os2faktor-modal-overlay.active {
+    display: flex;
+}
+
+.os2faktor-modal-content {
+    background: linear-gradient(135deg, #56649b 0%, #556098 100%);
+    border-radius: 12px;
+    width: 500px;
+    padding: 24px;
+    position: relative;
+    color: white;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    animation: modalFadeIn 0.7s ease-out;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.os2faktor-close-button {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.os2faktor-close-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.os2faktor-modal-header {
+    margin-bottom: 32px;
+}
+
+.os2faktor-logo-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.os2faktor-logo-logo img {
+    max-width: 30vw;
+    max-height: 40px;
+}
+
+.os2faktor-content-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.os2faktor-message {
+    text-align: left;
+    flex: 1;
+}
+
+.os2faktor-name {
+    font-size: 20px;
+    font-weight: 500;
+    margin: 0;
+}
+
+.os2faktor-timestamp {
+    font-size: 14px;
+    opacity: 0.9;
+    margin: 0;
+}
+
+.os2faktor-modal-body {
+    text-align: center;
+}
+
+.os2faktor-pin-section {
+    text-align: center;
+}
+
+.os2faktor-pin-label {
+    font-size: 14px;
+    margin-bottom: 16px;
+    opacity: 0.9;
+}
+
+.os2faktor-pin-circles {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+}
+
+.os2faktor-pin-circle {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.os2faktor-pin-circle.filled {
+    background-color: white;
+    border-color: white;
+}
+
+.os2faktor-pin-circle.active {
+    transform: scale(1.1);
+    border-color: white;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%       { transform: translateX(-10px); }
+    25%       { transform: translateX(10px); }
+    40%       { transform: translateX(-8px); }
+    55%       { transform: translateX(8px); }
+    70%       { transform: translateX(-5px); }
+    85%       { transform: translateX(5px); }
+}
+
+.os2faktor-pin-circles.shake {
+    animation: shake 0.8s ease-in-out;
+}
+
+.os2faktor-pin-error {
+    margin-top: 12px;
+    font-size: 13px;
+    color: #ffaaaa;
+    min-height: 18px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.os2faktor-pin-error.visible {
+    opacity: 1;
+}
+
+.os2faktor-pin-error.locked {
+    color: #ff4444;
+    font-weight: 600;
+}
+
+/* Focus styles for accessibility */
+.os2faktor-modal-content:focus {
+    outline: none;
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+    .os2faktor-modal-overlay {
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+    
+    .os2faktor-modal-content {
+        width: 90%;
+        margin: 0;
+    }
+
+}

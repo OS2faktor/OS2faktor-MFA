@@ -33,6 +33,13 @@ namespace OS2faktor.UI.Registration
         private void btnSave_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Dispatcher.Invoke(new Action(() => { lblInvalidPin.Visibility = Visibility.Collapsed; lblError.Visibility = Visibility.Collapsed; }));
+
+            if (tbPinCode.Password.Length < 6)
+            {
+                lblInvalidPin.Visibility = Visibility.Visible;
+                return;
+            }
+
             //Get the parent window
             RegistrationWindow wnd = (RegistrationWindow)Window.GetWindow(this);
             var deviceName = wnd.DeviceName;
@@ -48,6 +55,7 @@ namespace OS2faktor.UI.Registration
                         Properties.Settings.Default.deviceId = result.DeviceId;
                         Properties.Settings.Default.apiKey = EncryptionUtil.GetEncryptedAndEncodedApiKey(result.ApiKey);
                         Properties.Settings.Default.IsPinRegistered = true;
+                        Properties.Settings.Default.pinLength = 6;
                         Properties.Settings.Default.Save();
                         Properties.Settings.Default.Reload();
 

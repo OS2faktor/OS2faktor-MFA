@@ -192,7 +192,7 @@
                     <!--Apply Button-->
                     <Button x:Name="btnApply" Style="{StaticResource our-button}" HorizontalAlignment="Center" Content="Godkend Login" Click="btnApply_Click"/>
                     <!--PIN-code UI-->
-                    <TextBlock x:Name="tbPIN" Foreground="#ececec" FontSize="24" Text="&#x26AA;&#x26AA;&#x26AA;&#x26AB;" HorizontalAlignment="Center" VerticalAlignment="Center" FontStyle="Normal" FontFamily="Red Hat Mono Light">
+                    <TextBlock x:Name="tbPIN" Foreground="#ececec" FontSize="24" Text="&#x26AA;&#x26AA;&#x26AA;&#x26AA;&#x26AA;&#x26AA;" HorizontalAlignment="Center" VerticalAlignment="Center" FontStyle="Normal" FontFamily="Red Hat Mono Light">
                         <TextBlock.RenderTransform>
                             <TranslateTransform x:Name="MovePIN" X="0"/>
                         </TextBlock.RenderTransform>

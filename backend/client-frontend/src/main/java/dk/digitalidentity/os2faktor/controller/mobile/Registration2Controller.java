@@ -107,13 +107,36 @@ public class Registration2Controller extends BaseController {
 		client.setType((ClientType) type);
 		client.setNsisLevel(NSISLevel.NONE);
 
+		switch (client.getType()) {
+			case FIREFOX:
+				client.setSupportsChallengeFlow(true);
+				break;
+			case WINDOWS:
+			case EDGE:
+			case CHROME:
+				if (getMajorClientVersion(client) >= 3) {
+					client.setSupportsChallengeFlow(true);
+				}
+				break;
+			case ANDROID: // these clients do not actually call this endpoint
+			case IOS:
+				if (getMajorClientVersion(client) >= 3) {
+					client.setPasswordless(true);
+					client.setSupportsChallengeFlow(true);
+				}
+				break;
+			default:
+				break;
+		}
+
 		// Generate apiKey
 		String apiKey = idGenerator.generateUuid();
 
 		// Encode it and save it on client
 		try {
 			client.setApiKey(hashingService.encryptAndEncodeString(apiKey));
-		} catch (Exception ex) {
+		} 
+		catch (Exception ex) {
 			log.error("Failed to encrypt and encode apiKey", ex);
 			return ControllerUtil.handleError(model, FailedFlow.REGISTRATION, ErrorType.EXCEPTION, "Failed to encrypt and encode apiKey", PageTarget.APP);
 		}
@@ -269,5 +292,20 @@ public class Registration2Controller extends BaseController {
 		model.addAttribute("nsisWarning", ("true".equals(nsisWarning)));
 		
 		return "successPage2";
+	}
+	
+	private int getMajorClientVersion(Client client) {
+		if (client.getClientVersion() != null) {
+			String[] tokens = client.getClientVersion().split("\\.");
+
+			try {
+				return Integer.parseInt(tokens[0]);
+			}
+			catch (Exception ex) {
+				log.warn("Malformed client version '" + client.getClientVersion() + "' for " + client.getDeviceId());
+			}
+		}
+
+		return 0;
 	}
 }
