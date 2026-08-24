@@ -26,8 +26,8 @@ import dk.digitalidentity.os2faktor.dao.model.enums.NSISLevel;
 import dk.digitalidentity.os2faktor.security.ClientSecurityFilter;
 import dk.digitalidentity.os2faktor.service.ExternalLoginSessionService;
 import dk.digitalidentity.os2faktor.service.UserService;
-import dk.digitalidentity.samlmodule.model.SamlGrantedAuthority;
-import dk.digitalidentity.samlmodule.model.TokenUser;
+import dk.digitalidentity.saml.service.model.SamlGrantedAuthority;
+import dk.digitalidentity.saml.service.model.TokenUser;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 

@@ -32,11 +32,12 @@
         "ANDROID_SCHEME": " ",
         "ANDROID_HOST": " ",
         "ANDROID_PATHPREFIX": "/"
-      }
+      },
+      "cordova-plugin-insets": {}
     },
     "platforms": [
-      "android",
-      "ios"
+      "ios",
+      "android"
     ]
   },
   "dependencies": {
@@ -58,6 +59,7 @@
     "cordova-plugin-androidx-adapter": "^1.1.3",
     "cordova-plugin-customurlscheme": "^5.0.2",
     "cordova-plugin-fingerprint-aio": "^5.0.3",
+    "cordova-plugin-insets": "file:cordova-plugin-insets",
     "cordova-plugin-screensize": "^1.3.1"
   }
 }

@@ -112,7 +112,15 @@ public class WebsocketClientService {
 			notificationDao.save(challenge);
 	
 			client.setUseCount(client.getUseCount() + 1);
-			client.setClientVersion(version);
+			
+			if (!Objects.equals(client.getClientVersion(), version)) {
+				client.setClientVersion(version);
+
+				// supported since version 3
+				if (getMajorClientVersion(client) >= 3 && !client.isSupportsChallengeFlow()) {
+					client.setSupportsChallengeFlow(true);
+				}
+			}
 			clientDao.save(client);
 		}
 		
@@ -174,4 +182,20 @@ public class WebsocketClientService {
 	public void resetSeenChallenges() {
 		seenChallenges.clear();
 	}
+	
+	private int getMajorClientVersion(Client client) {
+		if (client.getClientVersion() != null) {
+			String[] tokens = client.getClientVersion().split("\\.");
+
+			try {
+				return Integer.parseInt(tokens[0]);
+			}
+			catch (Exception ex) {
+				log.warn("Malformed client version '" + client.getClientVersion() + "' for " + client.getDeviceId());
+			}
+		}
+
+		return 0;
+	}
+
 }

@@ -22,7 +22,7 @@
                     modal.showApprovalUI({
                         challenge: response.challenge,
                         name: response.serverName,
-                        timestamp: 'Ankommet kl ' + response.tts,
+                        timestamp: 'Ankommet ' + response.tts,
                         uuid: response.uuid,
                         pinLength: pinLength,
                         onApprove: function(pin) {
@@ -50,7 +50,7 @@
                     // Passwordless flow
                     modal.open({
                         name: response.serverName,
-                        timestamp: 'Ankommet kl ' + response.tts,
+                        timestamp: 'Ankommet ' + response.tts,
                         uuid: response.uuid,
                         pinLength: pinLength,
                         onPinComplete: function(pin) {

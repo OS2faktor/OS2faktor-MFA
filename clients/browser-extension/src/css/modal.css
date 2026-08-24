@@ -17,7 +17,7 @@
     display: none;
     justify-content: flex-end;
     align-items: flex-start;
-    z-index: 1000;
+    z-index: 2500;
     padding: 30px 30px 0 0;
     box-sizing: border-box;
 }
@@ -179,6 +179,20 @@
 .os2faktor-pin-error.locked {
     color: #ff4444;
     font-weight: 600;
+}
+
+.os2faktor-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: os2faktor-spin 0.8s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes os2faktor-spin {
+    to { transform: rotate(360deg); }
 }
 
 /* Focus styles for accessibility */

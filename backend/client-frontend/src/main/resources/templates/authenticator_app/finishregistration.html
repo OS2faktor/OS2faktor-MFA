@@ -22,7 +22,7 @@
 								
 									<h4>Tilknyt authenticator</h4>
 									<p>Du skal nu scanne QR koden med din Authenticator. Når registreringen er gennemført i app'en, skal du indtaste koden, som appen genererer og herefter trykke videre. Hvis koden er korrekt bliver din enhed registreret.</p>
-									<img class="offset-sm-3 col-sm-6" th:src="*{qrCode}" />
+									<img class="offset-sm-3 col-sm-6" style="max-width: 500px;" th:src="*{qrCode}" />
 									<p class="offset-sm-3 col-sm-8" th:text="'Konfigurationsnøgle: ' + *{qrCodeKey}"></p>
 									
 									<br/>

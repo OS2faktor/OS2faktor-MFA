@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<plugin id="cordova-plugin-insets" version="1.0.0" xmlns="http://apache.org/cordova/ns/plugins/1.0">
+  <name>Insets Plugin</name>
+  <description>Expose Android WindowInsets (status/nav/gesture/IME) to JS and detect gesture vs 3-button nav.</description>
+  <license>MIT</license>
+  <keywords>android, insets, gesture navigation, safe-area</keywords>
+
+  <engines>
+    <engine name="cordova-android" version=">=10.0.0" />
+  </engines>
+
+  <js-module name="Insets" src="www/insets.js">
+    <clobbers target="Insets" />
+  </js-module>
+
+  <platform name="android">
+    <config-file target="res/xml/config.xml" parent="/*">
+      <feature name="InsetsPlugin">
+        <param name="android-package" value="dk.digitalidentity.insets.InsetsPlugin" />
+        <!-- <param name="onload" value="true" />  (optional) -->
+      </feature>
+    </config-file>
+    
+    <!-- AndroidX core for WindowInsetsCompat -->
+    <framework src="androidx.core:core:1.13.1" />
+    
+    <framework src="src/android/kotlin-harmonizer.gradle" custom="true" type="gradleReference" />
+    
+    <source-file src="src/android/dk/digitalidentity/insets/InsetsPlugin.java" target-dir="src/dk/digitalidentity/insets" />
+  </platform>
+</plugin>

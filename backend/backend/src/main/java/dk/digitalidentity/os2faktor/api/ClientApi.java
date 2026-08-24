@@ -106,7 +106,7 @@ public class ClientApi {
 						break;
 					case EDGE:
 					case CHROME:
-						if (getMajorClientVersion(client) >= 3) {
+						if (getMajorClientVersion(client) >= 4) {
 							client.setSupportsChallengeFlow(true);
 						}
 						break;

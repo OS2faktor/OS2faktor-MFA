@@ -31,6 +31,10 @@ public class ClientService {
 		return clientDao.save(client);
 	}
 
+	public void delete(Client client) {
+		clientDao.delete(client);
+	}
+
 	public void saveAll(List<Client> clients) {
 		clientDao.saveAll(clients);
 	}

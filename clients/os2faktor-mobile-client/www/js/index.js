@@ -1,5 +1,5 @@
 var devMode = false;
-var clientVersion = "3.0.0";
+var clientVersion = "3.3.0";
 var frontendUrl = "https://frontend.os2faktor.dk";
 var backendUrl = "https://backend.os2faktor.dk";
 
@@ -35,6 +35,22 @@ function getDeviceType() {
 
 // initializer (main method)
 document.addEventListener('deviceready', onDeviceReady, false);
+
+// fix for top and bottom padding
+document.addEventListener('deviceready', function () {
+   Insets.applyCssVars()
+     .then(function (ins) {
+       console.log("[InsetsPlugin] Final insets in app code:", JSON.stringify(ins));
+     })
+     .catch(function (err) {
+       console.error("[InsetsPlugin] Failed to get insets:", err);
+     });
+
+  // Re-apply on orientation changes / viewport resize
+  window.addEventListener('resize', function () {
+    Insets.applyCssVars().catch(console.warn);
+  });
+});
 
 // hack for development to trigger onDeviceReady from browser window
 var browserOnly = false;

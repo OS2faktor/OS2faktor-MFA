@@ -5,7 +5,7 @@ if (typeof importScripts === 'function') {
     importScripts('config.js');
 }
 
-var clientVersion = "3.0.0";
+var clientVersion = "4.0.3";
 
 // PIN length migration: existing installs without pinLength get pinLength=4
 function migratePinLength() {
@@ -22,6 +22,7 @@ chrome.runtime.onInstalled.addListener(function() {
 
 chrome.runtime.onStartup.addListener(function() {
     migratePinLength();
+    
     storageGet(["apiKey", "deviceId", "pinRegistered", "mitIdRegistered"]).then(function(result) {
         fetchStatusFromBackend(result);
     });
@@ -68,6 +69,18 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 
     if (request.event == 'rejectChallenge') {
         rejectChallenge(sendResponse, request.uuid);
+        return true;
+    }
+
+    if (request.event == 'manualChallengeTrigger') {
+        chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+            if (tabs && tabs.length > 0) {
+                chrome.tabs.sendMessage(tabs[0].id, { event: 'manualChallenge' }, function() {
+                    void chrome.runtime.lastError; // suppress "no receiver" error on non-.dk pages
+                });
+            }
+        });
+        sendResponse();
         return true;
     }
 
@@ -139,10 +152,11 @@ async function fetchStatusFromBackend(dbVariables) {
             headers: { 'ApiKey': apiKey, 'deviceId': deviceId },
             url: BACKEND_URL + "/api/client/v2/status"
         });
+            
         handleBackendStatus({
             exists: !response.data.disabled,
             pinProtected: response.data.pinProtected,
-            mitIdRegistered: response.data.mitIdRegistered,
+            mitIdRegistered: response.data.nemIdRegistered,
             lookupFailed: false
         }, dbPinRegistered, dbMitIdRegistered);
     } catch (error) {
@@ -156,13 +170,16 @@ function handleBackendStatus(result, dbPinRegistered, dbMitIdRegistered) {
         if (result.pinProtected && !dbPinRegistered) {
             storageSet({ pinRegistered: true });
         }
+
         if (result.mitIdRegistered && !dbMitIdRegistered) {
             storageSet({ mitIdRegistered: true });
         }
-    } else if (!result.lookupFailed) {
+    }
+    else if (!result.lookupFailed) {
         console.log('2-faktor enheden er slettet centralt, nulstiller enheden');
         storageRemove(["apiKey", "deviceId", "mitIdRegistered", "pinRegistered", "pinLength"]);
-    } else {
+    }
+    else {
         console.error('Teknisk fejl ved status-opslag');
     }
 }
@@ -428,3 +445,93 @@ async function makeAjaxRequest(options) {
         throw { status: 0, responseJSON: null, networkError: error };
     }
 }
+
+/// handling push notifications start
+const VAPID_PUBLIC_KEY = 'BJgHwxgz45mYC9_gGqOF3RiCL97HVwt3tP9RqYz2btuv_r0Ev3bJ4A9PMzwpHVbsXnA715ZJmxhn5DDRDHoBnGI='; 
+
+// trigger method - should be called somewhere
+async function registerPushToken() {
+    try {
+        const registration = self.registration;
+
+        let subscription = await registration.pushManager.getSubscription();
+    
+        if (!subscription) {
+            subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+            });
+        }
+
+        await updatePushNotificationToken(JSON.stringify(subscription.toJSON(), null, 2));
+    }
+    catch (err) {
+        console.log('Subscription failed:', err);
+    }
+}
+
+async function updatePushNotificationToken(token) {
+    const result = await storageGet(["apiKey", "deviceId", "pushToken"]);
+
+    if (result.apiKey && result.deviceId) {
+        if (result.pushToken && token === result.pushToken) {
+            log.info("no token changes");
+        }
+        else {
+            await storageSet({ pushToken: token });
+            await updatePushTokenForReal(result.apiKey, result.deviceId, token);
+        }
+    }
+}
+
+async function updatePushTokenForReal(apiKey, deviceId, token) {
+    if (token && apiKey && deviceId) {
+        const response = await fetch(BACKEND_URL + "/api/client/v2/setRegId", {
+            method: 'POST',
+            headers: {
+                'ApiKey': apiKey,
+                'deviceId': deviceId, 
+                'clientVersion': clientVersion,
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify({
+              'token': token
+            })
+        });
+        
+        if (response.ok) {
+            console.info('Updated push token on backend');
+        }
+        else {
+            console.error('Failed to update push token:', response.status);
+        }
+    }
+}
+
+// trigger registration of token on backend
+chrome.runtime.onStartup.addListener(registerPushToken);
+chrome.runtime.onInstalled.addListener(registerPushToken);
+
+self.addEventListener('push', (event) => {
+    event.waitUntil((async () => {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (tab) {
+            try {
+                await chrome.tabs.sendMessage(tab.id, { event: 'manualChallenge' });
+            } catch (err) {
+                // Content script not loaded in this tab (e.g. chrome:// page, or non-.dk site)
+                console.error('Could not deliver challenge to active tab:', err);
+            }
+        }
+    })());
+});
+
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = atob(base64);
+
+    return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+}
+
+/// handling push notifications end

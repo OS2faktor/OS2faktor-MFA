@@ -5,7 +5,7 @@ if (typeof importScripts === 'function') {
     importScripts('config.js');
 }
 
-var clientVersion = "3.0.0";
+var clientVersion = "4.0.0";
 
 // PIN length migration: existing installs without pinLength get pinLength=4
 function migratePinLength() {

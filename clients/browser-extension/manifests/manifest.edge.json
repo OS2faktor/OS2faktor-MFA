@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "OS2faktor Edge Extension",
-  "version": "3.0.0",
+  "name": "OS2faktor MFA",
+  "version": "4.0.2",
   "description": "OS2faktor MFA",
 
   "browser_specific_settings": {
@@ -12,7 +12,8 @@
     "activeTab",
     "tabs",
     "storage",
-    "alarms"
+    "alarms",
+    "notifications"
   ],
 
   "host_permissions": [

@@ -113,10 +113,6 @@ public class HardwareTokenRegisterController extends BaseController {
 			model.addAttribute("deviceNotFound", true);
 			return true;
 		}
-		else if (existingToken.getRegisteredToCpr() != null || existingToken.getRegisteredToCvr() != null) {
-			model.addAttribute("alreadyExists", true);
-			return true;
-		}
 
 		return false;
 	}
@@ -199,6 +195,17 @@ public class HardwareTokenRegisterController extends BaseController {
 		Object oCvr = request.getSession().getAttribute(ClientSecurityFilter.SESSION_CVR);
 		if (oCvr != null && oCvr instanceof String && ((String)oCvr).length() > 0) {
 			cvr = (String) oCvr;
+		}
+
+		// if this token was already registered to a client, remove the old client, as the user has just proven
+		// possession of the physical token by entering a valid code, so we allow re-registering it
+		if (existingToken.getClientDeviceId() != null) {
+			Client oldClient = clientService.getByDeviceId(existingToken.getClientDeviceId());
+			if (oldClient != null) {
+				clientService.delete(oldClient);
+			}
+
+			localClientService.deleteByDeviceId(existingToken.getClientDeviceId());
 		}
 
 		// create real client

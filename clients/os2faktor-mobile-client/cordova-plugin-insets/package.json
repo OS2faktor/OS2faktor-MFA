@@ -1,0 +1,23 @@
+{
+  "name": "cordova-plugin-insets",
+  "version": "1.0.0",
+  "description": "Expose Android WindowInsets (status/nav/gesture/IME) to JS and detect gesture vs 3-button nav.",
+  "main": "www/insets.js",
+  "author": "psu@digital-identity.dk",
+  "license": "MIT",
+  "keywords": [
+    "cordova",
+    "plugin",
+    "android",
+    "insets",
+    "gesture",
+    "navigation",
+    "safe-area"
+  ],
+  "cordova": {
+    "id": "cordova-plugin-insets",
+    "platforms": [
+      "android"
+    ]
+  }
+}

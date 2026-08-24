@@ -30,6 +30,28 @@ class OS2faktorModal {
         return html;
     }
 
+    showSpinner() {
+        if (chrome && chrome.runtime && chrome.runtime.getURL) {
+            this.injectOS2FaktorCSS(chrome.runtime.getURL("css/modal.css"));
+        } else {
+            this.injectOS2FaktorCSS("css/modal.css");
+        }
+
+        this.modalOverlay = document.createElement('div');
+        this.modalOverlay.id = 'os2faktorModal';
+        this.modalOverlay.className = 'os2faktor-modal-overlay';
+        this.modalOverlay.innerHTML = `
+            <div class="os2faktor-modal-content" style="text-align: center; padding: 32px 24px;">
+                <div class="os2faktor-spinner"></div>
+                <div style="margin-top: 16px; color: white; font-size: 14px; opacity: 0.9;">Klar til anmodninger</div>
+            </div>
+        `;
+
+        document.body.appendChild(this.modalOverlay);
+        this.modal = this.modalOverlay;
+        this.modal.classList.add('active');
+    }
+
     // This modal is shown for the passwordless flow
     open(options = {}) {
         if (chrome && chrome.runtime && chrome.runtime.getURL) {
@@ -38,7 +60,7 @@ class OS2faktorModal {
             this.injectOS2FaktorCSS("css/modal.css");
         }
 
-        this.pinLength = options.pinLength || 6;
+        this.pinLength = options.pinLength || 4;
 
         this.modalOverlay = document.createElement('div');
         this.modalOverlay.id = 'os2faktorModal';
@@ -114,7 +136,7 @@ class OS2faktorModal {
         }
 
         this.uuid = options.uuid || null;
-        this.pinLength = options.pinLength || 6;
+        this.pinLength = options.pinLength || 4;
         this.onApprove = options.onApprove || null;
         this.onReject = options.onReject || null;
         this.approvalMode = true;

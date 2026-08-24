@@ -57,7 +57,8 @@ namespace OS2faktorPlugin
                         cssClass = "fa-mobile";
                     }
 
-                    clientArray += "{ \"name\" : \"" + client.name + "\", \"deviceId\" : \"" + client.deviceId + "\", \"cssClass\" : \"" + cssClass + "\" }";
+                    string safeName = System.Text.RegularExpressions.Regex.Replace(client.name ?? "", @"[""\\\<\>&\x00-\x1F]", "");
+                    clientArray += "{ \"name\" : \"" + safeName + "\", \"deviceId\" : \"" + client.deviceId + "\", \"cssClass\" : \"" + cssClass + "\" }";
                     first = false;
                 }
             }

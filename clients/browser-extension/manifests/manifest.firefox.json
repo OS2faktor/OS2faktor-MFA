@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "OS2faktor MFA",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "description": "OS2faktor MFA",
 
   "browser_specific_settings": {

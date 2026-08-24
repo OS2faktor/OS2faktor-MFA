@@ -127,7 +127,7 @@ namespace OS2faktorPlugin
                 string pollingUrl = url + (url.EndsWith("/") ? "" : "/") + "api/notification/" + response.pollingKey + "/poll";
 
                 string chromeClient = "false";
-                if ("CHROME".Equals(client.type))
+                if ("CHROME".Equals(client.type) || "EDGE".Equals(client.type) || "FIREFOX".Equals(client.type))
                 {
                     chromeClient = "true";
                 }
@@ -162,7 +162,7 @@ namespace OS2faktorPlugin
 
             log.Info("Initializing OS2faktor");
 
-            string connectorVersion = "2.5.0";
+            string connectorVersion = "3.0.1";
 
             string apiKey = (string)key.GetValue(REGKEY_APIKEY, "NOT_SET");
             url = (string)key.GetValue(REGKEY_URL, "https://backend.os2faktor.dk");

@@ -1,0 +1,76 @@
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --effective-bottom: var(--safe-bottom);
+}
+
+/* Normal flow content (optional) */
+body {
+  padding-top: var(--safe-top) !important;
+  padding-bottom: var(--effective-bottom);
+  padding-left: var(--safe-left) !important;
+  padding-right: var(--safe-right) !important;
+  background-color: black !important;
+}
+
+/* Fixed headers/footers MUST use the vars explicitly */
+.fixed-top, .navbar-fixed-top, header.sticky, .app-header {
+  top: var(--safe-top) !important;
+  padding-left: var(--safe-left) !important;
+  padding-right: var(--safe-right) !important;
+}
+
+.fixed-bottom, .navbar-fixed-bottom, .app-footer {
+  bottom: var(--safe-bottom) !important;
+  padding-left: var(--safe-left) !important;
+  padding-right: var(--safe-right) !important;
+}
+
+#page-wrapper {
+    max-height: calc(100vh - var(--safe-top) - var(--safe-bottom)) !important;
+    min-height: calc(100vh - var(--safe-top) - var(--safe-bottom)) !important;
+    overflow: hidden !important;
+    padding-bottom: 0px !important;
+}
+
+/* Main containers should fit within screen bounds */
+#main, #loader, #pinlogin, #deviceBlocked {
+    max-height: 100vh !important;
+    overflow: hidden !important;
+}
+
+/* Prevent body scrolling */
+body {
+    overflow: hidden !important;
+    max-height: 100vh !important;
+}
+
+/* Content areas should be scrollable if needed, but contained */
+.wrapper.wrapper-content {
+    max-height: calc(100vh - var(--safe-top) - var(--safe-bottom) - 60px) !important;
+    overflow-y: hidden !important;
+    overflow-x: hidden !important;
+}
+
+/* Footer elements */
+.footer.fixed {
+  bottom: 0px !important;
+  margin-bottom: var(--safe-bottom) !important;
+  padding-left: var(--safe-left) !important;
+  padding-right: var(--safe-right) !important;
+}
+
+/* Ensure ibox-content areas fit within screen bounds */
+.ibox-content {
+  max-height: calc(100vh - var(--safe-top) - var(--safe-bottom) - 120px) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+/* Prevent any container from exceeding screen height */
+.ibox {
+  max-height: calc(100vh - var(--safe-top) - var(--safe-bottom) - 80px) !important;
+  overflow: hidden !important;
+}

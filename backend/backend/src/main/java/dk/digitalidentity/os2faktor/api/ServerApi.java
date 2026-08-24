@@ -163,7 +163,11 @@ public class ServerApi {
 			return new ResponseEntity<>("Unexpected error processing payload", HttpStatus.BAD_REQUEST);
 		}
 
-		return new ResponseEntity<>(clients, HttpStatus.OK);
+		List<Client> sortedClients = clients.stream()
+				.sorted(java.util.Comparator.comparing(Client::getName, java.util.Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
+				.collect(java.util.stream.Collectors.toList());
+
+		return new ResponseEntity<>(sortedClients, HttpStatus.OK);
 	}
 
 	@PutMapping("/api/server/client/{deviceId}/authenticate")
@@ -199,13 +203,6 @@ public class ServerApi {
 		if (passwordless && !client.isSupportsChallengeFlow()) {
 			log.warn("Attempting to initiate challenge flow on client that does not support it / clientId = " + client.getDeviceId() + " / serverId = " + server.getId());
 			return new ResponseEntity<>("Client does not support challenge flow", HttpStatus.BAD_REQUEST);
-		}
-
-		if (systemName != null && systemName.isBlank()) {
-			systemName = null;
-		}
-		if (username != null && username.isBlank()) {
-			username = null;
 		}
 
 		if (systemName != null && systemName.isBlank()) {

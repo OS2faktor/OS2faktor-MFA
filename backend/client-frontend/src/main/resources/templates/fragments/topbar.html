@@ -22,8 +22,7 @@
 				<ul sec:authorize="isAuthenticated()" class="nav navbar-top-links navbar-right">
 					<li>
 						<th:block th:if="${session.SESSION_REDIRECT_URL == null}">
-							<form th:action="@{/logout}" id="logout_form" method="post"></form>
-							<a href="#" onclick="$('#logout_form').submit();">
+							<a th:href="@{/saml/logout}">
 								<em class="fa fa-sign-out"></em>
 								<span>Log ud</span>
 							</a>

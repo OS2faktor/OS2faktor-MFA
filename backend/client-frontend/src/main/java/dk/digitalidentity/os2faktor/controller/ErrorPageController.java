@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 
+import dk.digitalidentity.saml.exception.ExternalException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,7 +48,7 @@ public class ErrorPageController implements ErrorController {
 		}
 
 		if (t != null) {		
-			if (t instanceof AuthenticationException) {
+			if (t instanceof AuthenticationException || t instanceof ExternalException) {
 				model.addAttribute("exception", t);
 
 				log.warn("AuthenticationException: " + t.getMessage());

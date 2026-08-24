@@ -1,4 +1,4 @@
-var clientVersion = "3.0.0";
+var clientVersion = "4.0.0";
 
 document.addEventListener('DOMContentLoaded', function() {
     const inputPin = document.getElementById("inputPin");

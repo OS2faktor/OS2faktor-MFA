@@ -12,7 +12,7 @@ import dk.digitalidentity.os2faktor.dao.model.Client;
 import dk.digitalidentity.os2faktor.dao.model.User;
 import dk.digitalidentity.os2faktor.dao.model.enums.NSISLevel;
 import dk.digitalidentity.os2faktor.service.UserService;
-import dk.digitalidentity.samlmodule.model.TokenUser;
+import dk.digitalidentity.saml.service.model.TokenUser;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.SneakyThrows;

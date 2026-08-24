@@ -155,6 +155,9 @@ public class AuthenticatorAppLoginController extends BaseController {
 			return "authenticator_app/login";
 		}
 		
+		// default hashAlgo
+		Hash hashAlgo = Hash.SHA1;
+		
 		// set initialOffset parameter if TOTPH
 		int offset = 0;
 		HardwareToken token = null;
@@ -162,11 +165,13 @@ public class AuthenticatorAppLoginController extends BaseController {
 			token = hardwareTokenService.getByClient(client.getDeviceId());
 			if (token != null) {
 				offset = (int) token.getOffset();
+				
+				hashAlgo = Hash.valueOf(token.getHashAlgo());
 			}
 		}
 
 		// last argument is a span of 7 codes (-90, -60, -30, 0, 30, 60, 90 seconds from current offset)
-		OtpVerificationResult otpVerificationResult = mfaTokenManager.verifyTotp(form.mfaCode, client.getSecret(), offset, 7, Hash.SHA1);
+		OtpVerificationResult otpVerificationResult = mfaTokenManager.verifyTotp(form.mfaCode, client.getSecret(), offset, 7, hashAlgo);
 		if (!otpVerificationResult.success()) {
 			client.setFailedPinAttempts(client.getFailedPinAttempts() + 1);
 			clientService.save(client);

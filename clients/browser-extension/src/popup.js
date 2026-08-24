@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var activateClientLink     = document.getElementById('activate-client');
     var pinRegisterLink        = document.getElementById('pin-register');
     var manageClientLink       = document.getElementById('manage-client');
+    var fetchChallengesLink    = document.getElementById('fetch-challenges');
     var resetClientLink        = document.getElementById('reset-client');
     var deviceInfoItemValueRef = document.getElementById('deviceInfoItemValue');
 
@@ -55,6 +56,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    fetchChallengesLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        chrome.runtime.sendMessage({ event: 'manualChallengeTrigger' });
+        window.close();
+    });
+
     resetClientLink.addEventListener('click', function(e) {
         e.preventDefault();
         createCenteredWindow('reset.html', function() {
@@ -100,6 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 hide(registerClientLink);
                 show(resetClientLink);
+                show(fetchChallengesLink);
 
                 if (mitIdRegistered) {
                     hide(activateClientLink);
@@ -121,6 +129,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 hide(activateClientLink);
                 hide(pinRegisterLink);
                 hide(manageClientLink);
+                hide(fetchChallengesLink);
                 hide(resetClientLink);
             }
         });

@@ -1,0 +1,33 @@
+// Unify Kotlin to a single version and exclude legacy jdk7/jdk8 artifacts.
+// No changes inside platforms/ needed; Cordova includes this file automatically.
+
+def kotlinVer = null
+// allow overrides from gradle.properties (kotlin.version=...)
+if (project.hasProperty('kotlin.version')) {
+    kotlinVer = project.property('kotlin.version')
+}
+if (!kotlinVer) {
+    // fallback default if not provided by the project
+    kotlinVer = '1.8.22'
+}
+
+gradle.projectsEvaluated {
+    // Apply to all modules (root + app + any library subprojects)
+    allprojects { prj ->
+        prj.configurations.all { cfg ->
+            // Exclude obsolete split stdlibs that clash with 1.8+ merged stdlib
+            cfg.exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
+            cfg.exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+
+            cfg.resolutionStrategy {
+                eachDependency { details ->
+                    if (details.requested.group == 'org.jetbrains.kotlin' &&
+                        details.requested.name.startsWith('kotlin-stdlib')) {
+                        details.useVersion(kotlinVer)
+                    }
+                }
+                force "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVer}"
+            }
+        }
+    }
+}

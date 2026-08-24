@@ -1,0 +1,7 @@
+android {
+    packaging {
+        jniLibs {
+            excludes += ["**/libsqlc-evcore-native-driver.so"]
+        }
+    }
+}

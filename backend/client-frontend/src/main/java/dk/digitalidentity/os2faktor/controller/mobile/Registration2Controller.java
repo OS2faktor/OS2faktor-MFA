@@ -111,9 +111,13 @@ public class Registration2Controller extends BaseController {
 			case FIREFOX:
 				client.setSupportsChallengeFlow(true);
 				break;
-			case WINDOWS:
 			case EDGE:
 			case CHROME:
+				if (getMajorClientVersion(client) >= 4) {
+					client.setSupportsChallengeFlow(true);
+				}
+				break;
+			case WINDOWS:
 				if (getMajorClientVersion(client) >= 3) {
 					client.setSupportsChallengeFlow(true);
 				}

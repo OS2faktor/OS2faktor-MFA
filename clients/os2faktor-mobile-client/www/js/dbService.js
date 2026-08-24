@@ -27,7 +27,7 @@ function DBService() {
     sqlDB = window.sqlitePlugin.openDatabase({
       name: 'os2f',
       location: 'default',
-      androidDatabaseImplementation: 2
+      androidDatabaseProvider: 'system'
     });
 
     sqlDB.transaction(function(tx) {

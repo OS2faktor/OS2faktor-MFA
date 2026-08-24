@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="dk.digitalidentity.os2faktor" version="3.1.0" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="dk.digitalidentity.os2faktor" version="3.3.1" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>OS2faktor</name>
     <description>
         OS2faktor er en kommunal 2-faktor login løsning, der anvende af kommunale medarbejdere.
@@ -13,6 +13,10 @@
     <access origin="*://*.os2faktor.dk/*" />
     <platform name="android">
         <preference name="AndroidXEnabled" value="true" />
+        <preference name="AndroidInvertedStatusBar" value="false" />
+        <preference name="StatusBarOverlaysWebView" value="false" />
+        <preference name="StatusBarBackgroundColor" value="#000000" />
+        <preference name="StatusBarStyle" value="lightcontent" />
         <resource-file src="google-services.json" target="app/google-services.json" />
         <resource-file src="res/drawable-anydpi-v24/notification_icons.xml" target="app/src/main/res/drawable-anydpi-v24/notification_icons.xml" />
         <resource-file src="res/drawable-hdpi/notification_icons.png" target="app/src/main/res/drawable-hdpi/notification_icons.png" />
@@ -29,11 +33,13 @@
             <meta-data android:name="firebase_crash_collection_enabled" android:value="false" />
             <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/notification_icons" />
         </config-file>
-        <preference name="android-targetSdkVersion" value="35" />
-        <preference name="android-compileSdkVersion" value="35" />
+	<resource-file src="res/build-extras.gradle" target="app/build-extras.gradle" />
+        <preference name="android-targetSdkVersion" value="36" />
+        <preference name="android-compileSdkVersion" value="36" />
         <preference name="android-minSdkVersion" value="24" />
         <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/os2faktor_logo_round.xml" />
         <preference name="AndroidWindowSplashScreenBackground" value="#ffffff" />
+        <preference name="AndroidWindowSplashScreenIcon" value="res/mipmap/splash_icon" />
         <preference name="GradlePluginKotlinEnabled" value="true" />
         <preference name="GradlePluginKotlinVersion" value="1.7.21" />
     </platform>

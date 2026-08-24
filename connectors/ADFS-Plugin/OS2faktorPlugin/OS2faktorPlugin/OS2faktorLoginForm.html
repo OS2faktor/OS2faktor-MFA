@@ -6,10 +6,15 @@
 
         <div id="pageIntroductionText">
             <span id="outside-browser" style="display: none;">
-                <p>
+                <p id="oldChallenge" style="display: none;">
                     Din OS2faktor klient åbner om lidt og spørger om du vil tillade login,
                     når dette sker, skal du verificere at den kode der vises i din OS2faktor
                     klient matcher nedenstående
+                </p>
+
+                <p id="newChallenge" style="display: none;">
+                    Din OS2faktor klient åbner om lidt og spørger om du vil tillade login,
+                    når dette sker, skal du indtaste nedenstående kode i din OS2faktor klient
                 </p>
 
                 <h2 style="width: 150px; margin: 20px auto; padding: 10px 0px; border: 1px solid black; text-align: center;">@@CHALLENGE@@</h2>
@@ -49,12 +54,22 @@
         var showRememberDevice = @@SHOWREMEMBERDEVICE@@;
         var iFrameYubiKey = @@USEIFRAME@@;
         var delayedLogin = @@DELAYEDLOGIN@@;
+        var oldChallenge = @@OLDCHALLENGE@@;
 
         if (!showRememberDevice) {
             var rememberDeviceLabelElem = document.getElementById('rememberDeviceLabel');
             var rememberDeviceElem = document.getElementById('rememberDevice');
             rememberDeviceLabelElem.style.cssText = 'display: none;';
             rememberDeviceElem.style.cssText = 'display: none;';
+        }
+
+        if (oldChallenge) {
+            var oldChallengeElem = document.getElementById('oldChallenge');
+            oldChallengeElem.style.cssText = 'display: block;';
+        }
+        else {
+            var newChallengeElem = document.getElementById('newChallenge');
+            newChallengeElem.style.cssText = 'display: block;';
         }
 
         if (setLocalStorageNull) {
